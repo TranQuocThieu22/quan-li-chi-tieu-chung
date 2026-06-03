@@ -1,0 +1,25 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Member {
+  id        Int       @id @default(autoincrement())
+  name      String
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+}
+
+model Expense {
+  id        Int      @id @default(autoincrement())
+  item      String
+  amount    Int
+  payerId   Int
+  payer     Member   @relation(fields: [payerId], references: [id])
+  notes     String?
+  createdAt DateTime @default(now())
+}
