@@ -21,6 +21,19 @@ export default function AddExpense() {
     notes: '',
     date: today
   });
+  const [displayAmount, setDisplayAmount] = useState('');
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (!rawValue) {
+      setDisplayAmount('');
+      setFormData({ ...formData, amount: '' });
+      return;
+    }
+    const formatted = new Intl.NumberFormat('vi-VN').format(parseInt(rawValue, 10));
+    setDisplayAmount(formatted);
+    setFormData({ ...formData, amount: rawValue });
+  };
 
   useEffect(() => {
     fetch('/api/members')
@@ -115,13 +128,13 @@ export default function AddExpense() {
             <div className="form-group">
               <label className="label">Số tiền (VNĐ)</label>
               <input 
-                type="number" 
+                type="text"
+                inputMode="numeric"
                 className="input" 
-                placeholder="VD: 150000" 
+                placeholder="VD: 150.000" 
                 required
-                min="0"
-                value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                value={displayAmount}
+                onChange={handleAmountChange}
               />
             </div>
 

@@ -19,6 +19,19 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
     notes: '',
     date: ''
   });
+  const [displayAmount, setDisplayAmount] = useState('');
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (!rawValue) {
+      setDisplayAmount('');
+      setFormData({ ...formData, amount: '' });
+      return;
+    }
+    const formatted = new Intl.NumberFormat('vi-VN').format(parseInt(rawValue, 10));
+    setDisplayAmount(formatted);
+    setFormData({ ...formData, amount: rawValue });
+  };
 
   useEffect(() => {
     params.then(p => setId(p.id));
@@ -43,6 +56,7 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
             notes: data.notes || '',
             date: new Date(data.date).toISOString().split('T')[0]
           });
+          setDisplayAmount(new Intl.NumberFormat('vi-VN').format(data.amount));
         })
         .catch(() => {
           alert('Không tìm thấy khoản chi này!');
@@ -123,12 +137,13 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
           <div className="form-group">
             <label className="label">Số tiền (VNĐ)</label>
             <input 
-              type="number" 
+              type="text"
+              inputMode="numeric"
               className="input" 
+              placeholder="VD: 150.000"
               required
-              min="0"
-              value={formData.amount}
-              onChange={(e) => setFormData({...formData, amount: e.target.value})}
+              value={displayAmount}
+              onChange={handleAmountChange}
             />
           </div>
 
