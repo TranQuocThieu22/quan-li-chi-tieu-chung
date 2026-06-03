@@ -188,3 +188,15 @@ header {
   align-items: center;
   margin-bottom: 2rem;
 }
+
+@media (max-width: 500px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  header > div {
+    justify-content: center;
+    width: 100%;
+  }
+}
