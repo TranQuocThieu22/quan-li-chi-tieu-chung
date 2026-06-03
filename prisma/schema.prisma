@@ -20,6 +20,25 @@ model Expense {
   amount    Int
   payerId   Int
   payer     Member   @relation(fields: [payerId], references: [id])
+  date      DateTime @default(now())
   notes     String?
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
+  
+  histories ExpenseHistory[]
+}
+
+model ExpenseHistory {
+  id           Int      @id @default(autoincrement())
+  expenseId    Int
+  expense      Expense  @relation(fields: [expenseId], references: [id])
+  action       String   
+  
+  oldItem      String
+  oldAmount    Int
+  oldPayerName String
+  oldDate      DateTime
+  oldNotes     String?
+
+  editedAt     DateTime @default(now())
 }

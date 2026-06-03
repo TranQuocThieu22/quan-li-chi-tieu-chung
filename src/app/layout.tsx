@@ -14,9 +14,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body>
-        <main className="container">
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   )

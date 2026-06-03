@@ -1,13 +1,31 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
+import MonthSelector from '@/components/MonthSelector';
+import ExpenseActions from '@/components/ExpenseActions';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
+  const cookieStore = await cookies();
+  const isAuth = cookieStore.get('auth')?.value === 'true';
+
+  const resolvedParams = await searchParams;
+  const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
+  
+  const [year, monthStr] = month.split('-');
+  const start = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
+  const end = new Date(parseInt(year), parseInt(monthStr), 1);
+
   const members = await prisma.member.findMany({ orderBy: { id: 'asc' } });
+  
   const expenses = await prisma.expense.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { payer: true }
+    where: { 
+      isDeleted: false,
+      date: { gte: start, lt: end } 
+    },
+    orderBy: { date: 'desc' },
+    include: { payer: true, histories: true }
   });
 
   const formatMoney = (amount: number) => {
@@ -43,9 +61,6 @@ export default async function Home() {
 
   const average = totalExpenses / members.length;
   
-  // Calculate balances
-  // > 0 means they paid more than average (they are owed money)
-  // < 0 means they paid less than average (they owe money)
   const balances = members.map(m => ({
     id: m.id,
     name: m.name,
@@ -53,8 +68,8 @@ export default async function Home() {
     balance: memberTotals[m.id] - average
   }));
 
-  const debtors = balances.filter(b => b.balance < -0.01).sort((a, b) => a.balance - b.balance); // most negative first
-  const creditors = balances.filter(b => b.balance > 0.01).sort((a, b) => b.balance - a.balance); // most positive first
+  const debtors = balances.filter(b => b.balance < -0.01).sort((a, b) => a.balance - b.balance); 
+  const creditors = balances.filter(b => b.balance > 0.01).sort((a, b) => b.balance - a.balance); 
 
   type DebtTransaction = { from: string, to: string, amount: number };
   const transactions: DebtTransaction[] = [];
@@ -84,17 +99,22 @@ export default async function Home() {
   }
 
   return (
-    <div>
+    <main className="container">
       <header>
         <h1 className="title" style={{marginBottom: 0}}>Chi Tiêu Chung</h1>
-        <div style={{display: 'flex', gap: '0.5rem'}}>
+        <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+          <Link href="/stats" className="btn btn-secondary" style={{width: 'auto'}}>Thống kê</Link>
           <Link href="/admin" className="btn btn-secondary" style={{width: 'auto'}}>Cấu hình</Link>
           <Link href="/add" className="btn btn-primary" style={{width: 'auto'}}>+ Thêm</Link>
         </div>
       </header>
 
+      <div style={{ marginBottom: '2rem' }}>
+        <MonthSelector />
+      </div>
+
       <div className="card text-center">
-        <h2 className="subtitle">Tổng chi tiêu nhóm</h2>
+        <h2 className="subtitle">Tổng chi tiêu tháng {month.split('-')[1]}</h2>
         <div className="amount mb-4">{formatMoney(totalExpenses)}</div>
         <p className="subtitle">Trung bình mỗi người: {formatMoney(average)}</p>
         
@@ -136,24 +156,27 @@ export default async function Home() {
       <h2 className="title mt-6">Lịch sử chi tiêu</h2>
       <div className="card">
         {expenses.length === 0 ? (
-          <p className="text-center" style={{color: 'var(--text-secondary)'}}>Chưa có khoản chi nào.</p>
+          <p className="text-center" style={{color: 'var(--text-secondary)'}}>Chưa có khoản chi nào trong tháng này.</p>
         ) : (
           <ul className="expense-list">
             {expenses.map(exp => (
-              <li key={exp.id} className="expense-item">
-                <div className="expense-info">
-                  <h4>{exp.item}</h4>
-                  <p>{new Date(exp.createdAt).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'}</p>
-                  {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
+              <li key={exp.id} className="expense-item" style={{display: 'block'}}>
+                <div className="flex-between" style={{alignItems: 'flex-start'}}>
+                  <div className="expense-info">
+                    <h4>{exp.item}</h4>
+                    <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'}</p>
+                    {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
+                  </div>
+                  <div className="expense-amount">
+                    {formatMoney(exp.amount)}
+                  </div>
                 </div>
-                <div className="expense-amount">
-                  {formatMoney(exp.amount)}
-                </div>
+                <ExpenseActions id={exp.id} hasHistory={exp.histories.length > 0} isAuth={isAuth} />
               </li>
             ))}
           </ul>
         )}
       </div>
-    </div>
+    </main>
   )
 }

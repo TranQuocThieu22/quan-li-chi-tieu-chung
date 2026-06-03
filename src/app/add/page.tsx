@@ -10,11 +10,16 @@ export default function AddExpense() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
+  
+  // Format today as YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
+  
   const [formData, setFormData] = useState({
     item: '',
     amount: '',
     payerId: '',
-    notes: ''
+    notes: '',
+    date: today
   });
 
   useEffect(() => {
@@ -57,7 +62,7 @@ export default function AddExpense() {
   };
 
   return (
-    <div>
+    <main className="container">
       <header>
         <h1 className="title" style={{marginBottom: 0}}>Thêm Khoản Chi</h1>
         <Link href="/" className="btn btn-secondary" style={{width: 'auto'}}>Hủy</Link>
@@ -82,6 +87,17 @@ export default function AddExpense() {
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="label">Ngày mua</label>
+              <input 
+                type="date" 
+                className="input" 
+                required
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
+              />
             </div>
 
             <div className="form-group">
@@ -126,6 +142,6 @@ export default function AddExpense() {
           </form>
         )}
       </div>
-    </div>
+    </main>
   )
 }
