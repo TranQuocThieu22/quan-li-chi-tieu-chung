@@ -182,6 +182,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                     <h4>{exp.item}</h4>
                     <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'} {exp.beneficiaryId ? `(Mua giùm ${exp.beneficiary?.name})` : ''}</p>
                     {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
+                    {exp.imageUrl && (
+                      <div style={{marginTop: '0.5rem'}}>
+                        <a href={exp.imageUrl} target="_blank" rel="noreferrer" style={{display: 'inline-block'}}>
+                          <img src={exp.imageUrl} alt="Hóa đơn" style={{maxHeight: '60px', borderRadius: '4px', border: '1px solid var(--border-color)'}} />
+                        </a>
+                      </div>
+                    )}
                   </div>
                   <div className="expense-amount">
                     {formatMoney(exp.amount)}

@@ -5,7 +5,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
-    const { item, amount, payerId, beneficiaryId, notes, date } = await request.json();
+    const { item, amount, payerId, beneficiaryId, notes, imageUrl, date } = await request.json();
 
     const existing = await prisma.expense.findUnique({
       where: { id },
@@ -26,7 +26,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         oldPayerName: existing.payer.name,
         oldBeneficiaryName: existing.beneficiary?.name,
         oldDate: existing.date,
-        oldNotes: existing.notes
+        oldNotes: existing.notes,
+        oldImageUrl: existing.imageUrl
       }
     });
 
@@ -38,6 +39,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         payerId: parseInt(payerId, 10),
         beneficiaryId: beneficiaryId ? parseInt(beneficiaryId, 10) : null,
         notes,
+        imageUrl,
         date: date ? new Date(date) : new Date(),
       }
     });
@@ -73,7 +75,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
           oldPayerName: existing.payer.name,
           oldBeneficiaryName: existing.beneficiary?.name,
           oldDate: existing.date,
-          oldNotes: existing.notes
+          oldNotes: existing.notes,
+          oldImageUrl: existing.imageUrl
         }
       }),
       prisma.expense.update({

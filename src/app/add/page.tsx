@@ -20,6 +20,7 @@ export default function AddExpense() {
     payerId: '',
     beneficiaryId: '',
     notes: '',
+    imageUrl: '',
     date: today
   });
   const [displayAmount, setDisplayAmount] = useState('');
@@ -159,6 +160,39 @@ export default function AddExpense() {
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
               />
+            </div>
+
+            <div className="form-group">
+              <label className="label">Ảnh hóa đơn (Tùy chọn)</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                className="input" 
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    // Check size < 5MB
+                    if (file.size > 5 * 1024 * 1024) {
+                      alert("Ảnh quá lớn. Vui lòng chọn ảnh dưới 5MB.");
+                      e.target.value = '';
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setFormData({...formData, imageUrl: reader.result as string});
+                    };
+                    reader.readAsDataURL(file);
+                  } else {
+                    setFormData({...formData, imageUrl: ''});
+                  }
+                }}
+              />
+              {formData.imageUrl && (
+                <div style={{marginTop: '0.5rem'}}>
+                  <img src={formData.imageUrl} alt="Hóa đơn" style={{maxHeight: '150px', borderRadius: '8px', border: '1px solid var(--border-color)'}} />
+                  <button type="button" onClick={() => setFormData({...formData, imageUrl: ''})} style={{display: 'block', marginTop: '0.5rem', color: 'var(--danger-color)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500}}>Xóa ảnh</button>
+                </div>
+              )}
             </div>
 
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
