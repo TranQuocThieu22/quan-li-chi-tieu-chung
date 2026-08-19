@@ -182,11 +182,22 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                     <h4>{exp.item}</h4>
                     <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'} {exp.beneficiaryId ? `(Mua giùm ${exp.beneficiary?.name})` : ''}</p>
                     {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
-                    {exp.imageUrl && (
-                      <div style={{marginTop: '0.5rem'}}>
-                        <a href={exp.imageUrl} target="_blank" rel="noreferrer" style={{display: 'inline-block'}}>
-                          <img src={exp.imageUrl} alt="Hóa đơn" style={{maxHeight: '60px', borderRadius: '4px', border: '1px solid var(--border-color)'}} />
-                        </a>
+                    {exp.imageUrl && exp.imageUrl !== '[]' && (
+                      <div style={{marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                        {(() => {
+                          let imgs: string[] = [];
+                          try {
+                            const parsed = JSON.parse(exp.imageUrl);
+                            imgs = Array.isArray(parsed) ? parsed : [exp.imageUrl];
+                          } catch (e) {
+                            imgs = [exp.imageUrl];
+                          }
+                          return imgs.map((imgUrl, idx) => (
+                            <a key={idx} href={imgUrl} target="_blank" rel="noreferrer" style={{display: 'inline-block'}}>
+                              <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} style={{maxHeight: '60px', borderRadius: '4px', border: '1px solid var(--border-color)'}} />
+                            </a>
+                          ));
+                        })()}
                       </div>
                     )}
                   </div>

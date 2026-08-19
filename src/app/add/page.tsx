@@ -167,30 +167,70 @@ export default function AddExpense() {
               <input 
                 type="file" 
                 accept="image/*"
+                multiple
                 className="input" 
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    // Check size < 5MB
+                  const files = Array.from(e.target.files || []);
+                  if (files.length === 0) return;
+                  
+                  const newImages: string[] = [];
+                  let processed = 0;
+                  
+                  files.forEach(file => {
                     if (file.size > 5 * 1024 * 1024) {
-                      alert("Ảnh quá lớn. Vui lòng chọn ảnh dưới 5MB.");
-                      e.target.value = '';
+                      alert(`Ảnh ${file.name} quá lớn. Vui lòng chọn ảnh dưới 5MB.`);
+                      processed++;
                       return;
                     }
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                      setFormData({...formData, imageUrl: reader.result as string});
+                      newImages.push(reader.result as string);
+                      processed++;
+                      if (processed === files.length) {
+                        let allImages = [];
+                        if (formData.imageUrl) {
+                          try {
+                            const parsed = JSON.parse(formData.imageUrl);
+                            allImages = Array.isArray(parsed) ? parsed : [formData.imageUrl];
+                          } catch (e) {
+                            allImages = [formData.imageUrl];
+                          }
+                        }
+                        setFormData({...formData, imageUrl: JSON.stringify([...allImages, ...newImages])});
+                      }
                     };
                     reader.readAsDataURL(file);
-                  } else {
-                    setFormData({...formData, imageUrl: ''});
-                  }
+                  });
+                  e.target.value = ''; // Reset input
                 }}
               />
-              {formData.imageUrl && (
-                <div style={{marginTop: '0.5rem'}}>
-                  <img src={formData.imageUrl} alt="Hóa đơn" style={{maxHeight: '150px', borderRadius: '8px', border: '1px solid var(--border-color)'}} />
-                  <button type="button" onClick={() => setFormData({...formData, imageUrl: ''})} style={{display: 'block', marginTop: '0.5rem', color: 'var(--danger-color)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500}}>Xóa ảnh</button>
+              {formData.imageUrl && formData.imageUrl !== '[]' && (
+                <div style={{marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                  {(() => {
+                    let imgs: string[] = [];
+                    try {
+                      const parsed = JSON.parse(formData.imageUrl);
+                      imgs = Array.isArray(parsed) ? parsed : [formData.imageUrl];
+                    } catch (e) {
+                      imgs = [formData.imageUrl];
+                    }
+                    return imgs.map((imgUrl: string, idx: number) => (
+                      <div key={idx} style={{position: 'relative'}}>
+                        <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} style={{height: '100px', width: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)', objectFit: 'cover'}} />
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const newImgs = [...imgs];
+                            newImgs.splice(idx, 1);
+                            setFormData({...formData, imageUrl: newImgs.length > 0 ? JSON.stringify(newImgs) : ''});
+                          }} 
+                          style={{position: 'absolute', top: '-5px', right: '-5px', background: 'var(--danger-color)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'}}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ));
+                  })()}
                 </div>
               )}
             </div>
