@@ -22,6 +22,7 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
   });
 
   const [displayAmount, setDisplayAmount] = useState('');
+  const [isPayOnBehalf, setIsPayOnBehalf] = useState(false);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
@@ -60,6 +61,9 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
             date: new Date(data.date).toISOString().split('T')[0]
           });
           setDisplayAmount(new Intl.NumberFormat('vi-VN').format(data.amount));
+          if (data.beneficiaryId) {
+            setIsPayOnBehalf(true);
+          }
         })
         .catch(() => {
           alert('Không tìm thấy khoản chi này!');
@@ -116,20 +120,6 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
           </div>
           
           <div className="form-group">
-            <label className="label">Mua cho ai? (Người tiêu dùng)</label>
-            <select 
-              className="select" 
-              value={formData.beneficiaryId}
-              onChange={(e) => setFormData({...formData, beneficiaryId: e.target.value})}
-            >
-              <option value="">Chi tiêu chung (Chia đều cho tất cả)</option>
-              {members.filter(m => m.id.toString() !== formData.payerId).map(m => (
-                <option key={m.id} value={m.id}>Mua giùm {m.name}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
             <label className="label">Ngày mua</label>
             <input 
               type="date" 
@@ -173,6 +163,39 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
             />
           </div>
+
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+            <input 
+              type="checkbox" 
+              id="isPayOnBehalf" 
+              checked={isPayOnBehalf} 
+              onChange={(e) => {
+                setIsPayOnBehalf(e.target.checked);
+                if (!e.target.checked) {
+                  setFormData({ ...formData, beneficiaryId: '' });
+                }
+              }} 
+              style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
+            />
+            <label htmlFor="isPayOnBehalf" style={{ cursor: 'pointer', fontWeight: 500, margin: 0 }}>Là khoản trả giùm / mua giùm</label>
+          </div>
+
+          {isPayOnBehalf && (
+            <div className="form-group" style={{ marginTop: '1rem', background: 'var(--bg-color)', padding: '1rem', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+              <label className="label">Mua cho ai?</label>
+              <select 
+                className="select" 
+                value={formData.beneficiaryId}
+                onChange={(e) => setFormData({...formData, beneficiaryId: e.target.value})}
+                required={isPayOnBehalf}
+              >
+                <option value="">-- Chọn người được mua giùm --</option>
+                {members.filter(m => m.id.toString() !== formData.payerId).map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <button type="submit" className="btn btn-primary mt-4" disabled={loading}>
             {loading ? 'Đang lưu...' : 'Lưu chỉnh sửa'}
