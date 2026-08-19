@@ -21,7 +21,11 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
 
   const formatDate = (date: Date) => new Date(date).toLocaleDateString('vi-VN');
 
-  const timeline: any[] = [];
+  const timeline: Array<{
+    id: number, action: string, time: Date,
+    old: { item: string, amount: number, payerName: string, beneficiaryName: string, date: Date },
+    new: { item: string, amount: number, payerName: string, beneficiaryName: string, date: Date }
+  }> = [];
   let nextState = {
     item: expense.item,
     amount: expense.amount,

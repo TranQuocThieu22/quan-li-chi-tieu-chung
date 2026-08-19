@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
     
-    let whereClause: any = { isDeleted: false };
+    const whereClause: { isDeleted: boolean; date?: { gte: Date; lt: Date } } = { isDeleted: false };
     if (month) {
       const [year, monthStr] = month.split('-');
       const start = new Date(parseInt(year), parseInt(monthStr) - 1, 1);

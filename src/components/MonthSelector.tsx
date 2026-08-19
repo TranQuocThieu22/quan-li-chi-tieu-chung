@@ -27,12 +27,7 @@ export default function MonthSelector() {
     };
   }, [isOpen]);
 
-  // When dropdown opens, reset display year to currently selected year
-  useEffect(() => {
-    if (isOpen) {
-      setDisplayYear(parseInt(currentMonthParam.split('-')[0], 10));
-    }
-  }, [isOpen, currentMonthParam]);
+
 
   const months = ['Th 1', 'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'Th 8', 'Th 9', 'Th 10', 'Th 11', 'Th 12'];
 
@@ -51,7 +46,12 @@ export default function MonthSelector() {
       <label style={{ fontWeight: 600, marginRight: '1rem' }}>Chọn tháng:</label>
       
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) {
+            setDisplayYear(parseInt(currentMonthParam.split('-')[0], 10));
+          }
+          setIsOpen(!isOpen);
+        }}
         style={{
           padding: '0.75rem 1.25rem', 
           borderRadius: '8px', 
