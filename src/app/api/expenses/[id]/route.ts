@@ -5,11 +5,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
-    const { item, amount, payerId, notes, date } = await request.json();
+    const { item, amount, payerId, beneficiaryId, notes, date } = await request.json();
 
     const existing = await prisma.expense.findUnique({
       where: { id },
-      include: { payer: true }
+      include: { payer: true, beneficiary: true }
     });
 
     if (!existing || existing.isDeleted) {
@@ -24,6 +24,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         oldItem: existing.item,
         oldAmount: existing.amount,
         oldPayerName: existing.payer.name,
+        oldBeneficiaryName: existing.beneficiary?.name,
         oldDate: existing.date,
         oldNotes: existing.notes
       }
@@ -35,6 +36,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         item,
         amount: parseInt(amount, 10),
         payerId: parseInt(payerId, 10),
+        beneficiaryId: beneficiaryId ? parseInt(beneficiaryId, 10) : null,
         notes,
         date: date ? new Date(date) : new Date(),
       }
@@ -53,7 +55,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const existing = await prisma.expense.findUnique({
       where: { id },
-      include: { payer: true }
+      include: { payer: true, beneficiary: true }
     });
 
     if (!existing || existing.isDeleted) {
@@ -69,6 +71,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
           oldItem: existing.item,
           oldAmount: existing.amount,
           oldPayerName: existing.payer.name,
+          oldBeneficiaryName: existing.beneficiary?.name,
           oldDate: existing.date,
           oldNotes: existing.notes
         }
@@ -89,7 +92,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   try {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
-    const expense = await prisma.expense.findUnique({ where: { id }, include: { payer: true } });
+    const expense = await prisma.expense.findUnique({ where: { id }, include: { payer: true, beneficiary: true } });
     if (!expense || expense.isDeleted) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(expense);
   } catch (error) {

@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { item, amount, payerId, notes, date } = await request.json();
+    const { item, amount, payerId, beneficiaryId, notes, date } = await request.json();
     
     if (!item || !amount || !payerId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
         item,
         amount: parseInt(amount, 10),
         payerId: parseInt(payerId, 10),
+        beneficiaryId: beneficiaryId ? parseInt(beneficiaryId, 10) : null,
         notes,
         date: date ? new Date(date) : new Date(),
       },

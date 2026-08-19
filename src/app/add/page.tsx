@@ -18,6 +18,7 @@ export default function AddExpense() {
     item: '',
     amount: '',
     payerId: '',
+    beneficiaryId: '',
     notes: '',
     date: today
   });
@@ -98,6 +99,20 @@ export default function AddExpense() {
               >
                 {members.map(m => (
                   <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="label">Mua cho ai? (Người tiêu dùng)</label>
+              <select 
+                className="select" 
+                value={formData.beneficiaryId}
+                onChange={(e) => setFormData({...formData, beneficiaryId: e.target.value})}
+              >
+                <option value="">Chi tiêu chung (Chia đều cho tất cả)</option>
+                {members.filter(m => m.id.toString() !== formData.payerId).map(m => (
+                  <option key={m.id} value={m.id}>Mua giùm {m.name}</option>
                 ))}
               </select>
             </div>

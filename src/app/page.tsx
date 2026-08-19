@@ -25,7 +25,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       date: { gte: start, lt: end } 
     },
     orderBy: { date: 'desc' },
-    include: { payer: true, histories: true }
+    include: { payer: true, beneficiary: true, histories: true }
   });
 
   const formatMoney = (amount: number) => {
@@ -49,24 +49,40 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
   // Calculate totals
   const memberTotals: Record<number, number> = {};
-  members.forEach(m => memberTotals[m.id] = 0);
+  const memberBalances: Record<number, number> = {};
+  members.forEach(m => {
+    memberTotals[m.id] = 0;
+    memberBalances[m.id] = 0;
+  });
 
-  let totalExpenses = 0;
+  let totalSharedExpenses = 0;
+  
   expenses.forEach(exp => {
     if (memberTotals[exp.payerId] !== undefined) {
       memberTotals[exp.payerId] += exp.amount;
-      totalExpenses += exp.amount;
+      memberBalances[exp.payerId] += exp.amount;
+    }
+    
+    if (exp.beneficiaryId) {
+      if (memberBalances[exp.beneficiaryId] !== undefined) {
+        memberBalances[exp.beneficiaryId] -= exp.amount;
+      }
+    } else {
+      totalSharedExpenses += exp.amount;
     }
   });
 
-  const average = totalExpenses / members.length;
+  const average = members.length > 0 ? totalSharedExpenses / members.length : 0;
   
-  const balances = members.map(m => ({
-    id: m.id,
-    name: m.name,
-    totalPaid: memberTotals[m.id],
-    balance: memberTotals[m.id] - average
-  }));
+  const balances = members.map(m => {
+    const finalBalance = memberBalances[m.id] - average;
+    return {
+      id: m.id,
+      name: m.name,
+      totalPaid: memberTotals[m.id],
+      balance: finalBalance
+    };
+  });
 
   const debtors = balances.filter(b => b.balance < -0.01).sort((a, b) => a.balance - b.balance); 
   const creditors = balances.filter(b => b.balance > 0.01).sort((a, b) => b.balance - a.balance); 
@@ -114,8 +130,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       </div>
 
       <div className="card text-center">
-        <h2 className="subtitle">Tổng chi tiêu tháng {month.split('-')[1]}</h2>
-        <div className="amount mb-4">{formatMoney(totalExpenses)}</div>
+        <h2 className="subtitle">Tổng chi tiêu chung tháng {month.split('-')[1]}</h2>
+        <div className="amount mb-4">{formatMoney(totalSharedExpenses)}</div>
         <p className="subtitle">Trung bình mỗi người: {formatMoney(average)}</p>
         
         <div className="mt-6" style={{textAlign: 'left'}}>
@@ -164,7 +180,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                 <div className="flex-between" style={{alignItems: 'flex-start'}}>
                   <div className="expense-info">
                     <h4>{exp.item}</h4>
-                    <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'}</p>
+                    <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'} {exp.beneficiaryId ? `(Mua giùm ${exp.beneficiary?.name})` : ''}</p>
                     {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
                   </div>
                   <div className="expense-amount">

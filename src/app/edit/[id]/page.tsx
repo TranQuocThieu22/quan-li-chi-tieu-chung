@@ -16,9 +16,11 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
     item: '',
     amount: '',
     payerId: '',
+    beneficiaryId: '',
     notes: '',
     date: ''
   });
+
   const [displayAmount, setDisplayAmount] = useState('');
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +55,7 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
             item: data.item,
             amount: data.amount.toString(),
             payerId: data.payerId.toString(),
+            beneficiaryId: data.beneficiaryId ? data.beneficiaryId.toString() : '',
             notes: data.notes || '',
             date: new Date(data.date).toISOString().split('T')[0]
           });
@@ -108,6 +111,20 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
             >
               {members.map(m => (
                 <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label className="label">Mua cho ai? (Người tiêu dùng)</label>
+            <select 
+              className="select" 
+              value={formData.beneficiaryId}
+              onChange={(e) => setFormData({...formData, beneficiaryId: e.target.value})}
+            >
+              <option value="">Chi tiêu chung (Chia đều cho tất cả)</option>
+              {members.filter(m => m.id.toString() !== formData.payerId).map(m => (
+                <option key={m.id} value={m.id}>Mua giùm {m.name}</option>
               ))}
             </select>
           </div>

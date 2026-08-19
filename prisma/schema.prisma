@@ -1,5 +1,5 @@
 datasource db {
-  provider  = "postgresql"
+  provider  = "sqlite"
   url       = env("DATABASE_URL")
 }
 
@@ -8,37 +8,41 @@ generator client {
 }
 
 model Member {
-  id        Int       @id @default(autoincrement())
-  name      String
-  expenses  Expense[]
-  createdAt DateTime  @default(now())
+  id               Int       @id @default(autoincrement())
+  name             String
+  expenses         Expense[] @relation("PayerRelation")
+  benefitedExpenses Expense[] @relation("BeneficiaryRelation")
+  createdAt        DateTime  @default(now())
 }
 
 model Expense {
-  id        Int      @id @default(autoincrement())
-  item      String
-  amount    Int
-  payerId   Int
-  payer     Member   @relation(fields: [payerId], references: [id])
-  date      DateTime @default(now())
-  notes     String?
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  item          String
+  amount        Int
+  payerId       Int
+  payer         Member   @relation("PayerRelation", fields: [payerId], references: [id])
+  beneficiaryId Int?
+  beneficiary   Member?  @relation("BeneficiaryRelation", fields: [beneficiaryId], references: [id])
+  date          DateTime @default(now())
+  notes         String?
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
   
   histories ExpenseHistory[]
 }
 
 model ExpenseHistory {
-  id           Int      @id @default(autoincrement())
-  expenseId    Int
-  expense      Expense  @relation(fields: [expenseId], references: [id])
-  action       String   
+  id                 Int      @id @default(autoincrement())
+  expenseId          Int
+  expense            Expense  @relation(fields: [expenseId], references: [id])
+  action             String   
   
-  oldItem      String
-  oldAmount    Int
-  oldPayerName String
-  oldDate      DateTime
-  oldNotes     String?
+  oldItem            String
+  oldAmount          Int
+  oldPayerName       String
+  oldBeneficiaryName String?
+  oldDate            DateTime
+  oldNotes           String?
 
-  editedAt     DateTime @default(now())
+  editedAt           DateTime @default(now())
 }

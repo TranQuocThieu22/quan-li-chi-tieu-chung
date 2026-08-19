@@ -10,7 +10,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
   
   const expense = await prisma.expense.findUnique({
     where: { id },
-    include: { payer: true, histories: { orderBy: { editedAt: 'desc' } } }
+    include: { payer: true, beneficiary: true, histories: { orderBy: { editedAt: 'desc' } } }
   });
 
   if (!expense) return notFound();
@@ -26,6 +26,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
     item: expense.item,
     amount: expense.amount,
     payerName: expense.payer?.name || 'Không rõ',
+    beneficiaryName: expense.beneficiary?.name || 'Chi tiêu chung',
     date: expense.date
   };
 
@@ -34,6 +35,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
       item: h.oldItem,
       amount: h.oldAmount,
       payerName: h.oldPayerName,
+      beneficiaryName: h.oldBeneficiaryName || 'Chi tiêu chung',
       date: h.oldDate
     };
     
@@ -85,6 +87,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
         <p><strong>Món đồ:</strong> {expense.item}</p>
         <p><strong>Số tiền:</strong> {formatMoney(expense.amount)}</p>
         <p><strong>Người trả:</strong> {expense.payer?.name}</p>
+        <p><strong>Mua cho:</strong> {expense.beneficiary?.name || 'Chi tiêu chung'}</p>
         <p><strong>Ngày mua:</strong> {formatDate(expense.date)}</p>
       </div>
 
@@ -126,6 +129,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
                 {renderDiff('Món đồ', event.old.item, event.new.item)}
                 {renderDiff('Số tiền', event.old.amount.toString(), event.new.amount.toString(), true)}
                 {renderDiff('Người trả', event.old.payerName, event.new.payerName)}
+                {renderDiff('Mua cho', event.old.beneficiaryName, event.new.beneficiaryName)}
                 {renderDiff('Ngày mua', formatDate(event.old.date), formatDate(event.new.date))}
               </div>
             </div>
@@ -158,6 +162,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
               <p style={{marginBottom: '0.25rem'}}><strong>Món đồ:</strong> {nextState.item}</p>
               <p style={{marginBottom: '0.25rem'}}><strong>Số tiền:</strong> {formatMoney(nextState.amount)}</p>
               <p style={{marginBottom: '0.25rem'}}><strong>Người trả:</strong> {nextState.payerName}</p>
+              <p style={{marginBottom: '0.25rem'}}><strong>Mua cho:</strong> {nextState.beneficiaryName}</p>
               <p style={{marginBottom: '0.25rem'}}><strong>Ngày mua:</strong> {formatDate(nextState.date)}</p>
           </div>
         </div>
