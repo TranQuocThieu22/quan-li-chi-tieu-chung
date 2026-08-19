@@ -72,6 +72,15 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
     }
   }, [id, router]);
 
+  useEffect(() => {
+    if (isPayOnBehalf) {
+      const otherMember = members.find(m => m.id.toString() !== formData.payerId);
+      if (otherMember) {
+        setFormData(prev => ({ ...prev, beneficiaryId: otherMember.id.toString() }));
+      }
+    }
+  }, [formData.payerId, isPayOnBehalf, members]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -170,32 +179,21 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
               id="isPayOnBehalf" 
               checked={isPayOnBehalf} 
               onChange={(e) => {
-                setIsPayOnBehalf(e.target.checked);
-                if (!e.target.checked) {
-                  setFormData({ ...formData, beneficiaryId: '' });
+                const checked = e.target.checked;
+                setIsPayOnBehalf(checked);
+                if (checked) {
+                  const otherMember = members.find(m => m.id.toString() !== formData.payerId);
+                  if (otherMember) {
+                    setFormData(prev => ({ ...prev, beneficiaryId: otherMember.id.toString() }));
+                  }
+                } else {
+                  setFormData(prev => ({ ...prev, beneficiaryId: '' }));
                 }
               }} 
               style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
             />
             <label htmlFor="isPayOnBehalf" style={{ cursor: 'pointer', fontWeight: 500, margin: 0 }}>Là khoản trả giùm / mua giùm</label>
           </div>
-
-          {isPayOnBehalf && (
-            <div className="form-group" style={{ marginTop: '1rem', background: 'var(--bg-color)', padding: '1rem', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
-              <label className="label">Mua cho ai?</label>
-              <select 
-                className="select" 
-                value={formData.beneficiaryId}
-                onChange={(e) => setFormData({...formData, beneficiaryId: e.target.value})}
-                required={isPayOnBehalf}
-              >
-                <option value="">-- Chọn người được mua giùm --</option>
-                {members.filter(m => m.id.toString() !== formData.payerId).map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <button type="submit" className="btn btn-primary mt-4" disabled={loading}>
             {loading ? 'Đang lưu...' : 'Lưu chỉnh sửa'}
