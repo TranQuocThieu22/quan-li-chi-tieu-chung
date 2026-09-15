@@ -15,10 +15,11 @@ export default async function SuperAdminPage() {
     prisma.partnership.findMany({ where: { endedAt: null }, include: { userA: true, userB: true } }),
   ]);
 
-  const partnerOf = new Map<number, string>();
+  // Một người có thể liên kết với nhiều người
+  const partnersOf = new Map<number, string[]>();
   partnerships.forEach(p => {
-    partnerOf.set(p.userAId, p.userB.name);
-    partnerOf.set(p.userBId, p.userA.name);
+    partnersOf.set(p.userAId, [...(partnersOf.get(p.userAId) ?? []), p.userB.name]);
+    partnersOf.set(p.userBId, [...(partnersOf.get(p.userBId) ?? []), p.userA.name]);
   });
 
   const cell = { padding: '1rem', verticalAlign: 'middle' as const };
@@ -63,7 +64,7 @@ export default async function SuperAdminPage() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ ...cell, whiteSpace: 'nowrap' }}>{partnerOf.get(u.id) ?? <span style={{ color: 'var(--text-secondary)' }}>Chưa liên kết</span>}</td>
+                  <td style={cell}>{partnersOf.get(u.id)?.join(', ') ?? <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Chưa liên kết</span>}</td>
                   <td style={{ ...cell, whiteSpace: 'nowrap' }}>{u.createdAt.toLocaleDateString('vi-VN')}</td>
                   <td style={cell}>
                     <span style={{

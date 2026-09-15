@@ -2,12 +2,13 @@ import Link from 'next/link';
 import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
 import ExpenseActions from '@/components/ExpenseActions';
-import { requirePartnershipPage } from '@/lib/auth';
+import LedgerSwitcher from '@/components/LedgerSwitcher';
+import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const { partnership } = await requirePartnershipPage();
+  const { user, partnership, partnerships } = await requirePartnershipPage();
 
   const resolvedParams = await searchParams;
   const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -110,7 +111,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         </div>
       </header>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <LedgerSwitcher ledgers={toLedgerOptions(partnerships, user.id)} currentId={partnership.id} />
         <MonthSelector />
       </div>
 

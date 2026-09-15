@@ -10,7 +10,9 @@ export default function AddExpense() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
-  
+  // Sổ chi tiêu nhận khoản chi, cố định từ lúc mở trang
+  const [ledger, setLedger] = useState<{ id: number; partnerName: string } | null>(null);
+
   // Format today as YYYY-MM-DD
   const today = new Date().toISOString().split('T')[0];
   
@@ -40,12 +42,12 @@ export default function AddExpense() {
 
   useEffect(() => {
     fetch('/api/members')
-      .then(res => res.ok ? res.json() : [])
+      .then(res => res.ok ? res.json() : { members: [] })
       .then(data => {
-        setMembers(data);
-        if (data.length > 0) {
-          setFormData(prev => ({ ...prev, payerId: (data.find((m: Member) => m.isMe) ?? data[0]).id.toString() }));
-        }
+        setMembers(data.members);
+        if (data.partnershipId) setLedger({ id: data.partnershipId, partnerName: data.partnerName });
+        const me = data.members.find((m: Member) => m.isMe) ?? data.members[0];
+        if (me) setFormData(prev => ({ ...prev, payerId: me.id.toString() }));
       });
   }, []);
 
@@ -70,7 +72,7 @@ export default function AddExpense() {
       const res = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, partnershipId: ledger?.id })
       });
 
       if (res.ok) {
@@ -89,7 +91,10 @@ export default function AddExpense() {
   return (
     <main className="container">
       <header>
-        <h1 className="title" style={{marginBottom: 0}}>Thêm Khoản Chi</h1>
+        <div>
+          <h1 className="title" style={{marginBottom: 0}}>Thêm Khoản Chi</h1>
+          {ledger && <p className="subtitle" style={{marginBottom: 0}}>Sổ chi tiêu với {ledger.partnerName}</p>}
+        </div>
         <Link href="/" className="btn btn-secondary" style={{width: 'auto'}}>Hủy</Link>
       </header>
 

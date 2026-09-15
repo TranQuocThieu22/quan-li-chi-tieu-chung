@@ -42,9 +42,6 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
   }, [params]);
 
   useEffect(() => {
-    fetch('/api/members')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setMembers(data));
       
     if (id) {
       fetch(`/api/expenses/${id}`)
@@ -53,6 +50,10 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
           return res.json();
         })
         .then(data => {
+          // Thành viên lấy theo sổ của chính khoản chi này
+          fetch(`/api/members?partnershipId=${data.partnershipId}`)
+            .then(res => res.ok ? res.json() : { members: [] })
+            .then(m => setMembers(m.members));
           setFormData({
             item: data.item,
             amount: data.amount.toString(),

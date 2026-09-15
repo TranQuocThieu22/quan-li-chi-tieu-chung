@@ -1,17 +1,22 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
-import { notFound } from 'next/navigation';
-import { requirePartnershipPage } from '@/lib/auth';
+import { notFound, redirect } from 'next/navigation';
+import { getActivePartnerships, getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HistoryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { partnership } = await requirePartnershipPage();
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
   const resolvedParams = await params;
   const id = parseInt(resolvedParams.id, 10);
+  if (!Number.isInteger(id)) return notFound();
+
+  // Khoản chi thuộc bất kỳ sổ nào người dùng đang liên kết
+  const partnerships = await getActivePartnerships(user.id);
 
   const expense = await prisma.expense.findFirst({
-    where: { id, partnershipId: partnership.id },
+    where: { id, partnershipId: { in: partnerships.map(p => p.id) } },
     include: { payer: true, beneficiary: true, histories: { orderBy: { editedAt: 'desc' } } }
   });
 

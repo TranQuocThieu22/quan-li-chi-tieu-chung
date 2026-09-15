@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getActivePartnership, getCurrentUser, publicUser } from '@/lib/auth';
+import { getCurrentUser, pairKey, publicUser } from '@/lib/auth';
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -15,11 +15,9 @@ export async function POST(request: Request) {
     const target = await prisma.user.findUnique({ where: { email: normalized } });
     if (!target) return NextResponse.json({ error: 'Không tìm thấy tài khoản với email này' }, { status: 404 });
 
-    if (await getActivePartnership(user.id)) {
-      return NextResponse.json({ error: 'Bạn đang liên kết với một tài khoản khác. Hãy hủy liên kết trước.' }, { status: 409 });
-    }
-    if (await getActivePartnership(target.id)) {
-      return NextResponse.json({ error: 'Người này đã liên kết với một tài khoản khác.' }, { status: 409 });
+    const linked = await prisma.partnership.findFirst({ where: { ...pairKey(user.id, target.id), endedAt: null } });
+    if (linked) {
+      return NextResponse.json({ error: 'Bạn đã liên kết với người này rồi.' }, { status: 409 });
     }
 
     const existing = await prisma.invitation.findFirst({

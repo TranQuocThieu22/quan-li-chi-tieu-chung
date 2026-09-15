@@ -1,11 +1,11 @@
 import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
-import { requirePartnershipPage } from '@/lib/auth';
+import { getPartner, requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLogsPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const { partnership } = await requirePartnershipPage();
+  const { user, partnership } = await requirePartnershipPage();
   const resolvedParams = await searchParams;
   const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
   
@@ -72,7 +72,10 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
   return (
     <div>
       <div className="flex-between" style={{ marginBottom: '2rem' }}>
-        <h1 className="title" style={{ margin: 0, textAlign: 'left' }}>Nhật ký hoạt động</h1>
+        <div>
+          <h1 className="title" style={{ margin: 0, textAlign: 'left' }}>Nhật ký hoạt động</h1>
+          <p className="subtitle" style={{ margin: 0 }}>Sổ chi tiêu với {getPartner(partnership, user.id).name}</p>
+        </div>
         <MonthSelector />
       </div>
 

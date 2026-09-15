@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getActivePartnership, getCurrentUser, publicUser } from '@/lib/auth';
+import { getCurrentUser, pairKey, publicUser } from '@/lib/auth';
 
 // Chỉ tìm theo email chính xác để không lộ danh sách người dùng
 export async function GET(request: Request) {
@@ -19,6 +19,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const isLinked = Boolean(await getActivePartnership(found.id));
-  return NextResponse.json({ user: publicUser(found), isLinked });
+  const alreadyLinked = Boolean(
+    await prisma.partnership.findFirst({ where: { ...pairKey(user.id, found.id), endedAt: null } })
+  );
+  return NextResponse.json({ user: publicUser(found), alreadyLinked });
 }

@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
-import { requirePartnershipPage } from '@/lib/auth';
+import { getPartner, requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StatsPage() {
-  const { partnership } = await requirePartnershipPage();
+  const { user, partnership } = await requirePartnershipPage();
 
   const expenses = await prisma.expense.findMany({
     where: { isDeleted: false, partnershipId: partnership.id },
@@ -48,7 +48,10 @@ export default async function StatsPage() {
   return (
     <main className="container">
       <header>
-        <h1 className="title" style={{marginBottom: 0}}>Thống Kê</h1>
+        <div>
+          <h1 className="title" style={{marginBottom: 0}}>Thống Kê</h1>
+          <p className="subtitle" style={{marginBottom: 0}}>Sổ chi tiêu với {getPartner(partnership, user.id).name}</p>
+        </div>
         <Link href="/" className="btn btn-secondary" style={{width: 'auto'}}>Trang Chủ</Link>
       </header>
 
