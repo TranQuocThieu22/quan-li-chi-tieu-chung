@@ -28,6 +28,27 @@ export function getPartner(partnership: ActivePartnership, userId: number) {
   return partnership.userAId === userId ? partnership.userB : partnership.userA;
 }
 
+// Superadmin mặc định: luôn có quyền và không thể bị gỡ, tránh trường hợp không còn ai quản trị
+export const ROOT_SUPERADMIN_EMAIL = 'quocthieu.forwork@gmail.com';
+
+export function isSuperAdmin(user: { email: string; isSuperAdmin: boolean }) {
+  return user.isSuperAdmin || user.email === ROOT_SUPERADMIN_EMAIL;
+}
+
+type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+
+// Dùng trong Route Handler dành cho superadmin
+export async function requireSuperAdmin(): Promise<{ ok: true; user: CurrentUser } | { ok: false; response: NextResponse }> {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { ok: false, response: NextResponse.json({ error: 'Chưa đăng nhập' }, { status: 401 }) };
+  }
+  if (!isSuperAdmin(user)) {
+    return { ok: false, response: NextResponse.json({ error: 'Bạn không có quyền superadmin' }, { status: 403 }) };
+  }
+  return { ok: true, user };
+}
+
 export function publicUser(user: { id: number; name: string; email: string; image: string | null }) {
   return { id: user.id, name: user.name, email: user.email, image: user.image };
 }
