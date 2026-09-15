@@ -23,6 +23,20 @@ model User {
   sentInvites      Invitation[]  @relation("InviteFrom")
   receivedInvites  Invitation[]  @relation("InviteTo")
   personalExpenses PersonalExpense[]
+  personalBudgets  PersonalBudget[]
+}
+
+// Ngân sách tháng của một người; tháng không có bản ghi dùng ngân sách gần nhất trước đó, amount = 0 là tắt
+model PersonalBudget {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  month     String   // YYYY-MM
+  amount    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, month])
 }
 
 // Chi tiêu cá nhân: chỉ chủ tài khoản xem được, không liên quan đến sổ chung
