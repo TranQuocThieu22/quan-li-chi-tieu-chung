@@ -22,73 +22,60 @@ export default async function SuperAdminPage() {
     partnersOf.set(p.userBId, [...(partnersOf.get(p.userBId) ?? []), p.userA.name]);
   });
 
-  const cell = { padding: '1rem', verticalAlign: 'middle' as const };
-  const head = { padding: '1rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' as const };
-
   return (
     <div>
       <h1 className="title" style={{ textAlign: 'left', marginBottom: '0.5rem' }}>Superadmin</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
         {users.length} người dùng • {partnerships.length} cặp đang liên kết • {users.filter(isSuperAdmin).length} superadmin
       </p>
 
-      <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ background: 'var(--bg-color)' }}>
-            <tr>
-              <th style={head}>Người dùng</th>
-              <th style={head}>Liên kết với</th>
-              <th style={head}>Ngày tham gia</th>
-              <th style={head}>Quyền</th>
-              <th style={{ ...head, textAlign: 'right' }}>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(u => {
-              const admin = isSuperAdmin(u);
-              const isRoot = u.email === ROOT_SUPERADMIN_EMAIL;
-              return (
-                <tr key={u.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={cell}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      {u.image ? (
-                        <img src={u.image} alt="" referrerPolicy="no-referrer" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />
-                      ) : (
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--primary-color)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                          {u.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{u.name}{u.id === me.id && ' (bạn)'}</div>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{u.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={cell}>{partnersOf.get(u.id)?.join(', ') ?? <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Chưa liên kết</span>}</td>
-                  <td style={{ ...cell, whiteSpace: 'nowrap' }}>{u.createdAt.toLocaleDateString('vi-VN')}</td>
-                  <td style={cell}>
+      {/* Danh sách dạng thẻ thay cho bảng để dùng tốt trên điện thoại */}
+      <ul className="card" style={{ padding: 0, overflow: 'hidden', listStyle: 'none' }}>
+        {users.map(u => {
+          const admin = isSuperAdmin(u);
+          const isRoot = u.email === ROOT_SUPERADMIN_EMAIL;
+          const partners = partnersOf.get(u.id);
+          return (
+            <li key={u.id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                {u.image ? (
+                  <img src={u.image} alt="" referrerPolicy="no-referrer" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: 'var(--primary-color)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                    {u.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 600 }}>{u.name}{u.id === me.id && ' (bạn)'}</span>
                     <span style={{
-                      padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      padding: '0.1rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap',
                       background: admin ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
                       color: admin ? 'var(--primary-color)' : 'var(--text-secondary)',
-                      border: admin ? 'none' : '1px solid var(--border-color)',
+                      border: admin ? '1px solid transparent' : '1px solid var(--border-color)',
                     }}>
                       {admin ? 'Superadmin' : 'Người dùng'}
                     </span>
-                  </td>
-                  <td style={{ ...cell, textAlign: 'right' }}>
-                    {isRoot ? (
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Mặc định</span>
-                    ) : u.id === me.id ? null : (
-                      <SuperAdminToggle userId={u.id} userName={u.name} isSuperAdmin={admin} />
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', overflowWrap: 'anywhere' }}>{u.email}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                    Liên kết: {partners ? partners.join(', ') : 'Chưa liên kết'} • Tham gia {u.createdAt.toLocaleDateString('vi-VN')}
+                  </div>
+                </div>
+
+                <div style={{ flexShrink: 0, paddingTop: '0.1rem' }}>
+                  {isRoot ? (
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Mặc định</span>
+                  ) : u.id === me.id ? null : (
+                    <SuperAdminToggle userId={u.id} userName={u.name} isSuperAdmin={admin} />
+                  )}
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

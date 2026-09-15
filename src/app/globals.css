@@ -199,4 +199,164 @@ header {
     justify-content: center;
     width: 100%;
   }
+  .month-popup {
+    left: 0;
+    right: auto !important;
+  }
+}
+
+.month-popup {
+  max-width: calc(100vw - 2rem);
+}
+
+/* Trang cài đặt: thanh bên trên máy tính, thanh trên cùng + tab cuộn ngang trên điện thoại */
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.admin-brand {
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-brand h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.admin-nav {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-nav-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.admin-nav-link.active {
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: 600;
+}
+
+.admin-nav-link.muted {
+  color: var(--text-secondary);
+}
+
+.admin-logout-wrap {
+  padding: 1.5rem 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.admin-logout {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem 3rem;
+}
+
+.admin-content {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    z-index: 40;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .admin-brand {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-bottom: none;
+  }
+
+  .admin-brand h2 {
+    font-size: 1rem;
+  }
+
+  .admin-logout-wrap {
+    order: 2;
+    padding: 0.75rem 1rem;
+    border-top: none;
+  }
+
+  .admin-logout {
+    width: auto;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.875rem;
+  }
+
+  .admin-nav {
+    order: 3;
+    flex: 1 1 100%;
+    flex-direction: row;
+    padding: 0 1rem 0.75rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-nav-link {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+  }
+
+  .admin-nav-link.active {
+    border-color: var(--primary-color);
+  }
+
+  .admin-main {
+    padding: 1.25rem 1rem 2rem;
+  }
 }

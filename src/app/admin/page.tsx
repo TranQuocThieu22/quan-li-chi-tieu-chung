@@ -140,13 +140,13 @@ export default function PartnerPage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: '2rem' }}>
+      <div className="card" style={{ padding: '1.25rem' }}>
         <h2 className="subtitle mb-4">Tài khoản của bạn</h2>
         <UserRow user={state.me} />
       </div>
 
       {state.incoming.length > 0 && (
-        <div className="card" style={{ padding: '2rem', border: '1px solid var(--primary-color)' }}>
+        <div className="card" style={{ padding: '1.25rem', border: '1px solid var(--primary-color)' }}>
           <h2 className="subtitle mb-4">Lời mời liên kết gửi đến bạn</h2>
           {state.incoming.map(invite => (
             <UserRow key={invite.id} user={invite.user}>
@@ -157,7 +157,7 @@ export default function PartnerPage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: '2rem' }}>
+      <div className="card" style={{ padding: '1.25rem' }}>
         <h2 className="subtitle mb-4">Sổ chi tiêu đang liên kết ({state.partners.length})</h2>
         {state.partners.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)' }}>Bạn chưa liên kết với ai. Hãy tìm tài khoản bên dưới để bắt đầu.</p>
@@ -171,7 +171,7 @@ export default function PartnerPage() {
         )}
       </div>
 
-      <div className="card" style={{ padding: '2rem' }}>
+      <div className="card" style={{ padding: '1.25rem' }}>
         <h2 className="subtitle mb-4">Liên kết với tài khoản Google khác</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
           Mỗi người bạn liên kết sẽ có một sổ chi tiêu riêng. Người đó cần đăng nhập ứng dụng ít nhất một lần.
@@ -207,7 +207,7 @@ export default function PartnerPage() {
       </div>
 
       {state.outgoing.length > 0 && (
-        <div className="card" style={{ padding: '2rem' }}>
+        <div className="card" style={{ padding: '1.25rem' }}>
           <h2 className="subtitle mb-4">Lời mời đang chờ phản hồi</h2>
           {state.outgoing.map(invite => (
             <UserRow key={invite.id} user={invite.user}>

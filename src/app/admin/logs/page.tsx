@@ -74,7 +74,7 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
 
   return (
     <div>
-      <div className="flex-between" style={{ marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
         <div>
           <h1 className="title" style={{ margin: 0, textAlign: 'left' }}>Nhật ký hoạt động</h1>
           <p className="subtitle" style={{ margin: 0 }}>Sổ chi tiêu với {getPartner(partnership, user.id).name}</p>
@@ -82,53 +82,43 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
         <MonthSelector />
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      {/* Danh sách dạng thẻ thay cho bảng để dùng tốt trên điện thoại */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {logs.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
             Không có hoạt động nào trong tháng này.
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ background: 'var(--bg-color)' }}>
-              <tr>
-                <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>Thời gian thực hiện</th>
-                <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>Hành động</th>
-                <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>Nội dung chi tiêu</th>
-                <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-secondary)' }}>Thuộc về</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log) => (
-                <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '1.25rem 1.5rem', whiteSpace: 'nowrap' }}>
-                    {log.date.toLocaleString('vi-VN')}
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <span style={{ 
-                      padding: '0.25rem 0.75rem', 
-                      borderRadius: '999px', 
-                      fontSize: '0.875rem', 
-                      fontWeight: 600,
-                      background: log.action === 'Thêm mới' ? 'rgba(16, 185, 129, 0.1)' : log.action === 'Xóa' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                      color: log.action === 'Thêm mới' ? 'var(--success-color)' : log.action === 'Xóa' ? 'var(--danger-color)' : 'var(--primary-color)'
-                    }}>
-                      {log.action}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <div style={{ fontWeight: 600 }}>{log.item}</div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+          <ul style={{ listStyle: 'none' }}>
+            {logs.map((log) => (
+              <li key={log.id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{log.item}</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.2rem' }}>
                       {formatMoney(log.amount)}
                       {log.action === 'Cập nhật' && log.oldAmount !== log.amount && ` (Cũ: ${formatMoney(log.oldAmount || 0)})`}
                     </div>
-                  </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    {log.payerName}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
+                      {log.payerName} • {log.date.toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                  <span style={{
+                    flexShrink: 0,
+                    padding: '0.2rem 0.65rem',
+                    borderRadius: '999px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    background: log.action === 'Thêm mới' ? 'rgba(16, 185, 129, 0.1)' : log.action === 'Xóa' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                    color: log.action === 'Thêm mới' ? 'var(--success-color)' : log.action === 'Xóa' ? 'var(--danger-color)' : 'var(--primary-color)'
+                  }}>
+                    {log.action}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>

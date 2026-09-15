@@ -71,7 +71,7 @@ export default function MonthSelector() {
       </button>
 
       {isOpen && (
-        <div style={{
+        <div className="month-popup" style={{
           position: 'absolute',
           top: '100%',
           marginTop: '0.5rem',
