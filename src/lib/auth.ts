@@ -76,13 +76,13 @@ export function publicUser(user: { id: number; name: string; email: string; imag
   return { id: user.id, name: user.name, email: user.email, image: user.image };
 }
 
-// Dùng trong Server Component: chưa đăng nhập -> /login, chưa liên kết -> trang liên kết
+// Dùng trong Server Component: chưa đăng nhập -> /login, chưa liên kết -> sổ cá nhân (có lời nhắc liên kết)
 export async function requirePartnershipPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
   const partnerships = await getActivePartnerships(user.id);
   const partnership = await pickPartnership(partnerships, null);
-  if (!partnership) redirect('/admin');
+  if (!partnership) redirect('/personal');
   return { user, partnership, partnerships };
 }
 

@@ -111,6 +111,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       <header>
         <h1 className="title" style={{marginBottom: 0}}>Chi Tiêu Chung</h1>
         <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+          <Link href="/personal" className="btn btn-secondary" style={{width: 'auto'}}>Cá nhân</Link>
           <Link href="/stats" className="btn btn-secondary" style={{width: 'auto'}}>Thống kê</Link>
           <Link href="/admin" className="btn btn-secondary" style={{width: 'auto'}}>Liên kết</Link>
           <Link href="/add" className="btn btn-primary" style={{width: 'auto'}}>+ Thêm</Link>

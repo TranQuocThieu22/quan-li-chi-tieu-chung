@@ -22,6 +22,24 @@ model User {
   partnershipsAsB  Partnership[] @relation("PartnerB")
   sentInvites      Invitation[]  @relation("InviteFrom")
   receivedInvites  Invitation[]  @relation("InviteTo")
+  personalExpenses PersonalExpense[]
+}
+
+// Chi tiêu cá nhân: chỉ chủ tài khoản xem được, không liên quan đến sổ chung
+model PersonalExpense {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  item      String
+  amount    Int
+  category  String   @default("other")
+  date      DateTime @default(now())
+  notes     String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
 }
 
 // Hai tài khoản liên kết để quản lý chi tiêu chung.
