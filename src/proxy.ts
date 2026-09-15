@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { SESSION_COOKIE, verifySessionToken } from '@/lib/session'
 
+// Kiểm tra lạc quan: chỉ xác thực chữ ký cookie. API tự kiểm tra quyền trong từng Route Handler.
 export function proxy(request: NextRequest) {
-  const isAuth = request.cookies.get('auth')?.value === 'true';
-  const pathname = request.nextUrl.pathname;
+  const userId = verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/history')) {
-    if (!isAuth) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  if (!userId) {
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
   }
-  
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/history/:path*'],
+  matcher: ['/((?!api|login|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }

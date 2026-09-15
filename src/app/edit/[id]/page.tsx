@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type Member = { id: number; name: string };
+type Member = { id: number; name: string; isMe: boolean };
 
 export default function EditExpense({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     fetch('/api/members')
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => setMembers(data));
       
     if (id) {

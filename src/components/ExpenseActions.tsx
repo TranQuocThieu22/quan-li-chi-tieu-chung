@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function ExpenseActions({ id, hasHistory, isAuth }: { id: number, hasHistory: boolean, isAuth?: boolean }) {
+export default function ExpenseActions({ id, hasHistory }: { id: number, hasHistory: boolean }) {
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -16,7 +16,7 @@ export default function ExpenseActions({ id, hasHistory, isAuth }: { id: number,
     <div style={{display: 'flex', gap: '0.75rem', marginTop: '0.5rem'}}>
       <Link href={`/edit/${id}`} style={{fontSize: '0.875rem', color: 'var(--primary-color)', textDecoration: 'none'}}>Sửa</Link>
       <button onClick={handleDelete} style={{fontSize: '0.875rem', color: 'var(--danger-color)', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}>Xóa</button>
-      {hasHistory && isAuth && (
+      {hasHistory && (
         <Link href={`/history/${id}`} style={{fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none'}}>Xem lịch sử</Link>
       )}
     </div>

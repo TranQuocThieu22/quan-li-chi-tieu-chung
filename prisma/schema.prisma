@@ -7,37 +7,95 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Tài khoản đăng nhập bằng Google
+model User {
+  id        Int      @id @default(autoincrement())
+  googleId  String   @unique
+  email     String   @unique
+  name      String
+  image     String?
+  createdAt DateTime @default(now())
+
+  members          Member[]
+  partnershipsAsA  Partnership[] @relation("PartnerA")
+  partnershipsAsB  Partnership[] @relation("PartnerB")
+  sentInvites      Invitation[]  @relation("InviteFrom")
+  receivedInvites  Invitation[]  @relation("InviteTo")
+}
+
+// Hai tài khoản liên kết để quản lý chi tiêu chung.
+// userAId luôn nhỏ hơn userBId để mỗi cặp chỉ có một bản ghi; hủy liên kết thì đặt endedAt,
+// liên kết lại với cùng người thì mở lại bản ghi cũ (giữ nguyên dữ liệu).
+model Partnership {
+  id        Int       @id @default(autoincrement())
+  userAId   Int
+  userA     User      @relation("PartnerA", fields: [userAId], references: [id])
+  userBId   Int
+  userB     User      @relation("PartnerB", fields: [userBId], references: [id])
+  endedAt   DateTime?
+  createdAt DateTime  @default(now())
+
+  members  Member[]
+  expenses Expense[]
+
+  @@unique([userAId, userBId])
+}
+
+model Invitation {
+  id          Int       @id @default(autoincrement())
+  fromUserId  Int
+  fromUser    User      @relation("InviteFrom", fields: [fromUserId], references: [id])
+  toUserId    Int
+  toUser      User      @relation("InviteTo", fields: [toUserId], references: [id])
+  status      String    @default("PENDING") // PENDING | ACCEPTED | DECLINED | CANCELED
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@index([toUserId, status])
+  @@index([fromUserId, status])
+}
+
 model Member {
-  id               Int       @id @default(autoincrement())
-  name             String
-  expenses         Expense[] @relation("PayerRelation")
-  benefitedExpenses Expense[] @relation("BeneficiaryRelation")
-  createdAt        DateTime  @default(now())
+  id                Int          @id @default(autoincrement())
+  name              String
+  userId            Int?
+  user              User?        @relation(fields: [userId], references: [id])
+  partnershipId     Int?
+  partnership       Partnership? @relation(fields: [partnershipId], references: [id])
+  expenses          Expense[]    @relation("PayerRelation")
+  benefitedExpenses Expense[]    @relation("BeneficiaryRelation")
+  createdAt         DateTime     @default(now())
+
+  @@unique([partnershipId, userId])
 }
 
 model Expense {
-  id            Int      @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   item          String
   amount        Int
   payerId       Int
-  payer         Member   @relation("PayerRelation", fields: [payerId], references: [id])
+  payer         Member       @relation("PayerRelation", fields: [payerId], references: [id])
   beneficiaryId Int?
-  beneficiary   Member?  @relation("BeneficiaryRelation", fields: [beneficiaryId], references: [id])
-  date          DateTime @default(now())
+  beneficiary   Member?      @relation("BeneficiaryRelation", fields: [beneficiaryId], references: [id])
+  partnershipId Int?
+  partnership   Partnership? @relation(fields: [partnershipId], references: [id])
+  date          DateTime     @default(now())
   notes         String?
   imageUrl      String?
-  isDeleted     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  
+  isDeleted     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+
   histories ExpenseHistory[]
+
+  @@index([partnershipId, date])
 }
 
 model ExpenseHistory {
   id                 Int      @id @default(autoincrement())
   expenseId          Int
   expense            Expense  @relation(fields: [expenseId], references: [id])
-  action             String   
-  
+  action             String
+
   oldItem            String
   oldAmount          Int
   oldPayerName       String

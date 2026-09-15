@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type Member = { id: number; name: string };
+type Member = { id: number; name: string; isMe: boolean };
 
 export default function AddExpense() {
   const router = useRouter();
@@ -40,11 +40,11 @@ export default function AddExpense() {
 
   useEffect(() => {
     fetch('/api/members')
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
         setMembers(data);
         if (data.length > 0) {
-          setFormData(prev => ({ ...prev, payerId: data[0].id.toString() }));
+          setFormData(prev => ({ ...prev, payerId: (data.find((m: Member) => m.isMe) ?? data[0]).id.toString() }));
         }
       });
   }, []);
@@ -61,7 +61,7 @@ export default function AddExpense() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.payerId) {
-      alert("Vui lòng tạo thành viên trước khi thêm khoản chi!");
+      alert("Vui lòng liên kết tài khoản trước khi thêm khoản chi!");
       return;
     }
 
@@ -96,8 +96,8 @@ export default function AddExpense() {
       <div className="card">
         {members.length === 0 ? (
           <div className="text-center">
-            <p className="mb-4">Bạn cần phải thêm thành viên trước khi tạo khoản chi.</p>
-            <Link href="/admin" className="btn btn-primary">Đi tới trang cấu hình</Link>
+            <p className="mb-4">Bạn cần liên kết với một tài khoản khác trước khi tạo khoản chi.</p>
+            <Link href="/admin" className="btn btn-primary">Đi tới trang liên kết</Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>

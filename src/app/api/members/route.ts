@@ -1,25 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { requirePartnership } from '@/lib/auth';
 
+// Thành viên là hai tài khoản đang liên kết; được tạo tự động khi chấp nhận lời mời
 export async function GET() {
-  try {
-    const members = await prisma.member.findMany({
-      orderBy: { createdAt: 'asc' },
-    });
-    return NextResponse.json(members);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
-  }
-}
+  const ctx = await requirePartnership();
+  if (!ctx.ok) return ctx.response;
 
-export async function POST(request: Request) {
-  try {
-    const { name } = await request.json();
-    if (!name) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
-
-    const member = await prisma.member.create({ data: { name } });
-    return NextResponse.json(member, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create member' }, { status: 500 });
-  }
+  return NextResponse.json(
+    ctx.partnership.members.map(m => ({ id: m.id, name: m.name, isMe: m.userId === ctx.user.id }))
+  );
 }

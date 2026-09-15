@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside style={{ width: '250px', background: 'var(--card-bg)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--primary-color)' }}>SUPER ADMIN</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--primary-color)' }}>CÀI ĐẶT</h2>
         </div>
         
         <nav style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -31,7 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               fontWeight: pathname === '/admin' ? 600 : 400
             }}
           >
-            Quản lý thành viên
+            Liên kết tài khoản
           </Link>
           <Link 
             href="/admin/logs" 

@@ -2,13 +2,12 @@ import Link from 'next/link';
 import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
 import ExpenseActions from '@/components/ExpenseActions';
-import { cookies } from 'next/headers';
+import { requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const cookieStore = await cookies();
-  const isAuth = cookieStore.get('auth')?.value === 'true';
+  const { partnership } = await requirePartnershipPage();
 
   const resolvedParams = await searchParams;
   const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -17,12 +16,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const start = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
   const end = new Date(parseInt(year), parseInt(monthStr), 1);
 
-  const members = await prisma.member.findMany({ orderBy: { id: 'asc' } });
-  
+  const members = partnership.members;
+
   const expenses = await prisma.expense.findMany({
-    where: { 
+    where: {
       isDeleted: false,
-      date: { gte: start, lt: end } 
+      partnershipId: partnership.id,
+      date: { gte: start, lt: end }
     },
     orderBy: { date: 'desc' },
     include: { payer: true, beneficiary: true, histories: true }
@@ -31,21 +31,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
-
-  if (members.length === 0) {
-    return (
-      <div>
-        <header>
-          <h1 className="title" style={{marginBottom: 0}}>Chi Tiêu Chung</h1>
-          <Link href="/admin" className="btn btn-primary" style={{width: 'auto'}}>Cấu hình</Link>
-        </header>
-        <div className="card text-center">
-          <p className="mb-4">Bạn chưa cấu hình danh sách người tham gia.</p>
-          <Link href="/admin" className="btn btn-secondary">Tới trang quản trị</Link>
-        </div>
-      </div>
-    );
-  }
 
   // Calculate totals
   const memberTotals: Record<number, number> = {};
@@ -120,7 +105,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         <h1 className="title" style={{marginBottom: 0}}>Chi Tiêu Chung</h1>
         <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
           <Link href="/stats" className="btn btn-secondary" style={{width: 'auto'}}>Thống kê</Link>
-          <Link href="/admin" className="btn btn-secondary" style={{width: 'auto'}}>Cấu hình</Link>
+          <Link href="/admin" className="btn btn-secondary" style={{width: 'auto'}}>Liên kết</Link>
           <Link href="/add" className="btn btn-primary" style={{width: 'auto'}}>+ Thêm</Link>
         </div>
       </header>
@@ -205,7 +190,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                     {formatMoney(exp.amount)}
                   </div>
                 </div>
-                <ExpenseActions id={exp.id} hasHistory={exp.histories.length > 0} isAuth={isAuth} />
+                <ExpenseActions id={exp.id} hasHistory={exp.histories.length > 0} />
               </li>
             ))}
           </ul>

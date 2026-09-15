@@ -1,16 +1,19 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
+import { requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StatsPage() {
+  const { partnership } = await requirePartnershipPage();
+
   const expenses = await prisma.expense.findMany({
-    where: { isDeleted: false },
+    where: { isDeleted: false, partnershipId: partnership.id },
     include: { payer: true },
     orderBy: { date: 'desc' }
   });
-  
-  const members = await prisma.member.findMany();
+
+  const members = partnership.members;
 
   // Who paid most all time
   const memberTotals: Record<number, number> = {};

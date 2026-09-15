@@ -1,15 +1,17 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
 import { notFound } from 'next/navigation';
+import { requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HistoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { partnership } = await requirePartnershipPage();
   const resolvedParams = await params;
   const id = parseInt(resolvedParams.id, 10);
-  
-  const expense = await prisma.expense.findUnique({
-    where: { id },
+
+  const expense = await prisma.expense.findFirst({
+    where: { id, partnershipId: partnership.id },
     include: { payer: true, beneficiary: true, histories: { orderBy: { editedAt: 'desc' } } }
   });
 

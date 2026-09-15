@@ -1,19 +1,30 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requirePartnership } from '@/lib/auth';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requirePartnership();
+  if (!ctx.ok) return ctx.response;
+
   try {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
     const { item, amount, payerId, beneficiaryId, notes, imageUrl, date } = await request.json();
 
-    const existing = await prisma.expense.findUnique({
-      where: { id },
+    const existing = await prisma.expense.findFirst({
+      where: { id, partnershipId: ctx.partnership.id },
       include: { payer: true, beneficiary: true }
     });
 
     if (!existing || existing.isDeleted) {
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
+    }
+
+    const memberIds = ctx.partnership.members.map(m => m.id);
+    const payer = parseInt(payerId, 10);
+    const beneficiary = beneficiaryId ? parseInt(beneficiaryId, 10) : null;
+    if (!memberIds.includes(payer) || (beneficiary !== null && !memberIds.includes(beneficiary))) {
+      return NextResponse.json({ error: 'Invalid member' }, { status: 400 });
     }
 
     // Create history record
@@ -36,8 +47,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data: {
         item,
         amount: parseInt(amount, 10),
-        payerId: parseInt(payerId, 10),
-        beneficiaryId: beneficiaryId ? parseInt(beneficiaryId, 10) : null,
+        payerId: payer,
+        beneficiaryId: beneficiary,
         notes,
         imageUrl,
         date: date ? new Date(date) : new Date(),
@@ -51,12 +62,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requirePartnership();
+  if (!ctx.ok) return ctx.response;
+
   try {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
 
-    const existing = await prisma.expense.findUnique({
-      where: { id },
+    const existing = await prisma.expense.findFirst({
+      where: { id, partnershipId: ctx.partnership.id },
       include: { payer: true, beneficiary: true }
     });
 
@@ -92,10 +106,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requirePartnership();
+  if (!ctx.ok) return ctx.response;
+
   try {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
-    const expense = await prisma.expense.findUnique({ where: { id }, include: { payer: true, beneficiary: true } });
+    const expense = await prisma.expense.findFirst({
+      where: { id, partnershipId: ctx.partnership.id },
+      include: { payer: true, beneficiary: true }
+    });
     if (!expense || expense.isDeleted) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(expense);
   } catch (error) {

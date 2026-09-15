@@ -1,9 +1,11 @@
 import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
+import { requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLogsPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
+  const { partnership } = await requirePartnershipPage();
   const resolvedParams = await searchParams;
   const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
   
@@ -12,12 +14,12 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
   const end = new Date(parseInt(year), parseInt(monthStr), 1);
 
   const expenses = await prisma.expense.findMany({
-    where: { createdAt: { gte: start, lt: end } },
+    where: { partnershipId: partnership.id, createdAt: { gte: start, lt: end } },
     include: { payer: true }
   });
-  
+
   const histories = await prisma.expenseHistory.findMany({
-    where: { editedAt: { gte: start, lt: end } },
+    where: { expense: { partnershipId: partnership.id }, editedAt: { gte: start, lt: end } },
     include: { expense: { include: { payer: true } } }
   });
 

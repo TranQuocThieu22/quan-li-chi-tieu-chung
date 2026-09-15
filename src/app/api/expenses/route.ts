@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requirePartnership } from '@/lib/auth';
 
 export async function GET(request: Request) {
+  const ctx = await requirePartnership();
+  if (!ctx.ok) return ctx.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
-    
-    const whereClause: { isDeleted: boolean; date?: { gte: Date; lt: Date } } = { isDeleted: false };
+
+    const whereClause: { isDeleted: boolean; partnershipId: number; date?: { gte: Date; lt: Date } } = {
+      isDeleted: false,
+      partnershipId: ctx.partnership.id,
+    };
     if (month) {
       const [year, monthStr] = month.split('-');
       const start = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
@@ -26,19 +33,30 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const ctx = await requirePartnership();
+  if (!ctx.ok) return ctx.response;
+
   try {
     const { item, amount, payerId, beneficiaryId, notes, imageUrl, date } = await request.json();
-    
+
     if (!item || !amount || !payerId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const memberIds = ctx.partnership.members.map(m => m.id);
+    const payer = parseInt(payerId, 10);
+    const beneficiary = beneficiaryId ? parseInt(beneficiaryId, 10) : null;
+    if (!memberIds.includes(payer) || (beneficiary !== null && !memberIds.includes(beneficiary))) {
+      return NextResponse.json({ error: 'Invalid member' }, { status: 400 });
     }
 
     const expense = await prisma.expense.create({
       data: {
         item,
         amount: parseInt(amount, 10),
-        payerId: parseInt(payerId, 10),
-        beneficiaryId: beneficiaryId ? parseInt(beneficiaryId, 10) : null,
+        payerId: payer,
+        beneficiaryId: beneficiary,
+        partnershipId: ctx.partnership.id,
         notes,
         imageUrl,
         date: date ? new Date(date) : new Date(),
