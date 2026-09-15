@@ -26,7 +26,7 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
   type LogItem = {
     id: string;
     date: Date;
-    action: 'Thêm mới' | 'Cập nhật' | 'Xóa';
+    action: 'Thêm mới' | 'Cập nhật' | 'Xóa' | 'Đánh dấu đã trả' | 'Bỏ đánh dấu đã trả';
     item: string;
     amount: number;
     payerName: string;
@@ -53,7 +53,10 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
     logs.push({
       id: `hist-${h.id}`,
       date: h.editedAt,
-      action: h.action === 'DELETE' ? 'Xóa' : 'Cập nhật',
+      action: h.action === 'DELETE' ? 'Xóa'
+        : h.action === 'SETTLE' ? 'Đánh dấu đã trả'
+        : h.action === 'UNSETTLE' ? 'Bỏ đánh dấu đã trả'
+        : 'Cập nhật',
       item: h.action === 'DELETE' ? h.oldItem : (h.expense?.item || h.oldItem),
       amount: h.action === 'DELETE' ? h.oldAmount : (h.expense?.amount || h.oldAmount),
       payerName: h.expense?.payer?.name || h.oldPayerName,

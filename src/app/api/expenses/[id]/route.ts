@@ -85,6 +85,45 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 }
 
+// Đánh dấu / bỏ đánh dấu đã trả
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requireExpenseAccess(parseInt((await params).id, 10));
+  if (!ctx.ok) return ctx.response;
+  const { expense: existing } = ctx;
+
+  const { isSettled } = await request.json().catch(() => ({}));
+  if (typeof isSettled !== 'boolean') {
+    return NextResponse.json({ error: 'Yêu cầu không hợp lệ' }, { status: 400 });
+  }
+  if (existing.isSettled === isSettled) return NextResponse.json(existing);
+
+  try {
+    const [, updated] = await prisma.$transaction([
+      prisma.expenseHistory.create({
+        data: {
+          expenseId: existing.id,
+          action: isSettled ? 'SETTLE' : 'UNSETTLE',
+          oldItem: existing.item,
+          oldAmount: existing.amount,
+          oldPayerName: existing.payer.name,
+          oldBeneficiaryName: existing.beneficiary?.name,
+          oldDate: existing.date,
+          oldNotes: existing.notes,
+          oldImageUrl: existing.imageUrl
+        }
+      }),
+      prisma.expense.update({
+        where: { id: existing.id },
+        data: { isSettled, settledAt: isSettled ? new Date() : null }
+      })
+    ]);
+
+    return NextResponse.json(updated);
+  } catch {
+    return NextResponse.json({ error: 'Failed to update expense' }, { status: 500 });
+  }
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireExpenseAccess(parseInt((await params).id, 10));
   if (!ctx.ok) return ctx.response;

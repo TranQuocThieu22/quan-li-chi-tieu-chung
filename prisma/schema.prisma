@@ -84,6 +84,9 @@ model Expense {
   notes         String?
   imageUrl      String?
   isDeleted     Boolean      @default(false)
+  // Đã trả: không còn tính vào tổng chi tiêu chung và công nợ
+  isSettled     Boolean      @default(false)
+  settledAt     DateTime?
   createdAt     DateTime     @default(now())
 
   histories ExpenseHistory[]

@@ -5,6 +5,11 @@ import { getActivePartnerships, getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
+const ACTION_LABELS: Record<string, string> = {
+  SETTLE: 'ĐÃ TRẢ',
+  UNSETTLE: 'BỎ ĐÃ TRẢ',
+};
+
 export default async function HistoryPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
@@ -100,6 +105,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
         <p><strong>Người trả:</strong> {expense.payer?.name}</p>
         <p><strong>Mua cho:</strong> {expense.beneficiary?.name || 'Chi tiêu chung'}</p>
         <p><strong>Ngày mua:</strong> {formatDate(expense.date)}</p>
+        <p><strong>Đã trả:</strong> {expense.isSettled ? `Có${expense.settledAt ? ` (${new Date(expense.settledAt).toLocaleString('vi-VN')})` : ''}` : 'Chưa'}</p>
       </div>
 
       <h2 className="title mt-6">Dấu vết lịch sử (Diff Compare)</h2>
@@ -129,7 +135,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
                   background: event.action === 'DELETE' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)',
                   color: event.action === 'DELETE' ? 'var(--danger-color)' : 'var(--primary-color)'
                 }}>
-                  {event.action}
+                  {ACTION_LABELS[event.action] ?? event.action}
                 </span>
                 <span style={{fontSize: '0.875rem', color: 'var(--text-secondary)'}}>
                   Vào lúc {new Date(event.time).toLocaleString('vi-VN')}

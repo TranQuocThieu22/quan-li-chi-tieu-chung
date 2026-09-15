@@ -44,6 +44,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   let totalSharedExpenses = 0;
   
   expenses.forEach(exp => {
+    // Khoản đã trả không tính vào tổng chung và công nợ
+    if (exp.isSettled) return;
+
     if (memberTotals[exp.payerId] !== undefined) {
       memberTotals[exp.payerId] += exp.amount;
       memberBalances[exp.payerId] += exp.amount;
@@ -59,6 +62,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   });
 
   const average = members.length > 0 ? totalSharedExpenses / members.length : 0;
+
+  const settledExpenses = expenses.filter(exp => exp.isSettled);
+  const settledTotal = settledExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   
   const balances = members.map(m => {
     const finalBalance = memberBalances[m.id] - average;
@@ -120,6 +126,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         <h2 className="subtitle">Tổng chi tiêu chung tháng {month.split('-')[1]}</h2>
         <div className="amount mb-4">{formatMoney(totalSharedExpenses)}</div>
         <p className="subtitle">Trung bình mỗi người: {formatMoney(average)}</p>
+        {settledExpenses.length > 0 && (
+          <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>
+            Không tính {settledExpenses.length} khoản đã trả ({formatMoney(settledTotal)})
+          </p>
+        )}
         
         <div className="mt-6" style={{textAlign: 'left'}}>
           <h3 className="subtitle" style={{fontWeight: 600}}>Đã chi trả:</h3>
@@ -166,7 +177,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
               <li key={exp.id} className="expense-item" style={{display: 'block'}}>
                 <div className="flex-between" style={{alignItems: 'flex-start'}}>
                   <div className="expense-info">
-                    <h4>{exp.item}</h4>
+                    <h4>
+                      {exp.item}
+                      {exp.isSettled && (
+                        <span style={{marginLeft: '0.5rem', padding: '0.1rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, verticalAlign: 'middle', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success-color)'}}>
+                          Đã trả
+                        </span>
+                      )}
+                    </h4>
                     <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'} {exp.beneficiaryId ? `(Mua giùm ${exp.beneficiary?.name})` : ''}</p>
                     {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
                     {exp.imageUrl && exp.imageUrl !== '[]' && (
@@ -188,11 +206,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                       </div>
                     )}
                   </div>
-                  <div className="expense-amount">
+                  <div className="expense-amount" style={exp.isSettled ? {textDecoration: 'line-through', color: 'var(--text-secondary)'} : undefined}>
                     {formatMoney(exp.amount)}
                   </div>
                 </div>
-                <ExpenseActions id={exp.id} hasHistory={exp.histories.length > 0} />
+                <ExpenseActions id={exp.id} hasHistory={exp.histories.length > 0} isSettled={exp.isSettled} />
               </li>
             ))}
           </ul>
