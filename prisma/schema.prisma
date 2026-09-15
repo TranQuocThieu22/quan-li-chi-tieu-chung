@@ -1,5 +1,5 @@
 datasource db {
-  provider  = "sqlite"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
 }
 
@@ -66,7 +66,7 @@ model Member {
   benefitedExpenses Expense[]    @relation("BeneficiaryRelation")
   createdAt         DateTime     @default(now())
 
-  @@unique([partnershipId, userId])
+  @@index([partnershipId, userId])
 }
 
 model Expense {
