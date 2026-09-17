@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
-import ExpenseActions from '@/components/ExpenseActions';
+import ExpenseList, { type ExpenseListItem } from '@/components/ExpenseList';
 import LedgerSwitcher from '@/components/LedgerSwitcher';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 
@@ -32,6 +32,30 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
+
+  // imageUrl lưu dạng JSON mảng, dữ liệu cũ có thể chỉ là một đường dẫn
+  const parseImages = (imageUrl: string | null) => {
+    if (!imageUrl || imageUrl === '[]') return [];
+    try {
+      const parsed = JSON.parse(imageUrl);
+      return Array.isArray(parsed) ? (parsed as string[]) : [imageUrl];
+    } catch {
+      return [imageUrl];
+    }
+  };
+
+  const expenseItems: ExpenseListItem[] = expenses.map(exp => ({
+    id: exp.id,
+    item: exp.item,
+    amount: exp.amount,
+    date: exp.date.toISOString(),
+    payerName: exp.payer?.name || 'Không rõ',
+    beneficiaryName: exp.beneficiaryId ? exp.beneficiary?.name ?? null : null,
+    notes: exp.notes,
+    images: parseImages(exp.imageUrl),
+    isSettled: exp.isSettled,
+    hasHistory: exp.histories.length > 0,
+  }));
 
   // Calculate totals
   const memberTotals: Record<number, number> = {};
@@ -168,55 +192,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         )}
       </div>
 
-      <h2 className="title mt-6">Lịch sử chi tiêu</h2>
-      <div className="card">
-        {expenses.length === 0 ? (
-          <p className="text-center" style={{color: 'var(--text-secondary)'}}>Chưa có khoản chi nào trong tháng này.</p>
-        ) : (
-          <ul className="expense-list">
-            {expenses.map(exp => (
-              <li key={exp.id} className="expense-item" style={{display: 'block'}}>
-                <div className="flex-between" style={{alignItems: 'flex-start'}}>
-                  <div className="expense-info">
-                    <h4>
-                      {exp.item}
-                      {exp.isSettled && (
-                        <span style={{marginLeft: '0.5rem', padding: '0.1rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, verticalAlign: 'middle', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success-color)'}}>
-                          Đã trả
-                        </span>
-                      )}
-                    </h4>
-                    <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payer?.name || 'Không rõ'} {exp.beneficiaryId ? `(Mua giùm ${exp.beneficiary?.name})` : ''}</p>
-                    {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
-                    {exp.imageUrl && exp.imageUrl !== '[]' && (
-                      <div style={{marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
-                        {(() => {
-                          let imgs: string[] = [];
-                          try {
-                            const parsed = JSON.parse(exp.imageUrl);
-                            imgs = Array.isArray(parsed) ? parsed : [exp.imageUrl];
-                          } catch (e) {
-                            imgs = [exp.imageUrl];
-                          }
-                          return imgs.map((imgUrl, idx) => (
-                            <a key={idx} href={imgUrl} target="_blank" rel="noreferrer" style={{display: 'inline-block'}}>
-                              <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} style={{maxHeight: '60px', borderRadius: '4px', border: '1px solid var(--border-color)'}} />
-                            </a>
-                          ));
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="expense-amount" style={exp.isSettled ? {textDecoration: 'line-through', color: 'var(--text-secondary)'} : undefined}>
-                    {formatMoney(exp.amount)}
-                  </div>
-                </div>
-                <ExpenseActions id={exp.id} hasHistory={exp.histories.length > 0} isSettled={exp.isSettled} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <ExpenseList expenses={expenseItems} />
     </main>
   )
 }
