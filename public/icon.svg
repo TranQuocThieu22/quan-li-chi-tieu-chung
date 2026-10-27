@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0f172a"/>
+  <!-- Ví -->
+  <rect x="116" y="150" width="280" height="212" rx="36" fill="#3b82f6"/>
+  <path d="M152 150 L318 104 a20 20 0 0 1 25 14 L352 150 Z" fill="#2563eb"/>
+  <rect x="290" y="218" width="106" height="76" rx="22" fill="#1e293b"/>
+  <!-- Hai đồng xu: chi tiêu chung -->
+  <circle cx="330" cy="256" r="18" fill="#10b981"/>
+  <circle cx="362" cy="256" r="18" fill="#f8fafc" fill-opacity="0.9"/>
+</svg>
