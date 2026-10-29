@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Quản Lý Chi Tiêu Chung
 
-## Getting Started
+Ứng dụng web (cài được ra màn hình chính điện thoại) để hai người ghi và chia chi tiêu chung, kèm sổ chi tiêu cá nhân.
 
-First, run the development server:
+- **Sổ chung**: mỗi cặp tài khoản liên kết có một sổ riêng. Ghi khoản chi theo danh mục, ai trả, mua giùm; tự tính ai cần
+  trả ai bao nhiêu; đánh dấu đã trả (từng khoản hoặc nhiều khoản một lúc); lịch sử sửa từng khoản.
+- **Cá nhân**: chi tiêu riêng theo danh mục, ngân sách tháng, tổng chi thực tế (gồm cả phần của mình trong sổ chung).
+- **Thống kê**: chi chung theo tháng, theo danh mục, ai đã chi bao nhiêu.
+- Đăng nhập bằng Google. Liên kết với người khác bằng lời mời qua email.
+
+Next.js 16 (App Router) · React 19 · Prisma 6 · PostgreSQL. Triển khai trên Vercel: push lên `main` là tự build
+(`prisma db push && next build`) và lên production.
+
+## Chạy ở máy
+
+Cần Node 22+ và Docker Desktop.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run db:up      # Postgres trong Docker, cổng 5544 (compose.yaml)
+npm run db:push    # tạo bảng theo prisma/schema.prisma
+npm run db:seed    # dữ liệu mẫu: 3 người dùng, 2 sổ chung, ~6 tháng chi tiêu — XOÁ SẠCH dữ liệu cũ trong database ở máy
+npm run dev        # http://localhost:4000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`db:push`, `db:seed`, `dev:login` đọc `.env.local`; `seed` và `dev:login` từ chối chạy nếu `DATABASE_URL` không phải `localhost`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### `.env.local`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Next.js ưu tiên file này hơn `.env`. Không commit (`.gitignore` đã chặn `.env*`).
 
-## Learn More
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5544/chi_tieu"
+AUTH_SECRET="<chuỗi ngẫu nhiên bất kỳ>"   # node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
 
-To learn more about Next.js, take a look at the following resources:
+Muốn đăng nhập Google thật ở máy thì thêm `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (đặt trong `.env` hay `.env.local` đều được).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Đăng nhập ở máy không cần Google
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev:login                               # Quốc Thiệu (dev.thieu@example.com)
+npm run dev:login -- dev.minhanh@example.com    # người còn lại trong sổ
+```
 
-## Deploy on Vercel
+Lệnh in ra một dòng JavaScript. Mở `http://localhost:4000/login`, F12 → Console, dán dòng đó là vào app. Cookie ký bằng
+`AUTH_SECRET` của `.env.local` nên không dùng được trên production; app không có đường đăng nhập nào thêm.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Tắt database: `docker compose stop` (dữ liệu giữ trong volume `chi-tieu-db`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Biến môi trường trên Vercel
+
+| Biến | Dùng cho |
+| --- | --- |
+| `DATABASE_URL` | Postgres production |
+| `AUTH_SECRET` | ký cookie đăng nhập |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | đăng nhập Google |
+| `APP_URL` (tùy chọn) | origin cố định cho địa chỉ callback Google, khi chạy sau proxy làm sai origin |
+
+Đổi schema: chỉ **thêm** cột/bảng có giá trị mặc định hoặc cho phép null — `prisma db push` chạy thẳng lên database thật
+mỗi lần deploy.
+
+## Tài liệu nội bộ
+
+- [`docs/_internal/viec-con-treo.md`](docs/_internal/viec-con-treo.md) — việc chưa làm
+- [`docs/_internal/nhat-ky-lam-viec.md`](docs/_internal/nhat-ky-lam-viec.md) — nhật ký làm việc
+- [`AGENTS.md`](AGENTS.md) — quy ước mở / đóng phiên cho Claude

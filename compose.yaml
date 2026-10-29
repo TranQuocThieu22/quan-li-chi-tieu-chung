@@ -1,0 +1,17 @@
+# Postgres chỉ để chạy app ở máy (npm run db:up) — production dùng database riêng cấu hình trên Vercel
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: chi-tieu-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chi_tieu
+    # 5544 để không đụng các Postgres cài sẵn trên máy (thường chiếm 5432, 5433)
+    ports:
+      - "5544:5432"
+    volumes:
+      - chi-tieu-db:/var/lib/postgresql/data
+
+volumes:
+  chi-tieu-db:
