@@ -21,6 +21,10 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 - [ ] **Chọn lại danh mục cho khoản chi chung cũ** nếu muốn thẻ *Theo danh mục* có ý nghĩa (29/10): mọi khoản tạo trước 29/10
       đang là 📦 Khác. Nhanh nhất: *Chọn nhiều* → tick các khoản cùng loại → *Danh mục*.
 
+- [ ] **Cài MacroDroid trên Android theo trang *Liên kết → Tự động nhập*** (29/10): bấm *Bật và tạo mã*, chép địa chỉ và nội
+      dung vào macro, thử một giao dịch nhỏ. Thông báo nào đọc sai số tiền / bị bỏ sót thì chụp dòng đó ở *Thông báo nhận gần
+      đây* gửi Claude. iPhone không dùng được cách này.
+
 ## 2. Chờ chủ sản phẩm quyết
 
 - [ ] **Tám danh mục sổ chung có đủ chưa** (29/10): đang là Ăn uống, Đi chợ, Hóa đơn, Nhà cửa, Di chuyển, Mua sắm, Giải trí,
@@ -31,8 +35,9 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 3. Claude làm được khi được giao
 
-- [ ] **Gợi ý danh mục cho form chi tiêu cá nhân** (29/10): sổ chung đã tự chọn theo tên món (`guessSharedCategory` và khoản
-      cùng tên trước đó); form cá nhân chưa có — danh mục cá nhân khác bộ (có Sức khỏe, Giáo dục), cần bộ từ khoá riêng.
+- [ ] **Chỉnh bộ đọc thông báo theo thông báo thật** (29/10): `src/lib/notification-parser.ts` mới thử trên mẫu Claude tự viết
+      theo kiểu VCB, MB, BIDV, Techcombank, VPBank, MoMo — chưa thấy thông báo thật nào. Khi có, xem mục *Không đọc được* / số
+      tiền sai ở `/admin/import` (nội dung gốc còn nguyên) rồi thêm mẫu vào bộ thử.
 
 ## 4. Khi tới mốc
 

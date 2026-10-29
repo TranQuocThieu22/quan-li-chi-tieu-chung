@@ -36,6 +36,42 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt tự động nhập) — Nhận thông báo ngân hàng, MoMo từ Android, hộp *Chờ xác nhận*; lên production
+
+> Chủ sản phẩm: *"làm sao để liên kết ngân hàng hoạt momo để tự động tính chi tiêu"* → chọn *"2. Chuyển tiếp thông báo trên
+> điện thoại"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Tìm hiểu trước: Open API ngân hàng (Thông tư 64/2024/TT-NHNN, hiệu lực 01/03/2025) chỉ cho tổ chức có hợp đồng với ngân hàng;
+  MoMo không có API đọc lịch sử ví cá nhân (các "API MoMo" trên mạng đòi thông tin đăng nhập ví — khuyên không dùng). Đưa ba
+  cách: SePay (12 ngân hàng qua API, miễn phí 50 giao dịch/tháng, không có MoMo), chuyển tiếp thông báo Android, nhập file sao
+  kê. Chủ sản phẩm chọn cách thứ hai.
+- Commit *feat: import bank and MoMo payments from phone notifications*. Bảng `ImportedTransaction` + cột
+  `User.importTokenHash` (SHA-256 của mã, mã gốc hiện một lần). `POST /api/import/notify?key=` nhận body dạng dòng
+  `khoá=giá trị` (chịu được ngoặc kép, xuống dòng mà JSON ghép bằng magic text làm hỏng) hoặc JSON; magic text trống
+  (`{not_text_big}`) coi như rỗng; gộp trùng trong 2 phút; tiền vào → `INCOMING`, không có số tiền → `UNPARSED`, còn lại
+  `PENDING`. `src/lib/notification-parser.ts` đọc số tiền có dấu +/- (cần đơn vị hoặc dấu phân cách nghìn), bỏ số sau "số
+  dư" (chỉ với số không dấu — VCB đặt số giao dịch có dấu ngay sau "Số dư TK"), chiều tiền theo từ khoá, nội dung từ `ND:` /
+  `Nội dung:` / `Lời nhắn:` / `Ref …` / "cho …". Trang `/inbox` (*Chờ xác nhận*): *Sổ chung* / *Cá nhân* mở form điền sẵn
+  (`?import=`), lưu xong gỡ khỏi hộp chờ và quay lại; *Bỏ qua*. Dòng nhắc ở trang chủ và Cá nhân. Trang *Liên kết → Tự động
+  nhập*: tạo / tạo lại / tắt mã, chép URL và mẫu nội dung, hướng dẫn MacroDroid 5 bước, nút gửi thử, 20 thông báo gần nhất kèm
+  nội dung gốc và *Đưa lại vào chờ*.
+- Cùng commit: form chi tiêu cá nhân có gợi ý danh mục (bộ từ khoá riêng, khoản cùng tên trước đó). Bộ đoán tách ra
+  `src/lib/guess-category.ts` dùng chung, thêm so **không dấu** cho nội dung chuyển khoản ("Thanh toan tien dien" → Hóa đơn),
+  bỏ từ khoá bỏ dấu ngắn hơn 4 chữ hoặc trùng giữa hai danh mục ("cho", "sua chua"). Hook `useCategorySuggestion` cho cả hai form.
+
+**Quan sát**
+
+- **Bẫy schema**: đặt `@unique` cho `User.importTokenHash` làm `db push` đòi `--accept-data-loss` (bảng `User` đã có dữ liệu) —
+  build Vercel không có cờ đó nên deploy sẽ hỏng. Đổi sang `@@index`; ghi vào `AGENTS.md` và `README.md`.
+- Thử ở máy với thông báo giả lập kiểu VCB, MB, BIDV, Techcombank, VPBank, MoMo: đọc đúng cả. Lỗi bắt được khi thử: "thành
+  công" bỏ dấu ra "thanh cong" khớp từ khoá tiền vào "cong" — bỏ "cong", "tang" đứng riêng. **Chưa thấy thông báo thật nào.**
+- Gửi tiếng Việt bằng `curl` trong Git Bash làm hỏng vài chữ (ú, Nội) — tham số dòng lệnh bị đổi bảng mã; gửi qua `fetch` của
+  Node thì đúng. Không phải lỗi app.
+- Kịch bản thử từng xoá thẳng ô gợi ý cài app (React quản lý) rồi bấm `Link` → React lỗi `insertBefore` / `removeChild`. Tắt
+  gợi ý bằng `localStorage` (`install-prompt-dismissed-at`) thay vì xoá phần tử.
+
 ## 29/10/2026 (lượt danh mục hàng loạt) — Đổi danh mục nhiều khoản một lúc, tự gợi ý danh mục theo tên món; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"làm đi"* → *"đẩy production"*.
