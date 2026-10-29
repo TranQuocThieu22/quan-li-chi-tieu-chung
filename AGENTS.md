@@ -26,3 +26,6 @@ làm **trước khi đẩy**:
 Đổi schema thì chỉ **thêm** cột/bảng có mặc định hoặc cho phép null — `db push` chạy thẳng
 lên database thật. **Không thêm `@unique` vào bảng đã có dữ liệu** (kể cả cột mới cho phép null): `db push`
 đòi `--accept-data-loss`, build trên Vercel không có cờ đó nên deploy hỏng — dùng `@@index` (29/10, `User.importTokenHash`).
+
+Sửa bộ đọc thông báo (`src/lib/notification-parser.ts`) hay bộ đoán danh mục: thêm mẫu thành ca trong file `*.test.ts`
+cạnh nó **trước**, rồi mới sửa; `npm test` phải qua trước khi đẩy.

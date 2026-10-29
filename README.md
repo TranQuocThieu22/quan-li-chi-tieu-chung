@@ -23,7 +23,11 @@ npm run db:up      # Postgres trong Docker, cổng 5544 (compose.yaml)
 npm run db:push    # tạo bảng theo prisma/schema.prisma
 npm run db:seed    # dữ liệu mẫu: 3 người dùng, 2 sổ chung, ~6 tháng chi tiêu — XOÁ SẠCH dữ liệu cũ trong database ở máy
 npm run dev        # http://localhost:4000
+npm test           # bộ thử (Vitest): đọc thông báo ngân hàng / MoMo, đoán danh mục
 ```
+
+`optionalDependencies` ghi sẵn `@rolldown/binding-*` vì npm 11 làm rơi các gói biên dịch theo nền tảng của rolldown (Vitest dùng)
+khỏi `package-lock.json` — nâng Vitest thì nâng các gói này cùng phiên bản rolldown.
 
 `db:push`, `db:seed`, `dev:login` đọc `.env.local`; `seed` và `dev:login` từ chối chạy nếu `DATABASE_URL` không phải `localhost`.
 
