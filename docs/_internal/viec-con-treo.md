@@ -16,9 +16,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 1. Chủ sản phẩm làm
 
-- [ ] **Mở trên điện thoại các trang Claude chưa nhìn tận mắt** (29/10): Thống kê, Lịch sử thay đổi, Liên kết, Nhật ký hoạt động,
-      Superadmin, form thêm khoản chi chung (lưới danh mục), thẻ *Theo danh mục* ở trang chủ. Claude chỉ chụp được trang có dữ
-      liệu giả vì local không có database. Chỗ nào xấu hay vỡ thì báo.
+- [ ] **Xem các trang với dữ liệu thật trên điện thoại** (29/10): Claude đã bấm thử mọi trang ở máy với dữ liệu mẫu, nhưng số liệu
+      thật (tên dài, khoản cũ chưa có danh mục, nhiều ảnh) có thể lộ chỗ chưa thấy. Chỗ nào xấu hay vỡ thì báo.
 - [ ] **Chọn lại danh mục cho khoản chi chung cũ** nếu muốn thẻ *Theo danh mục* có ý nghĩa (29/10): mọi khoản tạo trước 29/10
       đang là 📦 Khác — vào *Sửa* từng khoản.
 
@@ -32,9 +31,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 3. Claude làm được khi được giao
 
-- [ ] **Cho chạy được app ở máy local** (28/10): `.env` để `DATABASE_URL="file:./dev.db"` nhưng schema là Postgres, nên `next dev`
-      không đọc được dữ liệu; `dev.db` và `prisma/dev.db` là SQLite cũ còn nằm trong git. Cần một Postgres thử (Neon branch hoặc Docker).
-- [ ] **Viết lại `README.md`** (28/10): vẫn là bản mẫu của create-next-app, chưa nói app làm gì, cần biến môi trường nào.
+- [ ] **Hai lỗi nhỏ có từ trước** (29/10): `.env` vẫn để `DATABASE_URL="file:./dev.db"` (không còn dùng vì `.env.local` đè lên,
+      nhưng `npm run build` ở máy sẽ hỏng vì nó đọc `.env`); tỉ lệ dưới 0,5% ở thẻ danh mục hiện `0%`.
 
 ## 4. Khi tới mốc
 

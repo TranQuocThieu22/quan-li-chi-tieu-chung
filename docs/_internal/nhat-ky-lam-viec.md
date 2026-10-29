@@ -36,6 +36,33 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt chạy ở máy) — App chạy ở máy với Postgres trong Docker và dữ liệu mẫu, bấm thử mọi trang; lên production
+
+> Chủ sản phẩm: *"làm gì tiếp"* → *"làm đi"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *chore: run the app locally against a seeded Postgres*. `compose.yaml` (Postgres 17, cổng **5544** — 5432 và 5433 đã
+  có Postgres cài sẵn chiếm); `.env.local` (không commit) trỏ tới database ở máy kèm `AUTH_SECRET` riêng; lệnh `db:up`, `db:push`,
+  `db:seed`, `dev:login` (chạy qua `node --env-file=.env.local`). `scripts/seed-local.mjs` xoá sạch rồi tạo 3 người dùng (người
+  chính là superadmin), 2 sổ, ~6 tháng chi chung, một khoản có lịch sử sửa, chi tiêu cá nhân và ngân sách. `scripts/dev-login.mjs`
+  in một dòng `document.cookie` để đăng nhập không qua Google — chạy tay ở máy, app không thêm route nào. Cả hai **từ chối chạy
+  nếu `DATABASE_URL` không phải localhost**. Bỏ `dev.db`, `prisma/dev.db` khỏi git; `.gitignore` có dòng cuối bị ghi UTF-16
+  (git không đọc được) — viết lại, thêm `*.db`. Viết lại `README.md`.
+- Commit *fix: label edit and delete events on the history page*: trang Lịch sử hiện nhãn tiếng Anh *UPDATE* / *DELETE* vì
+  `ACTION_LABELS` thiếu hai khoá — giờ là *SỬA* / *XÓA*. Có từ trước, lộ ra khi xem với dữ liệu thật ở máy.
+- Bấm thử bằng Chrome ẩn qua DevTools Protocol, 390 px: thêm khoản mua giùm (người hưởng tự là người còn lại, kiểm trong
+  database), sửa đổi người trả và danh mục (người hưởng đổi theo, `oldCategory` / `oldPayerName` / `oldBeneficiaryName` ghi đúng),
+  khoản không tồn tại ra 404, bộ lọc *Chưa trả* giữ khi đổi tháng; Sổ chung, Thống kê, Cá nhân, Lịch sử, Liên kết, Nhật ký, Superadmin
+  đều không tràn ngang.
+
+**Quan sát**
+
+- Docker Desktop đang tắt lúc bắt đầu — mở nó lên là daemon sẵn sau ~9 giây. Container `chi-tieu-db` để chạy tiếp cho chủ sản phẩm dùng.
+- Prisma CLI không đè biến đã có trong môi trường, nên `node --env-file=.env.local …prisma db push` dùng đúng database ở máy dù
+  `.env` vẫn trỏ SQLite (đã kiểm: *at "localhost:5544"*).
+- Ô React điều khiển không nhận `el.value = …`; phải gọi setter của prototype rồi phát sự kiện `input` / `change`.
+
 ## 29/10/2026 (lượt thống kê) — Trang Thống kê có khoảng thời gian, biểu đồ theo tháng, danh mục, ai đã chi; lên production
 
 > Chủ sản phẩm: *"làm sao cho thống kê có ý nghĩa hơn"* → *"đẩy production"*.
