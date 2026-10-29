@@ -36,6 +36,27 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt gộp form) — Một form chung cho thêm / sửa khoản chi sổ chung, hết lỗi lint; lên production
+
+> Chủ sản phẩm: *"làm gì tiếp"* → *"làm đi"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Đối chiếu nhật ký với git lúc mở phiên: ba commit từ 28/10 đều đã được kể. Sửa tiêu đề khối 28/10 thành *lên production sáng
+  29/10* — commit `cd228d5` đẩy sáng 29/10, không phải 28/10.
+- Commit *refactor: share one form between adding and editing shared expenses*. `SharedExpenseForm` (theo mẫu
+  `PersonalExpenseForm`) thay hai form trùng nhau ở `add/page.tsx` và `edit/[id]/page.tsx`; hai trang thành Server Component, lấy
+  thành viên và khoản chi trên server (bớt gần 600 dòng). Người được mua giùm tính lúc lưu (luôn là người còn lại) thay cho hai
+  `useEffect` — hết 2 lỗi `react-hooks/set-state-in-effect`, lint còn 0 lỗi 0 cảnh báo. Đọc ảnh bằng `Promise.all` với cập nhật
+  theo `prev`: bản cũ lấy `formData` lúc chọn ảnh, gõ tiếp trong lúc ảnh đang đọc thì chữ vừa gõ có thể mất.
+- `parseImages` chuyển vào `src/lib/shared.ts`, trang chủ dùng chung.
+
+**Quan sát**
+
+- Đổi nhỏ về hành vi: trang sửa không còn chớp *Đang tải...*; khoản không tồn tại ra trang 404 thay vì hộp thông báo; chưa liên
+  kết mà mở trang thêm khoản chi thì chuyển sang sổ cá nhân thay vì hiện thông báo trong trang.
+- Chưa thử lưu thật (local không có database) — chỉ type-check, lint, build.
+
 ## 29/10/2026 (lượt nhật ký) — Lập nhật ký làm việc, việc còn treo và quy ước mở / đóng phiên; lên production
 
 > Chủ sản phẩm: *"làm các file như nhật kí làm việc và việc còn treo như: D:\AQ-Project\BE\piano-learning nhé"* →
@@ -80,7 +101,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   Lịch sử chưa ai nhìn tận mắt.
 - Mọi khoản chi chung cũ hiện là 📦 Khác cho tới khi sửa lại.
 
-## 28/10/2026 — Làm lại toàn bộ giao diện cho điện thoại; lên production
+## 28/10/2026 — Làm lại toàn bộ giao diện cho điện thoại; lên production sáng 29/10
 
 > Chủ sản phẩm: *"update lại toàn bộ styles giao diện cho nhìn đẹp, hợp lí gọn gàng hơn cho mobile"* → *"đẩy production"*.
 

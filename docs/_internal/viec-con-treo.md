@@ -31,10 +31,6 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 3. Claude làm được khi được giao
 
-- [ ] **Sửa 2 lỗi lint `react-hooks/set-state-in-effect`** ở `src/app/add/page.tsx` và `src/app/edit/[id]/page.tsx` (28/10):
-      `useEffect` tự chọn người được mua giùm. Có từ trước, build vẫn chạy; dời việc chọn vào lúc đổi người trả là hết.
-- [ ] **Gộp form thêm / sửa khoản chi chung thành một component** (28/10): hai file trùng gần hết, cả đoạn xử lý ảnh. Sửa một
-      bên quên bên kia là lệch — 29/10 thêm danh mục phải sửa cả hai. Mẫu sẵn: `PersonalExpenseForm`.
 - [ ] **Cho chạy được app ở máy local** (28/10): `.env` để `DATABASE_URL="file:./dev.db"` nhưng schema là Postgres, nên `next dev`
       không đọc được dữ liệu; `dev.db` và `prisma/dev.db` là SQLite cũ còn nằm trong git. Cần một Postgres thử (Neon branch hoặc Docker).
 - [ ] **Thống kê theo danh mục** ở trang Thống kê (29/10): trang chủ đã có cho từng tháng, Thống kê chưa có cho toàn thời gian.
