@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getActivePartnerships, getCurrentUser } from '@/lib/auth';
+import { SHARED_CATEGORIES } from '@/lib/shared';
 
-const ACTIONS = ['settle', 'unsettle', 'delete'] as const;
+const ACTIONS = ['settle', 'unsettle', 'delete', 'category'] as const;
 type BulkAction = (typeof ACTIONS)[number];
 
-// Đánh dấu đã trả / bỏ đã trả / xóa nhiều khoản chi được tick chọn ở trang chủ
+// Đánh dấu đã trả / bỏ đã trả / đổi danh mục / xóa nhiều khoản chi được tick chọn ở trang chủ
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Chưa đăng nhập' }, { status: 401 });
@@ -18,6 +19,10 @@ export async function POST(request: Request) {
 
   if (!ACTIONS.includes(action) || ids.length === 0) {
     return NextResponse.json({ error: 'Yêu cầu không hợp lệ' }, { status: 400 });
+  }
+  const category = SHARED_CATEGORIES.find(c => c.key === body?.category)?.key;
+  if (action === 'category' && !category) {
+    return NextResponse.json({ error: 'Danh mục không hợp lệ' }, { status: 400 });
   }
 
   // Chỉ thao tác trên khoản chi thuộc sổ người dùng đang liên kết
@@ -32,10 +37,14 @@ export async function POST(request: Request) {
 
   const isSettled = action === 'settle';
   // Bỏ qua khoản đã ở đúng trạng thái để không ghi lịch sử thừa
-  const targets = action === 'delete' ? expenses : expenses.filter(e => e.isSettled !== isSettled);
+  const targets =
+    action === 'delete' ? expenses
+    : action === 'category' ? expenses.filter(e => e.category !== category)
+    : expenses.filter(e => e.isSettled !== isSettled);
   if (targets.length === 0) return NextResponse.json({ count: 0 });
 
-  const historyAction = action === 'delete' ? 'DELETE' : isSettled ? 'SETTLE' : 'UNSETTLE';
+  const historyAction =
+    action === 'delete' ? 'DELETE' : action === 'category' ? 'UPDATE' : isSettled ? 'SETTLE' : 'UNSETTLE';
 
   try {
     await prisma.$transaction([
@@ -55,8 +64,8 @@ export async function POST(request: Request) {
       }),
       prisma.expense.updateMany({
         where: { id: { in: targets.map(e => e.id) } },
-        data: action === 'delete'
-          ? { isDeleted: true }
+        data: action === 'delete' ? { isDeleted: true }
+          : action === 'category' ? { category }
           : { isSettled, settledAt: isSettled ? new Date() : null },
       }),
     ]);

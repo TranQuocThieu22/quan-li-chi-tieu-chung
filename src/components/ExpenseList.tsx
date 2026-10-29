@@ -3,7 +3,7 @@ import { useState, useSyncExternalStore, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import ExpenseActions from './ExpenseActions';
 import { CheckIcon } from './icons';
-import { getSharedCategory } from '@/lib/shared';
+import { getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
 
 export type ExpenseListItem = {
   id: number;
@@ -62,6 +62,7 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isPending, startTransition] = useTransition();
+  const [pickingCategory, setPickingCategory] = useState(false);
 
   const unpaid = expenses.filter(e => !e.isSettled);
   const paid = expenses.filter(e => e.isSettled);
@@ -89,7 +90,7 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
     setSelectedIds(allSelected ? [] : visible.map(e => e.id));
   };
 
-  const runBulk = (action: 'settle' | 'unsettle' | 'delete') => {
+  const runBulk = (action: 'settle' | 'unsettle' | 'delete' | 'category', category?: string) => {
     if (selected.length === 0 || isPending) return;
     if (action === 'delete' && !confirm(`Xóa ${selected.length} khoản chi đã chọn? (Lịch sử vẫn được lưu lại)`)) return;
 
@@ -98,7 +99,7 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
         const res = await fetch('/api/expenses/bulk', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: selected, action }),
+          body: JSON.stringify({ ids: selected, action, category }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -107,6 +108,7 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
         }
         setSelectedIds([]);
         setSelecting(false);
+        setPickingCategory(false);
         router.refresh();
       } catch {
         alert('Lỗi kết nối!');
@@ -240,6 +242,9 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
                 <button type="button" className="btn btn-secondary" disabled={isPending} onClick={() => runBulk('unsettle')}>
                   Bỏ đã trả
                 </button>
+                <button type="button" className="btn btn-secondary" disabled={isPending} onClick={() => setPickingCategory(true)}>
+                  Danh mục
+                </button>
                 <button type="button" className="btn btn-danger" disabled={isPending} onClick={() => runBulk('delete')}>
                   Xóa
                 </button>
@@ -248,6 +253,28 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
           </>
         )}
       </div>
+
+      {pickingCategory && selecting && selected.length > 0 && (
+        <>
+          <div className="sheet-overlay" onClick={() => setPickingCategory(false)} />
+          <div className="sheet" role="dialog" aria-label="Đổi danh mục">
+            <div className="sheet-head">
+              <strong>Đổi danh mục cho {selected.length} khoản</strong>
+              <button type="button" className="text-btn" style={{ color: 'var(--text-secondary)' }} onClick={() => setPickingCategory(false)}>
+                Hủy
+              </button>
+            </div>
+            <div className="option-grid">
+              {SHARED_CATEGORIES.map(c => (
+                <button key={c.key} type="button" className="option-btn" disabled={isPending} onClick={() => runBulk('category', c.key)}>
+                  <span className="emoji" aria-hidden>{c.icon}</span>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryPicker from './CategoryPicker';
-import { SHARED_CATEGORIES } from '@/lib/shared';
+import { guessSharedCategory, normalizeItemName, SHARED_CATEGORIES } from '@/lib/shared';
 
 type Member = { id: number; name: string; isMe: boolean };
 type Initial = {
@@ -27,24 +27,32 @@ const readAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
-// Form thêm / sửa khoản chi trong sổ chung; có expenseId là sửa
+const DEFAULT_CATEGORY = 'food';
+
+// Form thêm / sửa khoản chi trong sổ chung; có expenseId là sửa.
+// knownCategories: tên món đã chuẩn hoá → danh mục của khoản gần nhất cùng tên trong sổ, để gợi ý khi thêm mới.
 export default function SharedExpenseForm({
   partnershipId,
   members,
   expenseId,
   initial,
+  knownCategories = {},
 }: {
   partnershipId: number;
   members: Member[];
   expenseId?: number;
   initial?: Initial;
+  knownCategories?: Record<string, string>;
 }) {
+  // Gợi ý chỉ chạy khi thêm mới và người dùng chưa tự bấm chọn danh mục
+  const [categoryTouched, setCategoryTouched] = useState(Boolean(expenseId));
+  const [suggestion, setSuggestion] = useState<'known' | 'keyword' | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     item: initial?.item ?? '',
     amount: initial ? String(initial.amount) : '',
-    category: initial?.category ?? 'food',
+    category: initial?.category ?? DEFAULT_CATEGORY,
     payerId: String(initial?.payerId ?? (members.find(m => m.isMe) ?? members[0])?.id ?? ''),
     isPayOnBehalf: initial?.isPayOnBehalf ?? false,
     date: initial?.date ?? new Date().toISOString().split('T')[0],
@@ -53,6 +61,17 @@ export default function SharedExpenseForm({
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
 
   const displayAmount = form.amount ? new Intl.NumberFormat('vi-VN').format(parseInt(form.amount, 10)) : '';
+
+  const changeItem = (item: string) => {
+    if (categoryTouched) {
+      setForm({ ...form, item });
+      return;
+    }
+    const known = knownCategories[normalizeItemName(item)];
+    const guessed = known ? null : guessSharedCategory(item);
+    setSuggestion(known ? 'known' : guessed ? 'keyword' : null);
+    setForm({ ...form, item, category: known ?? guessed ?? DEFAULT_CATEGORY });
+  };
 
   const addImages = async (files: File[]) => {
     const accepted = files.filter(file => {
@@ -134,14 +153,18 @@ export default function SharedExpenseForm({
           placeholder="VD: Tiền điện tháng 5"
           required
           value={form.item}
-          onChange={(e) => setForm({ ...form, item: e.target.value })}
+          onChange={(e) => changeItem(e.target.value)}
         />
       </div>
 
       <CategoryPicker
         categories={SHARED_CATEGORIES}
         value={form.category}
-        onChange={(category) => setForm({ ...form, category })}
+        hint={!categoryTouched && suggestion ? (suggestion === 'known' ? 'như lần trước' : 'tự chọn theo tên món') : undefined}
+        onChange={(category) => {
+          setCategoryTouched(true);
+          setForm({ ...form, category });
+        }}
       />
 
       <div className="form-row">
