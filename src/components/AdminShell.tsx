@@ -32,6 +32,7 @@ export default function AdminShell({
   const navItems = [
     { href: '/admin', label: 'Liên kết tài khoản' },
     { href: '/admin/logs', label: 'Nhật ký hoạt động' },
+    { href: '/admin/import', label: 'Tự động nhập' },
     ...(isSuperAdmin ? [{ href: '/admin/superadmin', label: 'Superadmin' }] : []),
   ];
 

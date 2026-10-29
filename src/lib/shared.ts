@@ -1,3 +1,7 @@
+import { makeCategoryGuesser } from './guess-category';
+
+export { normalizeItemName } from './guess-category';
+
 // Danh mục cho khoản chi trong sổ chung; dùng được cả ở client và server, không import Prisma
 
 export const SHARED_CATEGORIES = [
@@ -15,8 +19,7 @@ export function getSharedCategory(key: unknown) {
   return SHARED_CATEGORIES.find(c => c.key === key) ?? SHARED_CATEGORIES[SHARED_CATEGORIES.length - 1];
 }
 
-// Từ khoá đoán danh mục theo tên món. So nguyên từ và có dấu ("chợ" ≠ "cho", "sửa chữa" ≠ "sữa chua");
-// cụm dài được so trước nên "nhà hàng" thắng "nhà".
+// Từ khoá đoán danh mục cho sổ chung (cách so ở makeCategoryGuesser)
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   food: ['ăn', 'cơm', 'bún', 'phở', 'lẩu', 'pizza', 'gà rán', 'trà sữa', 'cà phê', 'cafe', 'coffee', 'nướng', 'nhà hàng',
     'bánh', 'kem', 'bia', 'nhậu', 'đồ ăn', 'buffet', 'snack'],
@@ -30,19 +33,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   entertainment: ['phim', 'xem phim', 'netflix', 'spotify', 'youtube', 'game', 'karaoke', 'du lịch', 'concert', 'bowling'],
 };
 
-const KEYWORD_LIST = Object.entries(CATEGORY_KEYWORDS)
-  .flatMap(([category, words]) => words.map(word => [word, category] as const))
-  .sort((a, b) => b[0].length - a[0].length);
-
-// Chữ thường, gom khoảng trắng, bỏ dấu câu — dùng chung cho so từ khoá và tra khoản cùng tên
-export function normalizeItemName(item: string) {
-  return item.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}.]+/gu, ' ').trim();
-}
-
-export function guessSharedCategory(item: string): string | null {
-  const text = ` ${normalizeItemName(item)} `;
-  return KEYWORD_LIST.find(([word]) => text.includes(` ${word} `))?.[1] ?? null;
-}
+export const guessSharedCategory = makeCategoryGuesser(CATEGORY_KEYWORDS);
 
 // Tỉ lệ phần trăm để hiển thị: phần rất nhỏ ghi "<1%" thay vì làm tròn về 0%
 export function formatPercent(part: number, total: number) {

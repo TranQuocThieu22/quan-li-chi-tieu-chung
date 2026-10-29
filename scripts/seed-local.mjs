@@ -54,6 +54,7 @@ const amountBetween = (min, max) => Math.round((min + rand() * (max - min)) / 10
 
 async function main() {
   // Xoá theo thứ tự khoá ngoại
+  await prisma.importedTransaction.deleteMany();
   await prisma.expenseHistory.deleteMany();
   await prisma.expense.deleteMany();
   await prisma.member.deleteMany();

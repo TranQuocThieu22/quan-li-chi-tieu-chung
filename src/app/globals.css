@@ -1351,6 +1351,69 @@ input[type='checkbox'] {
   font-size: 0.8125rem;
 }
 
+/* ---------- Tự động nhập từ thông báo điện thoại ---------- */
+
+.chip-btn.primary {
+  border-color: rgba(59, 130, 246, 0.45);
+  background: var(--primary-soft);
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.import-banner {
+  text-decoration: none;
+}
+
+.import-banner strong {
+  color: var(--text-primary);
+}
+
+.import-banner-cta {
+  color: var(--primary-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.import-raw {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.import-raw summary {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.import-raw p {
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--bg-color);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.copy-field {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  min-height: 44px;
+}
+
+.steps {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.steps strong {
+  color: var(--text-primary);
+}
+
 /* Ngăn kéo từ đáy màn hình (đổi danh mục hàng loạt) */
 .sheet-overlay {
   position: fixed;

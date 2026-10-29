@@ -6,6 +6,7 @@ import PersonalExpenseActions from '@/components/PersonalExpenseActions';
 import BudgetEditor from '@/components/BudgetEditor';
 import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
+import ImportBanner from '@/components/ImportBanner';
 import { PlusIcon } from '@/components/icons';
 import { getCurrentUser } from '@/lib/auth';
 import { getCategory, PERSONAL_CATEGORIES } from '@/lib/personal';
@@ -83,6 +84,8 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
           </Link>
         }
       />
+
+      <ImportBanner userId={user.id} />
 
       {!hasPartnership && (
         <div className="notice notice-info">

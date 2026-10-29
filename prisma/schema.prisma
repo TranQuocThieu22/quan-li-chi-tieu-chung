@@ -15,6 +15,8 @@ model User {
   name      String
   image     String?
   isSuperAdmin Boolean @default(false)
+  // SHA-256 của mã nhận thông báo từ điện thoại (bản gốc chỉ hiện một lần lúc tạo)
+  importTokenHash String?
   createdAt DateTime @default(now())
 
   members          Member[]
@@ -24,6 +26,10 @@ model User {
   receivedInvites  Invitation[]  @relation("InviteTo")
   personalExpenses PersonalExpense[]
   personalBudgets  PersonalBudget[]
+  importedTransactions ImportedTransaction[]
+
+  // Không để @unique: thêm ràng buộc unique vào bảng đã có dữ liệu làm db push đòi --accept-data-loss và hỏng build
+  @@index([importTokenHash])
 }
 
 // Ngân sách tháng của một người; tháng không có bản ghi dùng ngân sách gần nhất trước đó, amount = 0 là tắt
@@ -143,4 +149,28 @@ model ExpenseHistory {
   oldCategory        String? // null với bản ghi tạo trước khi có danh mục
 
   editedAt           DateTime @default(now())
+}
+
+// Thông báo giao dịch chuyển tiếp từ điện thoại (app ngân hàng, MoMo) — chờ người dùng xác nhận thành khoản chi
+model ImportedTransaction {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id])
+  source            String    // tên app gửi thông báo
+  title             String?
+  text              String    // nội dung gốc, giữ nguyên để soát khi đọc sai
+  amount            Int?
+  direction         String?   // OUT | IN | null nếu không rõ
+  description       String?
+  // PENDING: chờ xác nhận | ACCEPTED | DISMISSED | INCOMING: tiền vào, bỏ qua | UNPARSED: không đọc được số tiền
+  status            String    @default("PENDING")
+  expenseId         Int?
+  personalExpenseId Int?
+  dedupeKey         String
+  occurredAt        DateTime  @default(now())
+  receivedAt        DateTime  @default(now())
+  resolvedAt        DateTime?
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, status])
 }

@@ -2,23 +2,54 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PERSONAL_CATEGORIES } from '@/lib/personal';
+import { guessPersonalCategory, PERSONAL_CATEGORIES } from '@/lib/personal';
 import CategoryPicker from './CategoryPicker';
+import { initialSuggestion, useCategorySuggestion } from './useCategorySuggestion';
 
 type Initial = { item: string; amount: number; category: string; date: string; notes: string };
+// Điền sẵn từ một giao dịch ngân hàng / MoMo đang chờ xác nhận
+type Prefill = { importId: number; item: string; amount: number; date: string };
 
-export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?: number; initial?: Initial }) {
+const DEFAULT_CATEGORY = 'food';
+
+// Có expenseId là sửa. knownCategories: tên món đã chuẩn hoá → danh mục của khoản gần nhất cùng tên, để gợi ý khi thêm mới.
+export default function PersonalExpenseForm({
+  expenseId,
+  initial,
+  prefill,
+  knownCategories = {},
+}: {
+  expenseId?: number;
+  initial?: Initial;
+  prefill?: Prefill;
+  knownCategories?: Record<string, string>;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [start] = useState(() =>
+    prefill ? initialSuggestion(prefill.item, guessPersonalCategory, knownCategories, DEFAULT_CATEGORY) : null,
+  );
+  const suggestion = useCategorySuggestion({
+    guess: guessPersonalCategory,
+    knownCategories,
+    fallback: DEFAULT_CATEGORY,
+    enabled: !expenseId,
+    initialSource: start?.source ?? null,
+  });
   const [form, setForm] = useState({
-    item: initial?.item ?? '',
-    amount: initial ? String(initial.amount) : '',
-    category: initial?.category ?? 'food',
-    date: initial?.date ?? new Date().toISOString().split('T')[0],
+    item: initial?.item ?? prefill?.item ?? '',
+    amount: initial ? String(initial.amount) : prefill ? String(prefill.amount) : '',
+    category: initial?.category ?? start?.category ?? DEFAULT_CATEGORY,
+    date: initial?.date ?? prefill?.date ?? new Date().toISOString().split('T')[0],
     notes: initial?.notes ?? '',
   });
 
   const displayAmount = form.amount ? new Intl.NumberFormat('vi-VN').format(parseInt(form.amount, 10)) : '';
+
+  const changeItem = (item: string) => {
+    const category = suggestion.suggestFor(item);
+    setForm({ ...form, item, ...(category ? { category } : {}) });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +58,15 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
       const res = await fetch(expenseId ? `/api/personal-expenses/${expenseId}` : '/api/personal-expenses', {
         method: expenseId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, importId: prefill?.importId }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         alert(data.error || 'Có lỗi xảy ra khi lưu dữ liệu!');
         return;
       }
-      router.push(`/personal?month=${form.date.slice(0, 7)}`);
+      // Xác nhận từ hộp chờ thì quay lại đó để làm tiếp các giao dịch còn lại
+      router.push(prefill ? '/inbox' : `/personal?month=${form.date.slice(0, 7)}`);
       router.refresh();
     } catch {
       alert('Lỗi kết nối!');
@@ -54,7 +86,7 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
           className="input input-amount"
           placeholder="0"
           required
-          autoFocus={!expenseId}
+          autoFocus={!expenseId && !prefill}
           value={displayAmount}
           onChange={(e) => setForm({ ...form, amount: e.target.value.replace(/\D/g, '') })}
         />
@@ -69,14 +101,18 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
           placeholder="VD: Cà phê sáng"
           required
           value={form.item}
-          onChange={(e) => setForm({ ...form, item: e.target.value })}
+          onChange={(e) => changeItem(e.target.value)}
         />
       </div>
 
       <CategoryPicker
         categories={PERSONAL_CATEGORIES}
         value={form.category}
-        onChange={(category) => setForm({ ...form, category })}
+        hint={suggestion.hint}
+        onChange={(category) => {
+          suggestion.markTouched();
+          setForm({ ...form, category });
+        }}
       />
 
       <div className="form-group">

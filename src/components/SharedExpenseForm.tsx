@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryPicker from './CategoryPicker';
-import { guessSharedCategory, normalizeItemName, SHARED_CATEGORIES } from '@/lib/shared';
+import { guessSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
+import { initialSuggestion, useCategorySuggestion } from './useCategorySuggestion';
 
 type Member = { id: number; name: string; isMe: boolean };
 type Initial = {
@@ -27,6 +28,9 @@ const readAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
+// Điền sẵn từ một giao dịch ngân hàng / MoMo đang chờ xác nhận
+type Prefill = { importId: number; item: string; amount: number; date: string };
+
 const DEFAULT_CATEGORY = 'food';
 
 // Form thêm / sửa khoản chi trong sổ chung; có expenseId là sửa.
@@ -36,26 +40,36 @@ export default function SharedExpenseForm({
   members,
   expenseId,
   initial,
+  prefill,
   knownCategories = {},
 }: {
   partnershipId: number;
   members: Member[];
   expenseId?: number;
   initial?: Initial;
+  prefill?: Prefill;
   knownCategories?: Record<string, string>;
 }) {
-  // Gợi ý chỉ chạy khi thêm mới và người dùng chưa tự bấm chọn danh mục
-  const [categoryTouched, setCategoryTouched] = useState(Boolean(expenseId));
-  const [suggestion, setSuggestion] = useState<'known' | 'keyword' | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [start] = useState(() =>
+    prefill ? initialSuggestion(prefill.item, guessSharedCategory, knownCategories, DEFAULT_CATEGORY) : null,
+  );
+  // Gợi ý chỉ chạy khi thêm mới và người dùng chưa tự bấm chọn danh mục
+  const suggestion = useCategorySuggestion({
+    guess: guessSharedCategory,
+    knownCategories,
+    fallback: DEFAULT_CATEGORY,
+    enabled: !expenseId,
+    initialSource: start?.source ?? null,
+  });
   const [form, setForm] = useState({
-    item: initial?.item ?? '',
-    amount: initial ? String(initial.amount) : '',
-    category: initial?.category ?? DEFAULT_CATEGORY,
+    item: initial?.item ?? prefill?.item ?? '',
+    amount: initial ? String(initial.amount) : prefill ? String(prefill.amount) : '',
+    category: initial?.category ?? start?.category ?? DEFAULT_CATEGORY,
     payerId: String(initial?.payerId ?? (members.find(m => m.isMe) ?? members[0])?.id ?? ''),
     isPayOnBehalf: initial?.isPayOnBehalf ?? false,
-    date: initial?.date ?? new Date().toISOString().split('T')[0],
+    date: initial?.date ?? prefill?.date ?? new Date().toISOString().split('T')[0],
     notes: initial?.notes ?? '',
   });
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
@@ -63,14 +77,8 @@ export default function SharedExpenseForm({
   const displayAmount = form.amount ? new Intl.NumberFormat('vi-VN').format(parseInt(form.amount, 10)) : '';
 
   const changeItem = (item: string) => {
-    if (categoryTouched) {
-      setForm({ ...form, item });
-      return;
-    }
-    const known = knownCategories[normalizeItemName(item)];
-    const guessed = known ? null : guessSharedCategory(item);
-    setSuggestion(known ? 'known' : guessed ? 'keyword' : null);
-    setForm({ ...form, item, category: known ?? guessed ?? DEFAULT_CATEGORY });
+    const category = suggestion.suggestFor(item);
+    setForm({ ...form, item, ...(category ? { category } : {}) });
   };
 
   const addImages = async (files: File[]) => {
@@ -111,6 +119,7 @@ export default function SharedExpenseForm({
           imageUrl: images.length > 0 ? JSON.stringify(images) : '',
           // Cố định sổ nhận khoản chi theo lúc mở trang, không theo sổ đang chọn ở tab khác
           partnershipId,
+          importId: prefill?.importId,
         }),
       });
       if (!res.ok) {
@@ -118,7 +127,8 @@ export default function SharedExpenseForm({
         alert(data.error || 'Có lỗi xảy ra khi lưu dữ liệu!');
         return;
       }
-      router.push('/');
+      // Xác nhận từ hộp chờ thì quay lại đó để làm tiếp các giao dịch còn lại
+      router.push(prefill ? '/inbox' : '/');
       router.refresh();
     } catch {
       alert('Lỗi kết nối!');
@@ -138,7 +148,7 @@ export default function SharedExpenseForm({
           className="input input-amount"
           placeholder="0"
           required
-          autoFocus={!expenseId}
+          autoFocus={!expenseId && !prefill}
           value={displayAmount}
           onChange={(e) => setForm({ ...form, amount: e.target.value.replace(/\D/g, '') })}
         />
@@ -160,9 +170,9 @@ export default function SharedExpenseForm({
       <CategoryPicker
         categories={SHARED_CATEGORIES}
         value={form.category}
-        hint={!categoryTouched && suggestion ? (suggestion === 'known' ? 'như lần trước' : 'tự chọn theo tên món') : undefined}
+        hint={suggestion.hint}
         onChange={(category) => {
-          setCategoryTouched(true);
+          suggestion.markTouched();
           setForm({ ...form, category });
         }}
       />

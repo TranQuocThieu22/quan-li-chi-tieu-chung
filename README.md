@@ -6,6 +6,8 @@
   trả ai bao nhiêu; đánh dấu đã trả (từng khoản hoặc nhiều khoản một lúc); lịch sử sửa từng khoản.
 - **Cá nhân**: chi tiêu riêng theo danh mục, ngân sách tháng, tổng chi thực tế (gồm cả phần của mình trong sổ chung).
 - **Thống kê**: chi chung theo tháng, theo danh mục, ai đã chi bao nhiêu.
+- **Tự động nhập** (Android): MacroDroid chuyển tiếp thông báo của app ngân hàng, MoMo về `/api/import/notify`; giao dịch
+  nằm ở *Chờ xác nhận* để xếp vào Cá nhân hay Sổ chung. Cài ở *Liên kết → Tự động nhập*.
 - Đăng nhập bằng Google. Liên kết với người khác bằng lời mời qua email.
 
 Next.js 16 (App Router) · React 19 · Prisma 6 · PostgreSQL. Triển khai trên Vercel: push lên `main` là tự build
@@ -57,8 +59,8 @@ Tắt database: `docker compose stop` (dữ liệu giữ trong volume `chi-tieu-
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | đăng nhập Google |
 | `APP_URL` (tùy chọn) | origin cố định cho địa chỉ callback Google, khi chạy sau proxy làm sai origin |
 
-Đổi schema: chỉ **thêm** cột/bảng có giá trị mặc định hoặc cho phép null — `prisma db push` chạy thẳng lên database thật
-mỗi lần deploy.
+Đổi schema: chỉ **thêm** cột/bảng có giá trị mặc định hoặc cho phép null, và không thêm `@unique` vào bảng đã có dữ
+liệu (dùng `@@index`) — `prisma db push` chạy thẳng lên database thật mỗi lần deploy, gặp cảnh báo mất dữ liệu là hỏng build.
 
 ## Tài liệu nội bộ
 

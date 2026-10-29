@@ -5,6 +5,7 @@ import ExpenseList, { type ExpenseListItem } from '@/components/ExpenseList';
 import LedgerSwitcher from '@/components/LedgerSwitcher';
 import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
+import ImportBanner from '@/components/ImportBanner';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
@@ -146,6 +147,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           </Link>
         }
       />
+
+      <ImportBanner userId={user.id} />
 
       <MonthSelector />
 

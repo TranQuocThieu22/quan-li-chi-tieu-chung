@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requirePartnership } from '@/lib/auth';
 import { getSharedCategory } from '@/lib/shared';
+import { resolveImport } from '@/lib/import';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
   if (!ctx.ok) return ctx.response;
 
   try {
-    const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date } = body;
+    const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date, importId } = body;
 
     if (!item || !amount || !payerId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -68,6 +69,9 @@ export async function POST(request: Request) {
         date: date ? new Date(date) : new Date(),
       },
     });
+
+    // Tạo từ thông báo ngân hàng / MoMo thì gỡ khỏi hộp chờ xác nhận
+    await resolveImport(ctx.user.id, importId, { expenseId: expense.id });
 
     return NextResponse.json(expense, { status: 201 });
   } catch {

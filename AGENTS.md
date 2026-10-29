@@ -24,4 +24,5 @@ làm **trước khi đẩy**:
 
 Đẩy production = push `main`; Vercel tự build (`prisma db push && next build`) và deploy.
 Đổi schema thì chỉ **thêm** cột/bảng có mặc định hoặc cho phép null — `db push` chạy thẳng
-lên database thật.
+lên database thật. **Không thêm `@unique` vào bảng đã có dữ liệu** (kể cả cột mới cho phép null): `db push`
+đòi `--accept-data-loss`, build trên Vercel không có cờ đó nên deploy hỏng — dùng `@@index` (29/10, `User.importTokenHash`).
