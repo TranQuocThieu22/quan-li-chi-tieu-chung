@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CategoryPicker from './CategoryPicker';
 import { guessSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
 import { initialSuggestion, useCategorySuggestion } from './useCategorySuggestion';
+import { compressImage } from '@/lib/compress-image';
 
 type Member = { id: number; name: string; isMe: boolean };
 type Initial = {
@@ -18,15 +19,9 @@ type Initial = {
   images: string[];
 };
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-
-const readAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+// Ảnh gốc được thu nhỏ trước khi lưu nên nhận được ảnh lớn; giới hạn cho ảnh giữ nguyên (không thu nhỏ được) vẫn là 5 MB
+const MAX_INPUT_SIZE = 25 * 1024 * 1024;
+const MAX_STORED_SIZE = 5 * 1024 * 1024;
 
 // Điền sẵn từ một giao dịch ngân hàng / MoMo đang chờ xác nhận
 type Prefill = { importId: number; item: string; amount: number; date: string };
@@ -73,6 +68,7 @@ export default function SharedExpenseForm({
     notes: initial?.notes ?? '',
   });
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
+  const [processingImages, setProcessingImages] = useState(false);
 
   const displayAmount = form.amount ? new Intl.NumberFormat('vi-VN').format(parseInt(form.amount, 10)) : '';
 
@@ -83,16 +79,25 @@ export default function SharedExpenseForm({
 
   const addImages = async (files: File[]) => {
     const accepted = files.filter(file => {
-      if (file.size <= MAX_IMAGE_SIZE) return true;
-      alert(`Ảnh ${file.name} quá lớn. Vui lòng chọn ảnh dưới 5MB.`);
+      if (file.size <= MAX_INPUT_SIZE) return true;
+      alert(`Ảnh ${file.name} quá lớn. Vui lòng chọn ảnh dưới 25MB.`);
       return false;
     });
     if (accepted.length === 0) return;
+    setProcessingImages(true);
     try {
-      const urls = await Promise.all(accepted.map(readAsDataUrl));
-      setImages(prev => [...prev, ...urls]);
+      const urls = await Promise.all(accepted.map(compressImage));
+      // Độ dài data URL base64 ≈ 4/3 số byte
+      const kept = urls.filter((url, i) => {
+        if (url.length * 0.75 <= MAX_STORED_SIZE) return true;
+        alert(`Ảnh ${accepted[i].name} không thu nhỏ được và lớn hơn 5MB.`);
+        return false;
+      });
+      setImages(prev => [...prev, ...kept]);
     } catch {
       alert('Không đọc được ảnh, vui lòng thử lại.');
+    } finally {
+      setProcessingImages(false);
     }
   };
 
@@ -259,8 +264,8 @@ export default function SharedExpenseForm({
         )}
       </div>
 
-      <button type="submit" className="btn btn-primary btn-block btn-lg mt-2" disabled={loading}>
-        {loading ? 'Đang lưu...' : expenseId ? 'Lưu chỉnh sửa' : 'Lưu khoản chi'}
+      <button type="submit" className="btn btn-primary btn-block btn-lg mt-2" disabled={loading || processingImages}>
+        {processingImages ? 'Đang xử lý ảnh...' : loading ? 'Đang lưu...' : expenseId ? 'Lưu chỉnh sửa' : 'Lưu khoản chi'}
       </button>
     </form>
   );
