@@ -47,7 +47,8 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   `db:seed`, `dev:login` (chạy qua `node --env-file=.env.local`). `scripts/seed-local.mjs` xoá sạch rồi tạo 3 người dùng (người
   chính là superadmin), 2 sổ, ~6 tháng chi chung, một khoản có lịch sử sửa, chi tiêu cá nhân và ngân sách. `scripts/dev-login.mjs`
   in một dòng `document.cookie` để đăng nhập không qua Google — chạy tay ở máy, app không thêm route nào. Cả hai **từ chối chạy
-  nếu `DATABASE_URL` không phải localhost**. Bỏ `dev.db`, `prisma/dev.db` khỏi git; `.gitignore` có dòng cuối bị ghi UTF-16
+  nếu `DATABASE_URL` không phải localhost**. Bỏ `dev.db`, `prisma/dev.db` khỏi git (đã `git rm` sẵn nên lọt vào commit *fix*
+  bên dưới chứ không ở commit này — đã đẩy lên `main` nên để nguyên); `.gitignore` có dòng cuối bị ghi UTF-16
   (git không đọc được) — viết lại, thêm `*.db`. Viết lại `README.md`.
 - Commit *fix: label edit and delete events on the history page*: trang Lịch sử hiện nhãn tiếng Anh *UPDATE* / *DELETE* vì
   `ACTION_LABELS` thiếu hai khoá — giờ là *SỬA* / *XÓA*. Có từ trước, lộ ra khi xem với dữ liệu thật ở máy.
