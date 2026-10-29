@@ -19,7 +19,7 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 - [ ] **Xem các trang với dữ liệu thật trên điện thoại** (29/10): Claude đã bấm thử mọi trang ở máy với dữ liệu mẫu, nhưng số liệu
       thật (tên dài, khoản cũ chưa có danh mục, nhiều ảnh) có thể lộ chỗ chưa thấy. Chỗ nào xấu hay vỡ thì báo.
 - [ ] **Chọn lại danh mục cho khoản chi chung cũ** nếu muốn thẻ *Theo danh mục* có ý nghĩa (29/10): mọi khoản tạo trước 29/10
-      đang là 📦 Khác — vào *Sửa* từng khoản.
+      đang là 📦 Khác. Nhanh nhất: *Chọn nhiều* → tick các khoản cùng loại → *Danh mục*.
 
 ## 2. Chờ chủ sản phẩm quyết
 
@@ -31,8 +31,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 3. Claude làm được khi được giao
 
-- [ ] **Hai lỗi nhỏ có từ trước** (29/10): `.env` vẫn để `DATABASE_URL="file:./dev.db"` (không còn dùng vì `.env.local` đè lên,
-      nhưng `npm run build` ở máy sẽ hỏng vì nó đọc `.env`); tỉ lệ dưới 0,5% ở thẻ danh mục hiện `0%`.
+- [ ] **Gợi ý danh mục cho form chi tiêu cá nhân** (29/10): sổ chung đã tự chọn theo tên món (`guessSharedCategory` và khoản
+      cùng tên trước đó); form cá nhân chưa có — danh mục cá nhân khác bộ (có Sức khỏe, Giáo dục), cần bộ từ khoá riêng.
 
 ## 4. Khi tới mốc
 

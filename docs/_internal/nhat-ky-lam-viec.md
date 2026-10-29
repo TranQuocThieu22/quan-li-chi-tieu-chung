@@ -36,6 +36,32 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt danh mục hàng loạt) — Đổi danh mục nhiều khoản một lúc, tự gợi ý danh mục theo tên món; lên production
+
+> Chủ sản phẩm: *"làm gì tiếp"* → *"làm đi"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *feat: change the category of many expenses at once and suggest it from the name*. Route bulk thêm action `category`
+  (kiểm danh mục hợp lệ, bỏ khoản đã đúng loại, ghi lịch sử `UPDATE` kèm `oldCategory`); thanh *Chọn nhiều* thêm nút **Danh mục**
+  mở ngăn kéo từ đáy (`.sheet`) với lưới tám loại. Form thêm khoản chi chung tự chọn danh mục khi gõ tên: ưu tiên danh mục của
+  khoản gần nhất cùng tên trong sổ (300 khoản gần nhất, bỏ *Khác*; trang `add` truyền xuống), không có thì đoán theo từ khoá
+  (`guessSharedCategory` ở `src/lib/shared.ts` — so nguyên từ, có dấu, cụm dài trước); nhãn *(như lần trước)* / *(tự chọn theo
+  tên món)*; bấm chọn tay thì thôi gợi ý.
+- Commit *fix: show category shares under 1% as "<1%"* — `formatPercent` dùng ở trang chủ, Cá nhân, Thống kê.
+- Commit *chore: bring the local database back up with Docker* — `restart: unless-stopped` trong `compose.yaml`.
+- Sửa dòng `DATABASE_URL` trong `.env` (file không commit) sang database ở máy: `npm run build` ở máy chạy trọn, kể cả
+  `prisma db push`. Ba khoá còn lại giữ nguyên.
+- Bấm thử ở máy: 15 tên mẫu đoán đúng cả (kể cả *Sữa chua* → Đi chợ, *Ăn nhà hàng* → Ăn uống, *Quà cho mẹ* → không đoán); gợi ý
+  *như lần trước* cho Tiền điện, Netflix, Tiền nhà; chọn tay rồi gõ tiếp không bị đổi. Đổi 2 khoản sang Đi chợ qua thanh *Chọn
+  nhiều*: database và lịch sử đúng, ngăn kéo tự đóng; bốn nút vừa khít 390 px.
+
+**Quan sát**
+
+- **Claude tự làm sập Docker Desktop hai lần**: dọn tiến trình bằng `Stop-Process` lọc theo `CommandLine` trúng luôn các
+  `bash.exe` của chính Claude (dòng lệnh chứa chuỗi đang lọc); Docker Desktop mở từ một shell đó nên chết theo, container
+  `chi-tieu-db` thoát mã 255 giữa lúc thử. Dữ liệu còn nguyên (volume). Từ giờ chỉ tắt theo tên chương trình + PID/cổng.
+
 ## 29/10/2026 (lượt chạy ở máy) — App chạy ở máy với Postgres trong Docker và dữ liệu mẫu, bấm thử mọi trang; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"làm đi"* → *"đẩy production"*.
