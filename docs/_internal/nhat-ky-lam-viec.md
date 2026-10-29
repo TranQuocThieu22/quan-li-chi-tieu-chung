@@ -36,9 +36,10 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 29/10/2026 (lượt quảng cáo ACB) — Bộ đọc thông báo bỏ tin quảng cáo [QC]; lên production
+## 29/10/2026 (lượt quảng cáo ACB) — Bộ đọc thông báo bỏ tin quảng cáo [QC], đọc nội dung chuyển khoản ACB ONE; lên production
 
-> Chủ sản phẩm (gửi ảnh *Chờ xác nhận*): *"Thông báo khác bị lấy nhầm 400.000.000"* → *"đẩy production"*.
+> Chủ sản phẩm (gửi ảnh *Chờ xác nhận*): *"Thông báo khác bị lấy nhầm 400.000.000"* → *"đẩy production"* →
+> (gửi ảnh nội dung thông báo chuyển khoản ACB ONE) → *"đẩy production"*.
 
 **Đã làm**
 
@@ -49,6 +50,10 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 - Cùng commit: khoản 50.000 của ACB lấy nội dung *"khoan ACB: TK …(VND) - 50,000 luc 22:41 29/10/2026"* — chữ "tai" của
   "tai khoan" bị hiểu là "tại <cửa hàng>". Đã chặn; nội dung giờ để trống vì chưa biết ACB ONE ghi nội dung chuyển khoản ở đâu.
 - Mục 400 triệu đã nằm trong *Chờ xác nhận* không tự mất — chủ sản phẩm bấm *Bỏ qua*.
+- Commit *fix: read ACB ONE transfer content after GD:* (lượt đẩy thứ hai): mẫu thật *"Thong bao thay doi so du tai khoan —
+  ACB: TK …(VND) - 50,000 luc 22:41 29/10/2026. So du 337,423. GD: <TÊN> CHUYEN KHOAN-291026-22:41:57 6302ASCB…"*. Nội dung lấy
+  sau `GD:` trừ khi mở đầu bằng số hay +/- (MB viết "GD: -85,000VND"); cắt đuôi `-ddmmyy-hh:mm:ss <mã>`. 2 ca thử mới (mẫu thật
+  đã che số tài khoản, thay tên; mẫu tiền vào "+ 1,200,000" do Claude viết, chưa thấy thật) → 43/43. Mục đã nhập giữ chữ cũ.
 
 **Quan sát**
 
