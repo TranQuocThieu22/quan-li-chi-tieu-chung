@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import PageHeader from '@/components/PageHeader';
 import { notFound, redirect } from 'next/navigation';
 import prisma from '@/lib/db';
 import PersonalExpenseForm from '@/components/PersonalExpenseForm';
@@ -18,10 +18,7 @@ export default async function EditPersonalExpense({ params }: { params: Promise<
 
   return (
     <main className="container">
-      <header>
-        <h1 className="title" style={{marginBottom: 0}}>Sửa Chi Tiêu Cá Nhân</h1>
-        <Link href={`/personal?month=${expense.date.toISOString().slice(0, 7)}`} className="btn btn-secondary" style={{width: 'auto'}}>Hủy</Link>
-      </header>
+      <PageHeader title="Sửa chi tiêu cá nhân" backHref={`/personal?month=${expense.date.toISOString().slice(0, 7)}`} />
 
       <div className="card">
         <PersonalExpenseForm

@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const smallBtn = { width: 'auto', margin: 0, padding: '0.5rem 1rem' };
-
 // amount: ngân sách đang áp dụng cho tháng (kể cả dùng lại từ tháng trước), null nếu chưa có
 export default function BudgetEditor({ month, amount }: { month: string; amount: number | null }) {
   const router = useRouter();
@@ -38,8 +36,7 @@ export default function BudgetEditor({ month, amount }: { month: string; amount:
     return (
       <button
         type="button"
-        className="btn btn-secondary"
-        style={smallBtn}
+        className="text-btn"
         onClick={() => {
           setValue(amount ? String(amount) : '');
           setEditing(true);
@@ -57,33 +54,38 @@ export default function BudgetEditor({ month, amount }: { month: string; amount:
         const next = parseInt(value, 10);
         if (next > 0) save(next);
       }}
-      style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}
+      style={{ width: '100%' }}
     >
-      <input
-        type="text"
-        inputMode="numeric"
-        className="input"
-        autoFocus
-        placeholder="VD: 5.000.000"
-        aria-label="Ngân sách tháng"
-        value={value ? new Intl.NumberFormat('vi-VN').format(parseInt(value, 10)) : ''}
-        onChange={(e) => setValue(e.target.value.replace(/\D/g, ''))}
-        style={{ flex: '1 1 160px', margin: 0 }}
-      />
-      <button type="submit" className="btn btn-primary" disabled={saving || !value} style={smallBtn}>Lưu</button>
-      <button type="button" className="btn btn-secondary" disabled={saving} onClick={() => setEditing(false)} style={smallBtn}>Hủy</button>
-      {amount !== null && (
-        <button
-          type="button"
-          disabled={saving}
-          onClick={() => {
-            if (confirm('Tắt ngân sách từ tháng này trở đi?')) save(0);
-          }}
-          style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', fontWeight: 600, padding: '0.5rem' }}
-        >
-          Tắt ngân sách
+      <div className="inline-form">
+        <input
+          type="text"
+          inputMode="numeric"
+          className="input"
+          autoFocus
+          placeholder="VD: 5.000.000"
+          aria-label="Ngân sách tháng"
+          value={value ? new Intl.NumberFormat('vi-VN').format(parseInt(value, 10)) : ''}
+          onChange={(e) => setValue(e.target.value.replace(/\D/g, ''))}
+        />
+        <button type="submit" className="btn btn-primary" disabled={saving || !value}>Lưu</button>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+        <button type="button" className="text-btn" style={{ color: 'var(--text-secondary)' }} disabled={saving} onClick={() => setEditing(false)}>
+          Hủy
         </button>
-      )}
+        {amount !== null && (
+          <button
+            type="button"
+            className="text-btn danger"
+            disabled={saving}
+            onClick={() => {
+              if (confirm('Tắt ngân sách từ tháng này trở đi?')) save(0);
+            }}
+          >
+            Tắt ngân sách
+          </button>
+        )}
+      </div>
     </form>
   );
 }

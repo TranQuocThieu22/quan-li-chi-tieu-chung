@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import prisma from '@/lib/db';
+import PageHeader from '@/components/PageHeader';
+import BottomNav from '@/components/BottomNav';
 import { getPartner, requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -45,50 +46,59 @@ export default async function StatsPage() {
 
   const sortedMonths = Object.entries(monthlyTotals).sort((a, b) => b[0].localeCompare(a[0]));
 
+  const maxMonthly = Math.max(0, ...sortedMonths.map(([, total]) => total));
+
   return (
-    <main className="container">
-      <header>
-        <div>
-          <h1 className="title" style={{marginBottom: 0}}>Thống Kê</h1>
-          <p className="subtitle" style={{marginBottom: 0}}>Sổ chi tiêu với {getPartner(partnership, user.id).name}</p>
-        </div>
-        <Link href="/" className="btn btn-secondary" style={{width: 'auto'}}>Trang Chủ</Link>
-      </header>
+    <main className="container with-nav">
+      <PageHeader title="Thống kê" subtitle={`Sổ chung với ${getPartner(partnership, user.id).name}`} />
 
-      <div className="card text-center">
-        <h2 className="subtitle">Tổng chi tiêu toàn thời gian</h2>
-        <div className="amount debt-negative">{formatMoney(allTimeTotal)}</div>
-      </div>
+      <section className="card hero">
+        <div className="hero-label">Tổng chi tiêu toàn thời gian</div>
+        <div className="hero-amount">{formatMoney(allTimeTotal)}</div>
+        <div className="hero-meta">{expenses.length} khoản • {sortedMonths.length} tháng</div>
+      </section>
 
-      <div className="card">
-        <h2 className="subtitle text-center">Ai chi nhiều nhất? (Bảng vàng)</h2>
-        <ul className="expense-list mt-4">
+      <section className="card">
+        <div className="card-title">Ai chi nhiều nhất?</div>
+        <ul className="bar-list">
           {sortedMembers.map((m, idx) => (
-            <li key={idx} className="expense-item flex-between" style={{padding: '0.75rem 0'}}>
-              <span style={{fontWeight: 600}}>
-                {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : ''} {m.name}
-              </span>
-              <span className="debt-positive" style={{fontWeight: 600}}>{formatMoney(m.total)}</span>
+            <li key={idx}>
+              <div className="bar-head">
+                <span style={{fontWeight: 600}}>
+                  {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : ''} {m.name}
+                </span>
+                <span className="num text-success" style={{fontWeight: 600}}>{formatMoney(m.total)}</span>
+              </div>
+              <div className="progress">
+                <div className="progress-bar" style={{width: `${allTimeTotal > 0 ? (m.total / allTimeTotal) * 100 : 0}%`, background: 'var(--success-solid)'}} />
+              </div>
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
-      <div className="card">
-        <h2 className="subtitle text-center">Biến động theo tháng</h2>
+      <section className="card">
+        <div className="card-title">Biến động theo tháng</div>
         {sortedMonths.length === 0 ? (
-          <p className="text-center mt-4" style={{color: 'var(--text-secondary)'}}>Chưa có dữ liệu.</p>
+          <p className="empty">Chưa có dữ liệu.</p>
         ) : (
-          <ul className="expense-list mt-4">
+          <ul className="bar-list">
             {sortedMonths.map(([month, total]) => (
-              <li key={month} className="expense-item flex-between" style={{padding: '0.75rem 0'}}>
-                <span style={{fontWeight: 500}}>Tháng {month.split('-')[1]}/{month.split('-')[0]}</span>
-                <span style={{fontWeight: 600}}>{formatMoney(total)}</span>
+              <li key={month}>
+                <div className="bar-head">
+                  <span style={{fontWeight: 500}}>Tháng {month.split('-')[1]}/{month.split('-')[0]}</span>
+                  <span className="num" style={{fontWeight: 600}}>{formatMoney(total)}</span>
+                </div>
+                <div className="progress">
+                  <div className="progress-bar" style={{width: `${maxMonthly > 0 ? (total / maxMonthly) * 100 : 0}%`}} />
+                </div>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </section>
+
+      <BottomNav />
     </main>
   );
 }

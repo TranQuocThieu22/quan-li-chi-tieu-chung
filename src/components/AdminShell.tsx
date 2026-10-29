@@ -3,8 +3,17 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import BottomNav from './BottomNav';
 
-export default function AdminShell({ isSuperAdmin, children }: { isSuperAdmin: boolean; children: React.ReactNode }) {
+export default function AdminShell({
+  isSuperAdmin,
+  hasPartnership,
+  children,
+}: {
+  isSuperAdmin: boolean;
+  hasPartnership: boolean;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
@@ -48,7 +57,7 @@ export default function AdminShell({ isSuperAdmin, children }: { isSuperAdmin: b
               </Link>
             );
           })}
-          <Link href="/" className="admin-nav-link muted">← Trang chủ</Link>
+          <Link href="/" className="admin-nav-link home">← Trang chủ</Link>
         </nav>
 
         <div className="admin-logout-wrap">
@@ -61,6 +70,9 @@ export default function AdminShell({ isSuperAdmin, children }: { isSuperAdmin: b
           {children}
         </div>
       </main>
+
+      {/* Chỉ hiện trên điện thoại, máy tính đã có thanh bên */}
+      <BottomNav shared={hasPartnership} />
     </div>
   );
 }

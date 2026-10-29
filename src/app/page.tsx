@@ -3,6 +3,9 @@ import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
 import ExpenseList, { type ExpenseListItem } from '@/components/ExpenseList';
 import LedgerSwitcher from '@/components/LedgerSwitcher';
+import PageHeader from '@/components/PageHeader';
+import BottomNav from '@/components/BottomNav';
+import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -131,68 +134,68 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   }
 
   return (
-    <main className="container">
-      <header>
-        <h1 className="title" style={{marginBottom: 0}}>Chi Tiêu Chung</h1>
-        <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
-          <Link href="/personal" className="btn btn-secondary" style={{width: 'auto'}}>Cá nhân</Link>
-          <Link href="/stats" className="btn btn-secondary" style={{width: 'auto'}}>Thống kê</Link>
-          <Link href="/admin" className="btn btn-secondary" style={{width: 'auto'}}>Liên kết</Link>
-          <Link href="/add" className="btn btn-primary" style={{width: 'auto'}}>+ Thêm</Link>
+    <main className="container with-nav">
+      <PageHeader
+        title="Sổ chung"
+        subtitle={<LedgerSwitcher ledgers={toLedgerOptions(partnerships, user.id)} currentId={partnership.id} />}
+        action={
+          <Link href="/add" className="btn btn-primary btn-sm">
+            <PlusIcon width={16} height={16} /> Thêm
+          </Link>
+        }
+      />
+
+      <MonthSelector />
+
+      <section className="card hero">
+        <div className="hero-label">Tổng chi chung tháng {parseInt(monthStr, 10)}</div>
+        <div className="hero-amount">{formatMoney(totalSharedExpenses)}</div>
+        <div className="hero-meta">
+          Mỗi người: <strong className="num">{formatMoney(average)}</strong>
         </div>
-      </header>
-
-      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <LedgerSwitcher ledgers={toLedgerOptions(partnerships, user.id)} currentId={partnership.id} />
-        <MonthSelector />
-      </div>
-
-      <div className="card text-center">
-        <h2 className="subtitle">Tổng chi tiêu chung tháng {month.split('-')[1]}</h2>
-        <div className="amount mb-4">{formatMoney(totalSharedExpenses)}</div>
-        <p className="subtitle">Trung bình mỗi người: {formatMoney(average)}</p>
         {settledExpenses.length > 0 && (
-          <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>
+          <div className="hero-meta">
             Không tính {settledExpenses.length} khoản đã trả ({formatMoney(settledTotal)})
-          </p>
+          </div>
         )}
-        
-        <div className="mt-6" style={{textAlign: 'left'}}>
-          <h3 className="subtitle" style={{fontWeight: 600}}>Đã chi trả:</h3>
-          <ul style={{listStyle: 'none', marginTop: '0.5rem'}}>
-            {balances.map(b => (
-              <li key={b.id} className="flex-between" style={{padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)'}}>
-                <span>{b.name}</span>
-                <span style={{fontWeight: 600}}>{formatMoney(b.totalPaid)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
 
-      <div className="card">
-        <h2 className="subtitle text-center">Tính toán nợ nần</h2>
+        <hr className="divider" />
+
+        <div className="card-title" style={{ marginBottom: '0.625rem' }}>Đã chi trả</div>
+        <ul className="row-list">
+          {balances.map(b => (
+            <li key={b.id} className="row">
+              <span className="row-label">{b.name}</span>
+              <span className="row-value">{formatMoney(b.totalPaid)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="card">
+        <div className="card-title">Cần thanh toán</div>
         {transactions.length === 0 ? (
-          <p className="text-center mt-4" style={{color: 'var(--success-color)', fontWeight: 500}}>
-            Không ai nợ ai! Mọi thứ đã cân bằng.
+          <p className="balanced">
+            <CheckCircleIcon width={20} height={20} /> Không ai nợ ai! Mọi thứ đã cân bằng.
           </p>
         ) : (
-          <ul className="expense-list mt-4">
+          <ul className="debt-list">
             {transactions.map((t, idx) => (
-              <li key={idx} className="expense-item flex-between" style={{background: 'var(--bg-color)', padding: '1rem', borderRadius: '8px', marginBottom: '0.5rem'}}>
-                <div style={{fontSize: '1rem'}}>
-                  <strong>{t.from}</strong> trả <strong>{t.to}</strong>
-                </div>
-                <div className="amount debt-negative" style={{fontSize: '1.25rem'}}>
-                  {formatMoney(t.amount)}
-                </div>
+              <li key={idx} className="debt-row">
+                <span className="debt-who">
+                  <strong>{t.from}</strong>
+                  <ArrowRightIcon />
+                  <strong>{t.to}</strong>
+                </span>
+                <span className="debt-amount">{formatMoney(t.amount)}</span>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
       <ExpenseList expenses={expenseItems} />
+      <BottomNav />
     </main>
   )
 }

@@ -14,7 +14,9 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0f172a',
+  themeColor: '#0b1120',
+  // Cho phép dùng env(safe-area-inset-*) để né thanh home trên iPhone
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({

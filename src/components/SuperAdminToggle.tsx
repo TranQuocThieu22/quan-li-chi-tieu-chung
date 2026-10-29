@@ -37,7 +37,7 @@ export default function SuperAdminToggle({ userId, userName, isSuperAdmin }: { u
     <button
       onClick={handleToggle}
       disabled={loading}
-      style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, whiteSpace: 'nowrap', color: isSuperAdmin ? 'var(--danger-color)' : 'var(--primary-color)' }}
+      className={`text-btn${isSuperAdmin ? ' danger' : ''}`}
     >
       {loading ? 'Đang lưu...' : isSuperAdmin ? 'Gỡ quyền' : 'Cấp quyền'}
     </button>

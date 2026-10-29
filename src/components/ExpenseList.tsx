@@ -31,6 +31,9 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
     .filter(e => selected.includes(e.id))
     .reduce((sum, e) => sum + e.amount, 0);
 
+  // Màu avatar theo người trả để dễ phân biệt hai người trong sổ
+  const payerNames = [...new Set(expenses.map(e => e.payerName))];
+
   const toggleSelecting = () => {
     setSelecting(!selecting);
     setSelectedIds([]);
@@ -69,25 +72,12 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
     });
   };
 
-  const bulkBtn = {
-    width: 'auto',
-    flex: '1 1 auto',
-    padding: '0.6rem 1rem',
-    fontSize: '0.875rem',
-    opacity: isPending ? 0.6 : 1,
-  };
-
   return (
     <>
-      <div className="flex-between mt-6" style={{ gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-        <h2 className="title" style={{ marginBottom: 0 }}>Lịch sử chi tiêu</h2>
+      <div className="section-head">
+        <h2 className="section-title">Lịch sử chi tiêu</h2>
         {expenses.length > 0 && (
-          <button
-            type="button"
-            onClick={toggleSelecting}
-            className="btn btn-secondary"
-            style={{ width: 'auto', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-          >
+          <button type="button" onClick={toggleSelecting} className="btn btn-ghost btn-sm">
             {selecting ? 'Xong' : 'Chọn nhiều'}
           </button>
         )}
@@ -95,15 +85,12 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
 
       <div className="card">
         {expenses.length === 0 ? (
-          <p className="text-center" style={{ color: 'var(--text-secondary)' }}>Chưa có khoản chi nào trong tháng này.</p>
+          <p className="empty">Chưa có khoản chi nào trong tháng này.</p>
         ) : (
           <>
             {selecting && (
-              <div
-                className="flex-between"
-                style={{ gap: '0.75rem', flexWrap: 'wrap', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}
-              >
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 500 }}>
+              <div className="select-bar">
+                <label>
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -111,104 +98,72 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
                       if (el) el.indeterminate = selected.length > 0 && !allSelected;
                     }}
                     onChange={toggleAll}
-                    style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
                   />
                   Chọn tất cả ({expenses.length})
                 </label>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  Đã chọn {selected.length} • {formatMoney(selectedTotal)}
+                <span className="text-muted">
+                  {selected.length} khoản • <span className="num">{formatMoney(selectedTotal)}</span>
                 </span>
               </div>
             )}
 
             <ul className="expense-list">
               {expenses.map(exp => (
-                <li key={exp.id} className="expense-item" style={{ display: 'block' }}>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                    {selecting && (
+                <li key={exp.id} className="expense-item">
+                  <div className="expense-row">
+                    {selecting ? (
                       <input
                         type="checkbox"
                         aria-label={`Chọn ${exp.item}`}
                         checked={selected.includes(exp.id)}
                         onChange={() => toggleOne(exp.id)}
-                        style={{ width: '1.25rem', height: '1.25rem', marginTop: '0.2rem', cursor: 'pointer', flexShrink: 0 }}
                       />
+                    ) : (
+                      <div className={`avatar ${payerNames.indexOf(exp.payerName) % 2 === 0 ? 'primary' : 'alt'}`} aria-hidden>
+                        {exp.payerName.charAt(0).toUpperCase()}
+                      </div>
                     )}
-                    <div className="flex-between" style={{ alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
-                      <div className="expense-info">
-                        <h4>
+                    <div className="expense-body">
+                      <div className="expense-top">
+                        <div className="expense-title">
                           {exp.item}
-                          {exp.isSettled && (
-                            <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, verticalAlign: 'middle', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success-color)' }}>
-                              Đã trả
-                            </span>
-                          )}
-                        </h4>
-                        <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • Trả bởi {exp.payerName} {exp.beneficiaryName ? `(Mua giùm ${exp.beneficiaryName})` : ''}</p>
-                        {exp.notes && <p style={{ fontStyle: 'italic', marginTop: '4px' }}>{exp.notes}</p>}
-                        {exp.images.length > 0 && (
-                          <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {exp.images.map((imgUrl, idx) => (
-                              <a key={idx} href={imgUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-block' }}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} style={{ maxHeight: '60px', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
-                              </a>
-                            ))}
-                          </div>
-                        )}
+                          {exp.isSettled && <span className="badge badge-success">Đã trả</span>}
+                        </div>
+                        <div className={`expense-amount${exp.isSettled ? ' settled' : ''}`}>
+                          {formatMoney(exp.amount)}
+                        </div>
                       </div>
-                      <div className="expense-amount" style={exp.isSettled ? { textDecoration: 'line-through', color: 'var(--text-secondary)' } : undefined}>
-                        {formatMoney(exp.amount)}
+                      <div className="expense-meta">
+                        {new Date(exp.date).toLocaleDateString('vi-VN')} • {exp.payerName} trả
+                        {exp.beneficiaryName ? ` • Mua giùm ${exp.beneficiaryName}` : ''}
                       </div>
+                      {exp.notes && <p className="expense-note">{exp.notes}</p>}
+                      {exp.images.length > 0 && (
+                        <div className="thumbs sm">
+                          {exp.images.map((imgUrl, idx) => (
+                            <a key={idx} href={imgUrl} target="_blank" rel="noreferrer" className="thumb">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      {!selecting && <ExpenseActions id={exp.id} hasHistory={exp.hasHistory} isSettled={exp.isSettled} />}
                     </div>
                   </div>
-                  {!selecting && <ExpenseActions id={exp.id} hasHistory={exp.hasHistory} isSettled={exp.isSettled} />}
                 </li>
               ))}
             </ul>
 
             {selecting && selected.length > 0 && (
-              <div
-                style={{
-                  position: 'sticky',
-                  bottom: '1rem',
-                  zIndex: 20,
-                  marginTop: '1rem',
-                  display: 'flex',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap',
-                  padding: '0.75rem',
-                  borderRadius: 'var(--radius)',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-color)',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4)',
-                }}
-              >
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={isPending}
-                  onClick={() => runBulk('settle')}
-                  style={{ ...bulkBtn, background: 'var(--success-color)' }}
-                >
-                  Đánh dấu đã trả
+              <div className="bulk-bar">
+                <button type="button" className="btn btn-success" disabled={isPending} onClick={() => runBulk('settle')}>
+                  Đã trả
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  disabled={isPending}
-                  onClick={() => runBulk('unsettle')}
-                  style={bulkBtn}
-                >
+                <button type="button" className="btn btn-secondary" disabled={isPending} onClick={() => runBulk('unsettle')}>
                   Bỏ đã trả
                 </button>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={isPending}
-                  onClick={() => runBulk('delete')}
-                  style={{ ...bulkBtn, background: 'var(--danger-color)', color: '#fff' }}
-                >
+                <button type="button" className="btn btn-danger" disabled={isPending} onClick={() => runBulk('delete')}>
                   Xóa
                 </button>
               </div>

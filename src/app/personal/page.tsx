@@ -4,6 +4,9 @@ import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
 import PersonalExpenseActions from '@/components/PersonalExpenseActions';
 import BudgetEditor from '@/components/BudgetEditor';
+import PageHeader from '@/components/PageHeader';
+import BottomNav from '@/components/BottomNav';
+import { PlusIcon } from '@/components/icons';
 import { getCurrentUser } from '@/lib/auth';
 import { getCategory, PERSONAL_CATEGORIES } from '@/lib/personal';
 import { getSharedSpendingShare } from '@/lib/spending';
@@ -56,7 +59,7 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
   const inheritedFrom = budget && budgetRecord && budgetRecord.month !== month ? budgetRecord.month : null;
   const budgetPercent = budget ? Math.round((realTotal / budget) * 100) : 0;
   const remaining = budget ? budget - realTotal : 0;
-  const budgetColor = budgetPercent > 100 ? 'var(--danger-color)' : budgetPercent >= 80 ? '#f59e0b' : 'var(--success-color)';
+  const budgetColor = budgetPercent > 100 ? 'var(--danger-color)' : budgetPercent >= 80 ? 'var(--warning-color)' : 'var(--success-color)';
 
   // Gợi ý mức chi mỗi ngày cho phần còn lại của tháng hiện tại
   const daysLeft = month === currentMonth
@@ -69,163 +72,170 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total);
 
-  const rowStyle = { padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', gap: '1rem' };
-
   return (
-    <main className="container">
-      <header>
-        <h1 className="title" style={{marginBottom: 0}}>Chi Tiêu Cá Nhân</h1>
-        <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
-          {hasPartnership && <Link href="/" className="btn btn-secondary" style={{width: 'auto'}}>Chi tiêu chung</Link>}
-          <Link href="/admin" className="btn btn-secondary" style={{width: 'auto'}}>Liên kết</Link>
-          <Link href="/personal/add" className="btn btn-primary" style={{width: 'auto'}}>+ Thêm</Link>
-        </div>
-      </header>
+    <main className="container with-nav">
+      <PageHeader
+        title="Chi tiêu cá nhân"
+        action={
+          <Link href="/personal/add" className="btn btn-primary btn-sm">
+            <PlusIcon width={16} height={16} /> Thêm
+          </Link>
+        }
+      />
 
       {!hasPartnership && (
-        <div className="card flex-between" style={{gap: '1rem', flexWrap: 'wrap', padding: '1rem 1.5rem'}}>
-          <span style={{color: 'var(--text-secondary)'}}>Muốn chia sẻ chi tiêu với người thân? Liên kết với tài khoản Google của họ.</span>
-          <Link href="/admin" style={{color: 'var(--primary-color)', fontWeight: 600, textDecoration: 'none'}}>Liên kết ngay →</Link>
+        <div className="notice notice-info">
+          <span>Muốn chia sẻ chi tiêu với người thân? Liên kết với tài khoản Google của họ.</span>
+          <Link href="/admin">Liên kết →</Link>
         </div>
       )}
 
-      <div style={{ marginBottom: '2rem' }}>
-        <MonthSelector />
-      </div>
+      <MonthSelector />
 
-      <div className="card">
-        <div className="text-center">
-          <h2 className="subtitle">Tổng chi thực tế tháng {monthStr}</h2>
-          <div className="amount mb-4">{formatMoney(realTotal)}</div>
-        </div>
-        <ul style={{listStyle: 'none'}}>
-          <li className="flex-between" style={rowStyle}>
-            <span>Chi cá nhân</span>
-            <strong>{formatMoney(total)}</strong>
-          </li>
-          {hasPartnership && (
-            <>
-              <li className="flex-between" style={rowStyle}>
-                <span>Phần của bạn trong sổ chung</span>
-                <strong>{formatMoney(shared.total)}</strong>
+      <section className="card hero">
+        <div className="hero-label">Tổng chi thực tế tháng {parseInt(monthStr, 10)}</div>
+        <div className="hero-amount">{formatMoney(realTotal)}</div>
+
+        {hasPartnership && (
+          <ul className="row-list mt-4">
+            <li className="row">
+              <span className="row-label">Chi cá nhân</span>
+              <span className="row-value">{formatMoney(total)}</span>
+            </li>
+            <li className="row">
+              <span className="row-label">Phần của bạn trong sổ chung</span>
+              <span className="row-value">{formatMoney(shared.total)}</span>
+            </li>
+            {shared.ledgers.map(l => (
+              <li key={l.partnershipId} className="row sub">
+                <span className="row-label">với {l.partnerName}</span>
+                <span className="row-value">{formatMoney(l.share)}</span>
               </li>
-              {shared.ledgers.map(l => (
-                <li key={l.partnershipId} className="flex-between" style={{...rowStyle, paddingLeft: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem'}}>
-                  <span>• với {l.partnerName}</span>
-                  <span>{formatMoney(l.share)}</span>
-                </li>
-              ))}
-            </>
-          )}
-        </ul>
+            ))}
+          </ul>
+        )}
 
-        <div style={{marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)'}}>
-          <div className="flex-between" style={{gap: '1rem', flexWrap: 'wrap', marginBottom: '0.75rem'}}>
-            <h3 className="subtitle" style={{margin: 0, fontWeight: 600}}>Ngân sách tháng {formatMonth(month)}</h3>
-            <BudgetEditor month={month} amount={budget} />
-          </div>
+        <hr className="divider" />
 
-          {budget ? (
-            <>
-              <div className="flex-between" style={{gap: '1rem', marginBottom: '0.5rem'}}>
-                <span>{formatMoney(realTotal)} / {formatMoney(budget)}</span>
-                <strong style={{color: budgetColor}}>{budgetPercent}%</strong>
-              </div>
-              <div
-                role="progressbar"
-                aria-label="Mức sử dụng ngân sách"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.min(budgetPercent, 100)}
-                style={{height: '12px', borderRadius: '999px', background: 'var(--border-color)', overflow: 'hidden'}}
-              >
-                <div style={{width: `${Math.min(budgetPercent, 100)}%`, height: '100%', borderRadius: '999px', background: budgetColor, transition: 'width 0.3s'}} />
-              </div>
-              <p style={{marginTop: '0.75rem', fontWeight: 600, color: remaining >= 0 ? 'var(--text-primary)' : 'var(--danger-color)'}}>
-                {remaining >= 0 ? `Còn lại ${formatMoney(remaining)}` : `Vượt ngân sách ${formatMoney(-remaining)}`}
-              </p>
-              {dailyAllowance !== null && (
-                <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>
-                  {`Còn ${daysLeft} ngày • nên chi tối đa ${formatMoney(dailyAllowance)}/ngày`}
-                </p>
-              )}
-              {inheritedFrom && (
-                <p style={{color: 'var(--text-secondary)', fontSize: '0.875rem'}}>{`Áp dụng từ tháng ${formatMonth(inheritedFrom)}`}</p>
-              )}
-            </>
-          ) : (
-            <p style={{color: 'var(--text-secondary)'}}>Chưa đặt ngân sách cho tháng này.</p>
-          )}
+        <div className="card-head">
+          <div className="card-title">Ngân sách tháng {formatMonth(month)}</div>
+          <BudgetEditor month={month} amount={budget} />
         </div>
-      </div>
 
-      <div className="card text-center">
-        <h2 className="subtitle">Tổng chi tiêu cá nhân tháng {monthStr}</h2>
-        <div className="amount mb-4">{formatMoney(total)}</div>
-        <p className="subtitle" style={{marginBottom: 0}}>
-          {expenses.length} khoản • Tháng trước: {formatMoney(prevTotal)}
-          {changePercent !== null && changePercent !== 0 && (
-            <span style={{marginLeft: '0.5rem', fontWeight: 600, color: changePercent > 0 ? 'var(--danger-color)' : 'var(--success-color)'}}>
-              {changePercent > 0 ? '▲' : '▼'} {Math.abs(changePercent)}%
-            </span>
-          )}
-        </p>
+        {budget ? (
+          <>
+            <div className="bar-head">
+              <span className="num">{formatMoney(realTotal)} <span className="muted">/ {formatMoney(budget)}</span></span>
+              <strong style={{color: budgetColor}}>{budgetPercent}%</strong>
+            </div>
+            <div
+              className="progress lg"
+              role="progressbar"
+              aria-label="Mức sử dụng ngân sách"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.min(budgetPercent, 100)}
+            >
+              <div className="progress-bar" style={{width: `${Math.min(budgetPercent, 100)}%`, background: budgetColor}} />
+            </div>
+            <p className={`mt-2${remaining >= 0 ? '' : ' text-danger'}`} style={{fontWeight: 600}}>
+              {remaining >= 0 ? `Còn lại ${formatMoney(remaining)}` : `Vượt ngân sách ${formatMoney(-remaining)}`}
+            </p>
+            {dailyAllowance !== null && (
+              <p className="text-muted text-sm">
+                {`Còn ${daysLeft} ngày • nên chi tối đa ${formatMoney(dailyAllowance)}/ngày`}
+              </p>
+            )}
+            {inheritedFrom && (
+              <p className="text-muted text-sm">{`Áp dụng từ tháng ${formatMonth(inheritedFrom)}`}</p>
+            )}
+          </>
+        ) : (
+          <p className="text-muted text-sm">Chưa đặt ngân sách cho tháng này.</p>
+        )}
+      </section>
+
+      <div className="stat-grid">
+        <div className="card">
+          <div className="stat-label">Chi cá nhân</div>
+          <div className="stat-value">{formatMoney(total)}</div>
+          <div className="stat-meta">
+            {expenses.length} khoản
+            {changePercent !== null && changePercent !== 0 && (
+              <span className={changePercent > 0 ? 'text-danger' : 'text-success'} style={{fontWeight: 600, marginLeft: '0.375rem'}}>
+                {changePercent > 0 ? '▲' : '▼'} {Math.abs(changePercent)}%
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="card">
+          <div className="stat-label">Tháng trước</div>
+          <div className="stat-value">{formatMoney(prevTotal)}</div>
+          <div className="stat-meta">Chi cá nhân {prevStart.getMonth() + 1}/{prevStart.getFullYear()}</div>
+        </div>
       </div>
 
       {byCategory.length > 0 && (
-        <div className="card">
-          <h2 className="subtitle text-center">Theo danh mục</h2>
-          <ul style={{listStyle: 'none', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.9rem'}}>
+        <section className="card">
+          <div className="card-title">Theo danh mục</div>
+          <ul className="bar-list">
             {byCategory.map(c => {
               const percent = Math.round((c.total / total) * 100);
               return (
                 <li key={c.key}>
-                  <div className="flex-between" style={{marginBottom: '0.35rem', gap: '1rem'}}>
+                  <div className="bar-head">
                     <span style={{fontWeight: 500}}>{c.icon} {c.label}</span>
-                    <span style={{fontWeight: 600, whiteSpace: 'nowrap'}}>
-                      {formatMoney(c.total)} <span style={{color: 'var(--text-secondary)', fontWeight: 400}}>({percent}%)</span>
+                    <span className="num" style={{fontWeight: 600}}>
+                      {formatMoney(c.total)} <span className="muted">{percent}%</span>
                     </span>
                   </div>
-                  <div style={{height: '8px', borderRadius: '999px', background: 'var(--border-color)', overflow: 'hidden'}}>
-                    <div style={{width: `${percent}%`, height: '100%', borderRadius: '999px', background: 'var(--primary-color)'}} />
+                  <div className="progress">
+                    <div className="progress-bar" style={{width: `${percent}%`}} />
                   </div>
                 </li>
               );
             })}
           </ul>
-        </div>
+        </section>
       )}
 
-      <h2 className="title mt-6">Danh sách chi tiêu</h2>
+      <div className="section-head">
+        <h2 className="section-title">Danh sách chi tiêu</h2>
+      </div>
       <div className="card">
         {expenses.length === 0 ? (
-          <div className="text-center">
-            <p className="mb-4" style={{color: 'var(--text-secondary)'}}>Chưa có khoản chi cá nhân nào trong tháng này.</p>
-            <Link href="/personal/add" className="btn btn-primary" style={{width: 'auto', display: 'inline-flex'}}>+ Thêm khoản chi</Link>
+          <div className="empty">
+            <p>Chưa có khoản chi cá nhân nào trong tháng này.</p>
+            <Link href="/personal/add" className="btn btn-primary">
+              <PlusIcon width={16} height={16} /> Thêm khoản chi
+            </Link>
           </div>
         ) : (
           <ul className="expense-list">
             {expenses.map(exp => {
               const category = getCategory(exp.category);
               return (
-                <li key={exp.id} className="expense-item" style={{display: 'block'}}>
-                  <div className="flex-between" style={{alignItems: 'flex-start', gap: '1rem'}}>
-                    <div className="expense-info">
-                      <h4>{category.icon} {exp.item}</h4>
-                      <p>{new Date(exp.date).toLocaleDateString('vi-VN')} • {category.label}</p>
-                      {exp.notes && <p style={{fontStyle: 'italic', marginTop: '4px'}}>{exp.notes}</p>}
-                    </div>
-                    <div className="expense-amount">
-                      {formatMoney(exp.amount)}
+                <li key={exp.id} className="expense-item">
+                  <div className="expense-row">
+                    <div className="avatar emoji" aria-hidden>{category.icon}</div>
+                    <div className="expense-body">
+                      <div className="expense-top">
+                        <div className="expense-title">{exp.item}</div>
+                        <div className="expense-amount">{formatMoney(exp.amount)}</div>
+                      </div>
+                      <div className="expense-meta">{new Date(exp.date).toLocaleDateString('vi-VN')} • {category.label}</div>
+                      {exp.notes && <p className="expense-note">{exp.notes}</p>}
+                      <PersonalExpenseActions id={exp.id} />
                     </div>
                   </div>
-                  <PersonalExpenseActions id={exp.id} />
                 </li>
               );
             })}
           </ul>
         )}
       </div>
+
+      <BottomNav shared={hasPartnership} />
     </main>
   );
 }

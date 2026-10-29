@@ -1,141 +1,103 @@
 'use client';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from './icons';
+
+const MONTHS = ['Th 1', 'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'Th 8', 'Th 9', 'Th 10', 'Th 11', 'Th 12'];
 
 export default function MonthSelector() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentMonthParam = searchParams.get('month') || new Date().toISOString().slice(0, 7);
-  
+  const todayMonth = new Date().toISOString().slice(0, 7);
+  const currentMonthParam = searchParams.get('month') || todayMonth;
+
   const [isOpen, setIsOpen] = useState(false);
   const [displayYear, setDisplayYear] = useState(parseInt(currentMonthParam.split('-')[0], 10));
 
   const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: PointerEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('pointerdown', handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside);
     };
   }, [isOpen]);
 
+  const currentYear = parseInt(currentMonthParam.split('-')[0], 10);
+  const currentMonth = parseInt(currentMonthParam.split('-')[1], 10);
 
-
-  const months = ['Th 1', 'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'Th 8', 'Th 9', 'Th 10', 'Th 11', 'Th 12'];
-
-  const handleSelect = (monthIndex: number) => {
-    const monthStr = (monthIndex + 1).toString().padStart(2, '0');
-    const newMonth = `${displayYear}-${monthStr}`;
-    router.push(`${pathname}?month=${newMonth}`);
+  const goTo = (year: number, monthIndex: number) => {
+    // monthIndex có thể tràn ra ngoài 0..11 khi bấm tháng trước / sau
+    const d = new Date(year, monthIndex, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    router.push(`${pathname}?month=${value}`);
     setIsOpen(false);
   };
 
-  const currentYearStr = currentMonthParam.split('-')[0];
-  const currentMonthStr = currentMonthParam.split('-')[1];
-
   return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={popupRef}>
-      <label style={{ fontWeight: 600, marginRight: '1rem' }}>Chọn tháng:</label>
-      
-      <button 
+    <div className="month-nav" ref={popupRef}>
+      <button type="button" className="icon-btn" aria-label="Tháng trước" onClick={() => goTo(currentYear, currentMonth - 2)}>
+        <ChevronLeftIcon />
+      </button>
+
+      <button
+        type="button"
+        className="month-trigger"
+        aria-expanded={isOpen}
         onClick={() => {
-          if (!isOpen) {
-            setDisplayYear(parseInt(currentMonthParam.split('-')[0], 10));
-          }
+          if (!isOpen) setDisplayYear(currentYear);
           setIsOpen(!isOpen);
         }}
-        style={{
-          padding: '0.75rem 1.25rem', 
-          borderRadius: '8px', 
-          border: '1px solid var(--border-color)', 
-          background: 'var(--surface-color)', 
-          color: 'var(--text-primary)', 
-          fontFamily: 'inherit',
-          cursor: 'pointer',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}
       >
-        Tháng {currentMonthStr} năm {currentYearStr}
-        <span style={{ fontSize: '0.8rem' }}>▼</span>
+        Tháng {currentMonth}, {currentYear}
+        <ChevronDownIcon />
+      </button>
+
+      <button type="button" className="icon-btn" aria-label="Tháng sau" onClick={() => goTo(currentYear, currentMonth)}>
+        <ChevronRightIcon />
       </button>
 
       {isOpen && (
-        <div className="month-popup" style={{
-          position: 'absolute',
-          top: '100%',
-          marginTop: '0.5rem',
-          right: 0,
-          background: 'var(--surface-color)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '12px',
-          padding: '1.25rem',
-          width: '280px',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-          zIndex: 50
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <button 
-              onClick={() => setDisplayYear(y => y - 1)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', fontWeight: 'bold' }}
-            >
-              &lt;
-            </button>
-            <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{displayYear}</strong>
-            <button 
-              onClick={() => setDisplayYear(y => y + 1)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', fontWeight: 'bold' }}
-            >
-              &gt;
-            </button>
-          </div>
+        <>
+          <div className="sheet-backdrop" onClick={() => setIsOpen(false)} />
+          <div className="month-popup" role="dialog" aria-label="Chọn tháng">
+            <div className="month-popup-head">
+              <button type="button" className="icon-btn" aria-label="Năm trước" onClick={() => setDisplayYear(y => y - 1)}>
+                <ChevronLeftIcon />
+              </button>
+              <strong>{displayYear}</strong>
+              <button type="button" className="icon-btn" aria-label="Năm sau" onClick={() => setDisplayYear(y => y + 1)}>
+                <ChevronRightIcon />
+              </button>
+            </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-            {months.map((m, idx) => {
-              const isSelected = displayYear === parseInt(currentYearStr) && (idx + 1) === parseInt(currentMonthStr);
-              return (
-                <button
-                  key={m}
-                  onClick={() => handleSelect(idx)}
-                  style={{
-                    padding: '0.6rem 0',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: isSelected ? 'var(--primary-color)' : 'transparent',
-                    color: isSelected ? '#fff' : 'var(--text-primary)',
-                    cursor: 'pointer',
-                    fontWeight: isSelected ? 600 : 400,
-                    transition: 'all 0.2s',
-                    fontSize: '0.9rem'
-                  }}
-                  onMouseOver={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
-                >
-                  {m}
-                </button>
-              )
-            })}
+            <div className="month-grid">
+              {MONTHS.map((m, idx) => {
+                const value = `${displayYear}-${String(idx + 1).padStart(2, '0')}`;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`month-cell${value === todayMonth ? ' current' : ''}`}
+                    aria-pressed={value === currentMonthParam}
+                    onClick={() => goTo(displayYear, idx)}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
-  )
+  );
 }

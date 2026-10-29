@@ -45,12 +45,13 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="label">Số tiền (VNĐ)</label>
+        <label className="label" htmlFor="amount">Số tiền (VNĐ)</label>
         <input
+          id="amount"
           type="text"
           inputMode="numeric"
-          className="input"
-          placeholder="VD: 50.000"
+          className="input input-amount"
+          placeholder="0"
           required
           autoFocus={!expenseId}
           value={displayAmount}
@@ -59,8 +60,9 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
       </div>
 
       <div className="form-group">
-        <label className="label">Nội dung</label>
+        <label className="label" htmlFor="item">Nội dung</label>
         <input
+          id="item"
           type="text"
           className="input"
           placeholder="VD: Cà phê sáng"
@@ -71,37 +73,27 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
       </div>
 
       <div className="form-group">
-        <label className="label">Danh mục</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.5rem' }}>
-          {PERSONAL_CATEGORIES.map(c => {
-            const selected = form.category === c.key;
-            return (
-              <button
-                key={c.key}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => setForm({ ...form, category: c.key })}
-                style={{
-                  padding: '0.6rem 0.5rem',
-                  borderRadius: '8px',
-                  border: `1px solid ${selected ? 'var(--primary-color)' : 'var(--border-color)'}`,
-                  background: selected ? 'var(--primary-color)' : 'transparent',
-                  color: selected ? '#fff' : 'var(--text-primary)',
-                  fontWeight: selected ? 600 : 400,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {c.icon} {c.label}
-              </button>
-            );
-          })}
+        <span className="label">Danh mục</span>
+        <div className="option-grid">
+          {PERSONAL_CATEGORIES.map(c => (
+            <button
+              key={c.key}
+              type="button"
+              className="option-btn"
+              aria-pressed={form.category === c.key}
+              onClick={() => setForm({ ...form, category: c.key })}
+            >
+              <span className="emoji" aria-hidden>{c.icon}</span>
+              {c.label}
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label className="label">Ngày</label>
+        <label className="label" htmlFor="date">Ngày</label>
         <input
+          id="date"
           type="date"
           className="input"
           required
@@ -111,17 +103,18 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
       </div>
 
       <div className="form-group">
-        <label className="label">Ghi chú (Tùy chọn)</label>
+        <label className="label" htmlFor="notes">Ghi chú <span className="optional">(tùy chọn)</span></label>
         <textarea
+          id="notes"
           className="textarea"
-          rows={3}
+          rows={2}
           placeholder="Ghi chú thêm..."
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
         />
       </div>
 
-      <button type="submit" className="btn btn-primary mt-4" disabled={loading}>
+      <button type="submit" className="btn btn-primary btn-block btn-lg mt-2" disabled={loading}>
         {loading ? 'Đang lưu...' : expenseId ? 'Lưu chỉnh sửa' : 'Lưu khoản chi'}
       </button>
     </form>

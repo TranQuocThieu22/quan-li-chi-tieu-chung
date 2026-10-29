@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/db';
 import { getCurrentUser, isSuperAdmin, ROOT_SUPERADMIN_EMAIL } from '@/lib/auth';
 import SuperAdminToggle from '@/components/SuperAdminToggle';
+import PageHeader from '@/components/PageHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,52 +25,43 @@ export default async function SuperAdminPage() {
 
   return (
     <div>
-      <h1 className="title" style={{ textAlign: 'left', marginBottom: '0.5rem' }}>Superadmin</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-        {users.length} người dùng • {partnerships.length} cặp đang liên kết • {users.filter(isSuperAdmin).length} superadmin
-      </p>
+      <PageHeader
+        title="Superadmin"
+        subtitle={`${users.length} người dùng • ${partnerships.length} cặp đang liên kết • ${users.filter(isSuperAdmin).length} superadmin`}
+      />
 
       {/* Danh sách dạng thẻ thay cho bảng để dùng tốt trên điện thoại */}
-      <ul className="card" style={{ padding: 0, overflow: 'hidden', listStyle: 'none' }}>
+      <ul className="card flush list">
         {users.map(u => {
           const admin = isSuperAdmin(u);
           const isRoot = u.email === ROOT_SUPERADMIN_EMAIL;
           const partners = partnersOf.get(u.id);
           return (
-            <li key={u.id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+            <li key={u.id} className="list-item">
+              <div className="expense-row">
                 {u.image ? (
-                  <img src={u.image} alt="" referrerPolicy="no-referrer" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0 }} />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={u.image} alt="" referrerPolicy="no-referrer" className="avatar" />
                 ) : (
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: 'var(--primary-color)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                    {u.name.charAt(0).toUpperCase()}
-                  </div>
+                  <div className="avatar primary">{u.name.charAt(0).toUpperCase()}</div>
                 )}
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 600 }}>{u.name}{u.id === me.id && ' (bạn)'}</span>
-                    <span style={{
-                      padding: '0.1rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap',
-                      background: admin ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                      color: admin ? 'var(--primary-color)' : 'var(--text-secondary)',
-                      border: admin ? '1px solid transparent' : '1px solid var(--border-color)',
-                    }}>
-                      {admin ? 'Superadmin' : 'Người dùng'}
-                    </span>
+                <div className="expense-body">
+                  <div className="expense-top">
+                    <div className="expense-title">
+                      {u.name}{u.id === me.id && ' (bạn)'}
+                      <span className={`badge${admin ? ' badge-primary' : ''}`}>{admin ? 'Superadmin' : 'Người dùng'}</span>
+                    </div>
+                    {isRoot ? (
+                      <span className="text-muted text-sm" style={{ whiteSpace: 'nowrap' }}>Mặc định</span>
+                    ) : u.id === me.id ? null : (
+                      <SuperAdminToggle userId={u.id} userName={u.name} isSuperAdmin={admin} />
+                    )}
                   </div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', overflowWrap: 'anywhere' }}>{u.email}</div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                  <div className="user-email">{u.email}</div>
+                  <div className="expense-meta" style={{ fontSize: '0.75rem' }}>
                     Liên kết: {partners ? partners.join(', ') : 'Chưa liên kết'} • Tham gia {u.createdAt.toLocaleDateString('vi-VN')}
                   </div>
-                </div>
-
-                <div style={{ flexShrink: 0, paddingTop: '0.1rem' }}>
-                  {isRoot ? (
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Mặc định</span>
-                  ) : u.id === me.id ? null : (
-                    <SuperAdminToggle userId={u.id} userName={u.name} isSuperAdmin={admin} />
-                  )}
                 </div>
               </div>
             </li>

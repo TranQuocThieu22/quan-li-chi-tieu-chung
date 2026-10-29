@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PageHeader from '@/components/PageHeader';
 
 type Member = { id: number; name: string; isMe: boolean };
 
@@ -90,90 +91,116 @@ export default function AddExpense() {
 
   return (
     <main className="container">
-      <header>
-        <div>
-          <h1 className="title" style={{marginBottom: 0}}>Thêm Khoản Chi</h1>
-          {ledger && <p className="subtitle" style={{marginBottom: 0}}>Sổ chi tiêu với {ledger.partnerName}</p>}
-        </div>
-        <Link href="/" className="btn btn-secondary" style={{width: 'auto'}}>Hủy</Link>
-      </header>
+      <PageHeader
+        title="Thêm khoản chi"
+        subtitle={ledger ? `Sổ chung với ${ledger.partnerName}` : undefined}
+        backHref="/"
+      />
 
       <div className="card">
         {members.length === 0 ? (
-          <div className="text-center">
-            <p className="mb-4">Bạn cần liên kết với một tài khoản khác trước khi tạo khoản chi.</p>
+          <div className="empty">
+            <p>Bạn cần liên kết với một tài khoản khác trước khi tạo khoản chi.</p>
             <Link href="/admin" className="btn btn-primary">Đi tới trang liên kết</Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="label">Bạn là ai? (Người trả tiền)</label>
-              <select 
-                className="select" 
-                value={formData.payerId}
-                onChange={(e) => setFormData({...formData, payerId: e.target.value})}
-              >
-                {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
-            </div>
-
-
-            <div className="form-group">
-              <label className="label">Ngày mua</label>
-              <input 
-                type="date" 
-                className="input" 
-                required
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="label">Tên món đồ / Dịch vụ</label>
-              <input 
-                type="text" 
-                className="input" 
-                placeholder="VD: Tiền điện tháng 5" 
-                required
-                value={formData.item}
-                onChange={(e) => setFormData({...formData, item: e.target.value})}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="label">Số tiền (VNĐ)</label>
-              <input 
+              <label className="label" htmlFor="amount">Số tiền (VNĐ)</label>
+              <input
+                id="amount"
                 type="text"
                 inputMode="numeric"
-                className="input" 
-                placeholder="VD: 150.000" 
+                className="input input-amount"
+                placeholder="0"
                 required
+                autoFocus
                 value={displayAmount}
                 onChange={handleAmountChange}
               />
             </div>
 
             <div className="form-group">
-              <label className="label">Ghi chú (Tùy chọn)</label>
-              <textarea 
-                className="textarea" 
-                placeholder="Ghi chú thêm..." 
-                rows={3}
+              <label className="label" htmlFor="item">Tên món đồ / Dịch vụ</label>
+              <input
+                id="item"
+                type="text"
+                className="input"
+                placeholder="VD: Tiền điện tháng 5"
+                required
+                value={formData.item}
+                onChange={(e) => setFormData({...formData, item: e.target.value})}
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="label" htmlFor="payer">Người trả</label>
+                <select
+                  id="payer"
+                  className="select"
+                  value={formData.payerId}
+                  onChange={(e) => setFormData({...formData, payerId: e.target.value})}
+                >
+                  {members.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="label" htmlFor="date">Ngày mua</label>
+                <input
+                  id="date"
+                  type="date"
+                  className="input"
+                  required
+                  value={formData.date}
+                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={isPayOnBehalf}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setIsPayOnBehalf(checked);
+                  if (checked) {
+                    const otherMember = members.find(m => m.id.toString() !== formData.payerId);
+                    if (otherMember) {
+                      setFormData(prev => ({ ...prev, beneficiaryId: otherMember.id.toString() }));
+                    }
+                  } else {
+                    setFormData(prev => ({ ...prev, beneficiaryId: '' }));
+                  }
+                }}
+              />
+              Là khoản trả giùm / mua giùm
+            </label>
+
+            <div className="form-group">
+              <label className="label" htmlFor="notes">Ghi chú <span className="optional">(tùy chọn)</span></label>
+              <textarea
+                id="notes"
+                className="textarea"
+                placeholder="Ghi chú thêm..."
+                rows={2}
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
               />
             </div>
 
             <div className="form-group">
-              <label className="label">Ảnh hóa đơn (Tùy chọn)</label>
-              <input 
-                type="file" 
+              <label className="label" htmlFor="images">Ảnh hóa đơn <span className="optional">(tùy chọn)</span></label>
+              <input
+                id="images"
+                type="file"
                 accept="image/*"
                 multiple
-                className="input" 
+                className="input input-file"
                 onChange={(e) => {
                   const files = Array.from(e.target.files || []);
                   if (files.length === 0) return;
@@ -210,7 +237,7 @@ export default function AddExpense() {
                 }}
               />
               {formData.imageUrl && formData.imageUrl !== '[]' && (
-                <div style={{marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                <div className="thumbs">
                   {(() => {
                     let imgs: string[] = [];
                     try {
@@ -220,16 +247,17 @@ export default function AddExpense() {
                       imgs = [formData.imageUrl];
                     }
                     return imgs.map((imgUrl: string, idx: number) => (
-                      <div key={idx} style={{position: 'relative'}}>
-                        <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} style={{height: '100px', width: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)', objectFit: 'cover'}} />
-                        <button 
-                          type="button" 
+                      <div key={idx} className="thumb">
+                        <img src={imgUrl} alt={`Hóa đơn ${idx + 1}`} />
+                        <button
+                          type="button"
+                          className="thumb-remove"
+                          aria-label={`Bỏ ảnh ${idx + 1}`}
                           onClick={() => {
                             const newImgs = [...imgs];
                             newImgs.splice(idx, 1);
                             setFormData({...formData, imageUrl: newImgs.length > 0 ? JSON.stringify(newImgs) : ''});
-                          }} 
-                          style={{position: 'absolute', top: '-5px', right: '-5px', background: 'var(--danger-color)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'}}
+                          }}
                         >
                           ×
                         </button>
@@ -240,29 +268,7 @@ export default function AddExpense() {
               )}
             </div>
 
-            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-              <input 
-                type="checkbox" 
-                id="isPayOnBehalf" 
-                checked={isPayOnBehalf} 
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setIsPayOnBehalf(checked);
-                  if (checked) {
-                    const otherMember = members.find(m => m.id.toString() !== formData.payerId);
-                    if (otherMember) {
-                      setFormData(prev => ({ ...prev, beneficiaryId: otherMember.id.toString() }));
-                    }
-                  } else {
-                    setFormData(prev => ({ ...prev, beneficiaryId: '' }));
-                  }
-                }} 
-                style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
-              />
-              <label htmlFor="isPayOnBehalf" style={{ cursor: 'pointer', fontWeight: 500, margin: 0 }}>Là khoản trả giùm / mua giùm</label>
-            </div>
-
-            <button type="submit" className="btn btn-primary mt-4" disabled={loading}>
+            <button type="submit" className="btn btn-primary btn-block btn-lg mt-2" disabled={loading}>
               {loading ? 'Đang lưu...' : 'Lưu khoản chi'}
             </button>
           </form>

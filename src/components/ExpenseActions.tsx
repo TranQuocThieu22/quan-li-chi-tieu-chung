@@ -33,22 +33,19 @@ export default function ExpenseActions({ id, hasHistory, isSettled }: { id: numb
   };
 
   return (
-    <div style={{display: 'flex', gap: '0.75rem', marginTop: '0.5rem', alignItems: 'center', flexWrap: 'wrap'}}>
-      <label style={{display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.875rem', cursor: 'pointer', fontWeight: 500, color: optimisticSettled ? 'var(--success-color)' : 'var(--text-secondary)'}}>
+    <div className="chip-actions">
+      <label className={`chip-btn${optimisticSettled ? ' on' : ''}`}>
         <input
           type="checkbox"
           checked={optimisticSettled}
           disabled={isPending}
           onChange={(e) => handleToggleSettled(e.target.checked)}
-          style={{width: '1rem', height: '1rem', cursor: 'pointer'}}
         />
         Đã trả
       </label>
-      <Link href={`/edit/${id}`} style={{fontSize: '0.875rem', color: 'var(--primary-color)', textDecoration: 'none'}}>Sửa</Link>
-      <button onClick={handleDelete} style={{fontSize: '0.875rem', color: 'var(--danger-color)', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}>Xóa</button>
-      {hasHistory && (
-        <Link href={`/history/${id}`} style={{fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none'}}>Xem lịch sử</Link>
-      )}
+      <Link href={`/edit/${id}`} className="chip-btn">Sửa</Link>
+      {hasHistory && <Link href={`/history/${id}`} className="chip-btn">Lịch sử</Link>}
+      <button type="button" onClick={handleDelete} className="chip-btn danger">Xóa</button>
     </div>
   );
 }

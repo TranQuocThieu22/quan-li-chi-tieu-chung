@@ -1,5 +1,6 @@
 import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
+import PageHeader from '@/components/PageHeader';
 import { getPartner, requirePartnershipPage } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -72,49 +73,32 @@ export default async function AdminLogsPage({ searchParams }: { searchParams: Pr
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
+  const badgeClass = (action: LogItem['action']) =>
+    action === 'Thêm mới' ? 'badge-success' : action === 'Xóa' ? 'badge-danger' : 'badge-primary';
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <div>
-          <h1 className="title" style={{ margin: 0, textAlign: 'left' }}>Nhật ký hoạt động</h1>
-          <p className="subtitle" style={{ margin: 0 }}>Sổ chi tiêu với {getPartner(partnership, user.id).name}</p>
-        </div>
-        <MonthSelector />
-      </div>
+      <PageHeader title="Nhật ký hoạt động" subtitle={`Sổ chung với ${getPartner(partnership, user.id).name}`} />
+      <MonthSelector />
 
       {/* Danh sách dạng thẻ thay cho bảng để dùng tốt trên điện thoại */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card flush">
         {logs.length === 0 ? (
-          <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            Không có hoạt động nào trong tháng này.
-          </div>
+          <p className="empty">Không có hoạt động nào trong tháng này.</p>
         ) : (
-          <ul style={{ listStyle: 'none' }}>
+          <ul className="list">
             {logs.map((log) => (
-              <li key={log.id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{log.item}</div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.2rem' }}>
-                      {formatMoney(log.amount)}
-                      {log.action === 'Cập nhật' && log.oldAmount !== log.amount && ` (Cũ: ${formatMoney(log.oldAmount || 0)})`}
-                    </div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                      {log.payerName} • {log.date.toLocaleString('vi-VN')}
-                    </div>
-                  </div>
-                  <span style={{
-                    flexShrink: 0,
-                    padding: '0.2rem 0.65rem',
-                    borderRadius: '999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    background: log.action === 'Thêm mới' ? 'rgba(16, 185, 129, 0.1)' : log.action === 'Xóa' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                    color: log.action === 'Thêm mới' ? 'var(--success-color)' : log.action === 'Xóa' ? 'var(--danger-color)' : 'var(--primary-color)'
-                  }}>
-                    {log.action}
-                  </span>
+              <li key={log.id} className="list-item">
+                <div className="expense-top">
+                  <div className="expense-title">{log.item}</div>
+                  <span className={`badge ${badgeClass(log.action)}`}>{log.action}</span>
+                </div>
+                <div className="expense-meta">
+                  <span className="num" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatMoney(log.amount)}</span>
+                  {log.action === 'Cập nhật' && log.oldAmount !== log.amount && ` (cũ: ${formatMoney(log.oldAmount || 0)})`}
+                </div>
+                <div className="expense-meta" style={{ fontSize: '0.75rem' }}>
+                  {log.payerName} • {log.date.toLocaleString('vi-VN')}
                 </div>
               </li>
             ))}

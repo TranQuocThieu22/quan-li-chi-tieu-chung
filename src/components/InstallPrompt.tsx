@@ -85,59 +85,25 @@ export default function InstallPrompt() {
   if (mode === 'hidden') return null;
 
   return (
-    <div
-      role="dialog"
-      aria-label="Cài đặt ứng dụng"
-      style={{
-        position: 'fixed',
-        left: '1rem',
-        right: '1rem',
-        bottom: 'calc(1rem + env(safe-area-inset-bottom))',
-        zIndex: 50,
-        maxWidth: '568px',
-        margin: '0 auto',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        padding: '0.875rem 1rem',
-        borderRadius: 'var(--radius)',
-        border: '1px solid var(--border-color)',
-        background: 'var(--surface-color)',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-      }}
-    >
+    <div role="dialog" aria-label="Cài đặt ứng dụng" className="install-prompt">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icon-192.png" alt="" width={40} height={40} style={{ borderRadius: '10px', flexShrink: 0 }} />
-      <div style={{ flex: 1, minWidth: 0, fontSize: '0.875rem' }}>
-        <div style={{ fontWeight: 600 }}>Thêm vào màn hình chính</div>
+      <img src="/icon-192.png" alt="" width={40} height={40} />
+      <div className="install-prompt-text">
+        <strong>Thêm vào màn hình chính</strong>
         {mode === 'native' ? (
-          <div style={{ color: 'var(--text-secondary)' }}>Mở nhanh như app, không cần trình duyệt.</div>
+          <div>Mở nhanh như app, không cần trình duyệt.</div>
         ) : (
-          <div style={{ color: 'var(--text-secondary)' }}>
+          <div>
             Nhấn nút <strong>Chia sẻ</strong> <ShareIcon /> rồi chọn <strong>Thêm vào MH chính</strong>.
           </div>
         )}
       </div>
       {mode === 'native' && (
-        <button type="button" className="btn btn-primary" onClick={install} style={{ width: 'auto', padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={install}>
           Cài đặt
         </button>
       )}
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label="Đóng"
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-secondary)',
-          fontSize: '1.25rem',
-          lineHeight: 1,
-          cursor: 'pointer',
-          padding: '0.25rem',
-          flexShrink: 0,
-        }}
-      >
+      <button type="button" onClick={dismiss} aria-label="Đóng" className="install-prompt-close">
         ×
       </button>
     </div>

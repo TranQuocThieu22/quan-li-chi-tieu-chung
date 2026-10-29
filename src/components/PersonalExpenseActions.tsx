@@ -14,9 +14,9 @@ export default function PersonalExpenseActions({ id }: { id: number }) {
   };
 
   return (
-    <div style={{display: 'flex', gap: '0.75rem', marginTop: '0.5rem'}}>
-      <Link href={`/personal/edit/${id}`} style={{fontSize: '0.875rem', color: 'var(--primary-color)', textDecoration: 'none'}}>Sửa</Link>
-      <button onClick={handleDelete} style={{fontSize: '0.875rem', color: 'var(--danger-color)', background: 'none', border: 'none', cursor: 'pointer', padding: 0}}>Xóa</button>
+    <div className="chip-actions">
+      <Link href={`/personal/edit/${id}`} className="chip-btn">Sửa</Link>
+      <button type="button" onClick={handleDelete} className="chip-btn danger">Xóa</button>
     </div>
   );
 }

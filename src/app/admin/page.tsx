@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import PageHeader from '@/components/PageHeader';
 
 type PublicUser = { id: number; name: string; email: string; image: string | null };
 type Invite = { id: number; user: PublicUser; createdAt: string };
@@ -10,26 +11,21 @@ type PartnerState = { me: PublicUser; partners: Partner[]; incoming: Invite[]; o
 
 function UserRow({ user, children }: { user: PublicUser; children?: React.ReactNode }) {
   return (
-    <div className="flex-between" style={{ gap: '1rem', padding: '0.75rem 0', flexWrap: 'wrap' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
-        {user.image ? (
-          <img src={user.image} alt="" referrerPolicy="no-referrer" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0 }} />
-        ) : (
-          <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: 'var(--primary-color)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-            {user.name.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 600 }}>{user.name}</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', overflowWrap: 'anywhere' }}>{user.email}</div>
-        </div>
+    <div className="user-row">
+      {user.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={user.image} alt="" referrerPolicy="no-referrer" className="avatar" />
+      ) : (
+        <div className="avatar primary">{user.name.charAt(0).toUpperCase()}</div>
+      )}
+      <div className="user-info">
+        <div className="user-name">{user.name}</div>
+        <div className="user-email">{user.email}</div>
       </div>
-      {children && <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>{children}</div>}
+      {children && <div className="user-actions">{children}</div>}
     </div>
   );
 }
-
-const smallBtn = { width: 'auto', margin: 0, padding: '0.5rem 1rem' };
 
 export default function PartnerPage() {
   const router = useRouter();
@@ -128,93 +124,94 @@ export default function PartnerPage() {
     }
   };
 
-  if (!state) return <p style={{ color: 'var(--text-secondary)' }}>Đang tải...</p>;
+  if (!state) return <p className="loading">Đang tải...</p>;
 
   return (
     <div>
-      <h1 className="title" style={{ textAlign: 'left', marginBottom: '2rem' }}>Liên kết tài khoản</h1>
+      <PageHeader title="Liên kết tài khoản" />
 
       {message && (
-        <div className={`card ${message.type === 'error' ? 'debt-negative' : 'debt-positive'}`} style={{ padding: '1rem 1.5rem' }}>
+        <div className={`notice ${message.type === 'error' ? 'notice-error' : 'notice-success'}`}>
           {message.text}
         </div>
       )}
 
-      <div className="card" style={{ padding: '1.25rem' }}>
-        <h2 className="subtitle mb-4">Tài khoản của bạn</h2>
+      <section className="card">
+        <div className="card-title">Tài khoản của bạn</div>
         <UserRow user={state.me} />
-      </div>
+      </section>
 
       {state.incoming.length > 0 && (
-        <div className="card" style={{ padding: '1.25rem', border: '1px solid var(--primary-color)' }}>
-          <h2 className="subtitle mb-4">Lời mời liên kết gửi đến bạn</h2>
+        <section className="card highlight">
+          <div className="card-title">Lời mời liên kết gửi đến bạn</div>
           {state.incoming.map(invite => (
             <UserRow key={invite.id} user={invite.user}>
-              <button onClick={() => respond(invite.id, 'accept')} disabled={busy} className="btn btn-primary" style={smallBtn}>Chấp nhận</button>
-              <button onClick={() => respond(invite.id, 'decline')} disabled={busy} className="btn btn-secondary" style={smallBtn}>Từ chối</button>
+              <button onClick={() => respond(invite.id, 'accept')} disabled={busy} className="btn btn-primary btn-sm">Chấp nhận</button>
+              <button onClick={() => respond(invite.id, 'decline')} disabled={busy} className="btn btn-secondary btn-sm">Từ chối</button>
             </UserRow>
           ))}
-        </div>
+        </section>
       )}
 
-      <div className="card" style={{ padding: '1.25rem' }}>
-        <h2 className="subtitle mb-4">Sổ chi tiêu đang liên kết ({state.partners.length})</h2>
+      <section className="card">
+        <div className="card-title">Sổ chi tiêu đang liên kết ({state.partners.length})</div>
         {state.partners.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)' }}>Bạn chưa liên kết với ai. Hãy tìm tài khoản bên dưới để bắt đầu.</p>
+          <p className="text-muted text-sm">Bạn chưa liên kết với ai. Hãy tìm tài khoản bên dưới để bắt đầu.</p>
         ) : (
           state.partners.map(partner => (
             <UserRow key={partner.partnershipId} user={partner.user}>
-              <button onClick={() => openLedger(partner.partnershipId)} disabled={busy} className="btn btn-primary" style={smallBtn}>Mở sổ</button>
-              <button onClick={() => unlink(partner)} disabled={busy} className="btn btn-secondary" style={{ ...smallBtn, color: 'var(--danger-color)' }}>Hủy liên kết</button>
+              <button onClick={() => openLedger(partner.partnershipId)} disabled={busy} className="btn btn-primary btn-sm">Mở sổ</button>
+              <button onClick={() => unlink(partner)} disabled={busy} className="btn btn-danger-soft btn-sm">Hủy liên kết</button>
             </UserRow>
           ))
         )}
-      </div>
+      </section>
 
-      <div className="card" style={{ padding: '1.25rem' }}>
-        <h2 className="subtitle mb-4">Liên kết với tài khoản Google khác</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+      <section className="card">
+        <div className="card-title">Liên kết với tài khoản Google khác</div>
+        <p className="text-muted text-sm" style={{ marginBottom: '0.75rem' }}>
           Mỗi người bạn liên kết sẽ có một sổ chi tiêu riêng. Người đó cần đăng nhập ứng dụng ít nhất một lần.
         </p>
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <form onSubmit={handleSearch} className="inline-form">
           <input
             type="email"
             className="input"
             placeholder="VD: nguoithan@gmail.com"
+            aria-label="Email tài khoản Google"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ flex: '1 1 220px', margin: 0 }}
           />
-          <button type="submit" className="btn btn-primary" disabled={busy} style={{ ...smallBtn, padding: '0 2rem' }}>
+          <button type="submit" className="btn btn-primary" disabled={busy}>
             Tìm
           </button>
         </form>
 
         {searchResult && (
-          <div className="mt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+          <>
+            <hr className="divider" />
             <UserRow user={searchResult.user}>
               {searchResult.alreadyLinked ? (
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Đã liên kết</span>
+                <span className="badge">Đã liên kết</span>
               ) : (
-                <button onClick={() => sendInvite(searchResult.user.email)} disabled={busy} className="btn btn-primary" style={smallBtn}>
+                <button onClick={() => sendInvite(searchResult.user.email)} disabled={busy} className="btn btn-primary btn-sm">
                   Gửi lời mời
                 </button>
               )}
             </UserRow>
-          </div>
+          </>
         )}
-      </div>
+      </section>
 
       {state.outgoing.length > 0 && (
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <h2 className="subtitle mb-4">Lời mời đang chờ phản hồi</h2>
+        <section className="card">
+          <div className="card-title">Lời mời đang chờ phản hồi</div>
           {state.outgoing.map(invite => (
             <UserRow key={invite.id} user={invite.user}>
-              <button onClick={() => respond(invite.id, 'cancel')} disabled={busy} className="btn btn-secondary" style={smallBtn}>Hủy lời mời</button>
+              <button onClick={() => respond(invite.id, 'cancel')} disabled={busy} className="btn btn-secondary btn-sm">Hủy lời mời</button>
             </UserRow>
           ))}
-        </div>
+        </section>
       )}
     </div>
   );
