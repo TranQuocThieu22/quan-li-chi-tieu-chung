@@ -22,7 +22,7 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
       đang là 📦 Khác. Nhanh nhất: *Chọn nhiều* → tick các khoản cùng loại → *Danh mục*.
 - [ ] **Gửi Claude vài thông báo thật từ *Liên kết → Tự động nhập → Thông báo nhận gần đây*** (29/10): MacroDroid đã chạy, thanh
       toán đã hiện ở *Chờ xác nhận*. Chép nội dung gốc (che số tài khoản) — cả dòng đọc đúng lẫn dòng *Không đọc được* / sai số
-      tiền — để làm bộ thử từ mẫu thật.
+      tiền — để làm bộ thử từ mẫu thật. **Cần nhất: một thông báo chuyển khoản ACB ONE** — chưa biết nội dung giao dịch nằm ở đâu.
 
 ## 2. Chờ chủ sản phẩm quyết
 
@@ -31,7 +31,7 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 ## 3. Claude làm được khi được giao
 
 - [ ] **Chỉnh bộ đọc thông báo theo thông báo thật** (29/10): `src/lib/notification-parser.ts` mới thử trên mẫu Claude tự viết
-      theo kiểu VCB, MB, BIDV, Techcombank, VPBank, MoMo; thông báo thật đã về production nhưng Claude chưa thấy mẫu nào. Có mẫu thì
+      theo kiểu VCB, MB, BIDV, Techcombank, VPBank, MoMo; mẫu thật mới có tin quảng cáo [QC] của ACB ONE (đã sửa 29/10). Có mẫu thì
       thêm thành ca trong `src/lib/notification-parser.test.ts` **trước**, rồi mới sửa, chạy `npm test`.
 
 ## 4. Khi tới mốc

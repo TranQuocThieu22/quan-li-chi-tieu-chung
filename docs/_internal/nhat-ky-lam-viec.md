@@ -36,6 +36,25 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt quảng cáo ACB) — Bộ đọc thông báo bỏ tin quảng cáo [QC]; lên production
+
+> Chủ sản phẩm (gửi ảnh *Chờ xác nhận*): *"Thông báo khác bị lấy nhầm 400.000.000"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *fix: skip bank ads when reading payment notifications*: ACB ONE đẩy tin *"[QC] THÊM HẠN MỨC – THÊM CHỦ ĐỘNG … Hạn mức
+  lên đến 400.000.000đ"*, bộ đọc lấy làm khoản chi 400 triệu. Giờ thông báo có `[QC]`, `(QC)` hay mở đầu dòng bằng `QC:` thì
+  *Không đọc được*; số đứng ngay sau "lên đến", "lên tới", "tối đa", "up to" bị bỏ như số dư. Thêm 3 ca thử từ ảnh trước khi sửa
+  (3 ca đỏ → 41/41 xanh).
+- Cùng commit: khoản 50.000 của ACB lấy nội dung *"khoan ACB: TK …(VND) - 50,000 luc 22:41 29/10/2026"* — chữ "tai" của
+  "tai khoan" bị hiểu là "tại <cửa hàng>". Đã chặn; nội dung giờ để trống vì chưa biết ACB ONE ghi nội dung chuyển khoản ở đâu.
+- Mục 400 triệu đã nằm trong *Chờ xác nhận* không tự mất — chủ sản phẩm bấm *Bỏ qua*.
+
+**Quan sát**
+
+- `npm ci` ở máy Claude báo `package-lock.json` lệch `package.json` (thiếu các gói `lightningcss-*` theo nền tảng); chạy thử bằng
+  `npm install --no-package-lock`, lockfile không đổi. Vercel vẫn build được nên chưa động tới.
+
 ## 29/10/2026 (lượt bộ thử và nén ảnh) — Thêm 4 danh mục sổ chung, bộ thử Vitest, nén ảnh hóa đơn; lên production
 
 > Chủ sản phẩm: *"thanh toán thấy được rồi làm gì tiếp"* → *"làm đi, thêm vài loại danh mục nữa tùy bạn, thống kê hiện tại ổn"* →
