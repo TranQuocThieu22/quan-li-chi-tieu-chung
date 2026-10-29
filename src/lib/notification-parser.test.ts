@@ -90,6 +90,20 @@ const CASES: { name: string; text: string; amount: number | null; direction: 'OU
     direction: null,
   },
   {
+    name: 'ACB ONE — chuyển khoản, nội dung sau "GD:", bỏ đuôi ngày giờ và mã (29/10, thông báo thật)',
+    text: 'Thong bao thay doi so du tai khoan\nACB: TK 1234xxxx(VND) - 50,000 luc 22:41 29/10/2026. So du 337,423. GD: NGUYEN VAN A CHUYEN KHOAN-291026-22:41:57 6302ASCB02ABCD12',
+    amount: 50_000,
+    direction: 'OUT',
+    description: 'NGUYEN VAN A CHUYEN KHOAN',
+  },
+  {
+    name: 'ACB ONE — tiền vào',
+    text: 'Thong bao thay doi so du tai khoan\nACB: TK 1234xxxx(VND) + 1,200,000 luc 09:05 30/10/2026. So du 1,537,423. GD: TRAN THI B tra tien an',
+    amount: 1_200_000,
+    direction: 'IN',
+    description: 'TRAN THI B tra tien an',
+  },
+  {
     name: '"tài khoản" không bị lấy làm nội dung như "tại <cửa hàng>"',
     text: 'Bien dong so du tai khoan ACB: TK 12345678(VND) - 50,000 luc 22:41 29/10/2026',
     amount: 50_000,

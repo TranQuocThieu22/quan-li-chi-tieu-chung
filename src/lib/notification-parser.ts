@@ -32,6 +32,9 @@ const IN_WORDS = ['nhan tien', 'nhan duoc', 'da nhan', 'vua nhan', 'cong tien', 
 // Tìm trên bản bỏ dấu ("Nội dung:" hay "Noi dung:" đều khớp) rồi cắt ở bản gốc cùng vị trí —
 // bỏ dấu tiếng Việt dạng NFC không đổi độ dài chuỗi
 const DESCRIPTION = /(?:^|[\s|])(?:nd|noi dung|nd gd|mo ta|content|description|remark|loi nhan)\s*[:：]\s*(.+)$/i;
+// Kiểu ACB: "So du 337,423. GD: NGUYEN VAN A CHUYEN KHOAN-291026-22:41:57 6302ASCB…". MB cũng dùng "GD:" nhưng cho số tiền
+// ("GD: -85,000VND") nên chữ sau "GD:" mở đầu bằng số hay dấu +/- thì không phải nội dung
+const GD_DESCRIPTION = /(?:^|[\s|])gd\s*[:：]\s*(?![+-]?\s?\d)(.+)$/i;
 // Kiểu VCB: "Ref MBVCB.1234.ABCD.Thanh toan tien dien" — lấy phần chữ sau dãy mã
 const REF_DESCRIPTION = /\bref\s+(?:[A-Za-z0-9*-]+\.)+\s*(.+)$/i;
 
@@ -80,7 +83,8 @@ export function parseBankNotification(raw: string): ParsedNotification {
   const asciiText = stripDiacritics(text);
   const sliceAt = (match: RegExpMatchArray | null) =>
     match ? text.slice(match.index! + match[0].length - match[1].length).trim() : null;
-  let description = sliceAt(asciiText.match(DESCRIPTION)) ?? sliceAt(asciiText.match(REF_DESCRIPTION));
+  let description = sliceAt(asciiText.match(DESCRIPTION)) ?? sliceAt(asciiText.match(GD_DESCRIPTION))
+    ?? sliceAt(asciiText.match(REF_DESCRIPTION));
   if (!description) {
     // Kiểu MoMo: "Bạn đã thanh toán 45.000đ cho Highlands Coffee"
     // "tai" không đi với "khoản": "tai khoan ACB: TK…" bỏ dấu là chữ "tài khoản", không phải "tại"
@@ -88,7 +92,10 @@ export function parseBankNotification(raw: string): ParsedNotification {
   }
   if (description) {
     // Bỏ phần đuôi như "Số dư ...", mã tham chiếu dài
-    description = description.replace(/\s*(?:\||;)?\s*(?:số dư|so du|sd)\b.*$/iu, '').replace(/\s+/g, ' ').trim();
+    description = description.replace(/\s*(?:\||;)?\s*(?:số dư|so du|sd)\b.*$/iu, '')
+      // Đuôi ngày giờ và mã giao dịch ACB thêm vào: "-291026-22:41:57 6302ASCB02KFXX78"
+      .replace(/\s*-\s*\d{6}-\d{2}:\d{2}:\d{2}\b.*$/, '')
+      .replace(/\s+/g, ' ').trim();
     description = description.slice(0, 80) || null;
   }
 
