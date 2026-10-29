@@ -19,6 +19,9 @@
   --success-solid: #10b981;
   --success-soft: rgba(52, 211, 153, 0.12);
   --warning-color: #fbbf24;
+  /* Màu phân biệt hai người trong biểu đồ — đã kiểm mù màu trên nền tối (dataviz validate_palette) */
+  --series-1: #3987e5;
+  --series-2: #d95926;
   --border-color: rgba(148, 163, 184, 0.14);
   --border-strong: rgba(148, 163, 184, 0.26);
 
@@ -201,7 +204,6 @@ input[type='checkbox'] {
   letter-spacing: -0.03em;
   line-height: 1.2;
   margin: 0.25rem 0 0.375rem;
-  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 
@@ -236,7 +238,6 @@ input[type='checkbox'] {
   font-size: 1.0625rem;
   font-weight: 700;
   margin: 0.125rem 0;
-  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 
@@ -963,7 +964,7 @@ input[type='checkbox'] {
   background: var(--surface-color);
 }
 
-.segmented button {
+.segmented > * {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -980,7 +981,8 @@ input[type='checkbox'] {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.segmented button[aria-pressed='true'] {
+.segmented > [aria-pressed='true'],
+.segmented > [aria-current='page'] {
   background: var(--surface-2);
   color: var(--text-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
@@ -994,6 +996,250 @@ input[type='checkbox'] {
   font-size: 0.6875rem;
   line-height: 1.25rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Biểu đồ cột theo tháng (trang Thống kê) ---------- */
+
+.col-chart {
+  display: flex;
+  gap: 0.5rem;
+  height: 168px;
+  margin-top: 0.25rem;
+}
+
+/* Trục tung: ba mốc tròn, trùng với ba đường lưới */
+.col-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100% - 22px);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 2.25rem;
+}
+
+.col-axis span {
+  line-height: 0;
+}
+
+.col-plot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.col-grid {
+  position: absolute;
+  inset: 0 0 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.col-grid span {
+  height: 1px;
+  background: var(--border-color);
+}
+
+.col-avg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid var(--text-muted);
+  /* --r = trung bình / đỉnh trục; chừa dải nhãn tháng 22px ở đáy */
+  bottom: calc(22px + (100% - 22px) * var(--r, 0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.col-bars {
+  position: absolute;
+  inset: 0;
+  list-style: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.col-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.col {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.col:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.col-bar {
+  display: block;
+  width: min(24px, 62%);
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--series-1);
+  transition: filter 0.15s ease;
+}
+
+.col:hover .col-bar,
+.col:focus .col-bar {
+  filter: brightness(1.25);
+}
+
+.col-label {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -4px);
+  z-index: 2;
+  padding: 0 3px;
+  border-radius: 4px;
+  /* Nền cùng màu thẻ để đường trung bình không gạch ngang qua chữ */
+  background: var(--surface-color);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.col-x {
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.col-item.current .col-x {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Chạm hay rê vào cột thì hiện số; bảng số liệu bên dưới vẫn có đủ, không phụ thuộc vào đây */
+.col-tip {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.375rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-pop);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.col-tip strong {
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+}
+
+.col:hover .col-tip,
+.col:focus .col-tip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.col:hover .col-label,
+.col:focus .col-label {
+  visibility: hidden;
+}
+
+/* Cột ở hai mép: canh bong bóng vào trong để không tràn khỏi thẻ */
+.col-item:first-child .col-tip,
+.col-item:nth-child(2) .col-tip {
+  left: 0;
+  transform: translate(0, -8px);
+}
+
+.col-item:last-child .col-tip,
+.col-item:nth-last-child(2) .col-tip {
+  left: auto;
+  right: 0;
+  transform: translate(0, -8px);
+}
+
+.chart-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.chart-key-line {
+  width: 14px;
+  height: 0;
+  border-top: 1px solid var(--text-muted);
+}
+
+.data-table {
+  margin-top: 0.875rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.625rem;
+}
+
+.data-table summary {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.data-table[open] summary {
+  margin-bottom: 0.625rem;
+}
+
+/* Phần chia giữa hai người: khe 2px cùng màu nền ngăn hai đoạn */
+.split-bar {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.split-bar span {
+  display: block;
+  height: 100%;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 0.5rem;
+  vertical-align: -1px;
 }
 
 /* Nhóm khoản chi theo trạng thái */
