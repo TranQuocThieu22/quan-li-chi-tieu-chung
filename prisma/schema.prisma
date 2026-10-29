@@ -106,6 +106,7 @@ model Expense {
   id            Int          @id @default(autoincrement())
   item          String
   amount        Int
+  category      String       @default("other")
   payerId       Int
   payer         Member       @relation("PayerRelation", fields: [payerId], references: [id])
   beneficiaryId Int?
@@ -139,6 +140,7 @@ model ExpenseHistory {
   oldDate            DateTime
   oldNotes           String?
   oldImageUrl        String?
+  oldCategory        String? // null với bản ghi tạo trước khi có danh mục
 
   editedAt           DateTime @default(now())
 }

@@ -2,6 +2,7 @@ import PageHeader from '@/components/PageHeader';
 import prisma from '@/lib/db';
 import { notFound, redirect } from 'next/navigation';
 import { getActivePartnerships, getCurrentUser } from '@/lib/auth';
+import { getSharedCategory } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,15 +33,20 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
   };
 
   const formatDate = (date: Date) => new Date(date).toLocaleDateString('vi-VN');
+  const categoryLabel = (key: string) => {
+    const c = getSharedCategory(key);
+    return `${c.icon} ${c.label}`;
+  };
 
   const timeline: Array<{
     id: number, action: string, time: Date,
-    old: { item: string, amount: number, payerName: string, beneficiaryName: string, date: Date },
-    new: { item: string, amount: number, payerName: string, beneficiaryName: string, date: Date }
+    old: { item: string, amount: number, category: string, payerName: string, beneficiaryName: string, date: Date },
+    new: { item: string, amount: number, category: string, payerName: string, beneficiaryName: string, date: Date }
   }> = [];
   let nextState = {
     item: expense.item,
     amount: expense.amount,
+    category: expense.category,
     payerName: expense.payer?.name || 'Không rõ',
     beneficiaryName: expense.beneficiary?.name || 'Chi tiêu chung',
     date: expense.date
@@ -50,6 +56,8 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
     const oldState = {
       item: h.oldItem,
       amount: h.oldAmount,
+      // Bản ghi trước khi có danh mục: coi như không đổi
+      category: h.oldCategory ?? nextState.category,
       payerName: h.oldPayerName,
       beneficiaryName: h.oldBeneficiaryName || 'Chi tiêu chung',
       date: h.oldDate
@@ -87,6 +95,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
     <dl className="kv">
       <dt>Món đồ</dt><dd>{state.item}</dd>
       <dt>Số tiền</dt><dd className="num">{formatMoney(state.amount)}</dd>
+      <dt>Danh mục</dt><dd>{categoryLabel(state.category)}</dd>
       <dt>Người trả</dt><dd>{state.payerName}</dd>
       <dt>Mua cho</dt><dd>{state.beneficiaryName}</dd>
       <dt>Ngày mua</dt><dd>{formatDate(state.date)}</dd>
@@ -105,6 +114,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
         <dl className="kv">
           <dt>Món đồ</dt><dd>{expense.item}</dd>
           <dt>Số tiền</dt><dd className="num">{formatMoney(expense.amount)}</dd>
+          <dt>Danh mục</dt><dd>{categoryLabel(expense.category)}</dd>
           <dt>Người trả</dt><dd>{expense.payer?.name}</dd>
           <dt>Mua cho</dt><dd>{expense.beneficiary?.name || 'Chi tiêu chung'}</dd>
           <dt>Ngày mua</dt><dd>{formatDate(expense.date)}</dd>
@@ -132,6 +142,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ id: st
               {renderDiffs([
                 ['Món đồ', event.old.item, event.new.item],
                 ['Số tiền', formatMoney(event.old.amount), formatMoney(event.new.amount)],
+                ['Danh mục', categoryLabel(event.old.category), categoryLabel(event.new.category)],
                 ['Người trả', event.old.payerName, event.new.payerName],
                 ['Mua cho', event.old.beneficiaryName, event.new.beneficiaryName],
                 ['Ngày mua', formatDate(event.old.date), formatDate(event.new.date)],

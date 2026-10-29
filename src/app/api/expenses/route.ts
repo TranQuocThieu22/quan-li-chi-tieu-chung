@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requirePartnership } from '@/lib/auth';
+import { getSharedCategory } from '@/lib/shared';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
   if (!ctx.ok) return ctx.response;
 
   try {
-    const { item, amount, payerId, beneficiaryId, notes, imageUrl, date } = body;
+    const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date } = body;
 
     if (!item || !amount || !payerId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       data: {
         item,
         amount: parseInt(amount, 10),
+        category: getSharedCategory(category).key,
         payerId: payer,
         beneficiaryId: beneficiary,
         partnershipId: ctx.partnership.id,

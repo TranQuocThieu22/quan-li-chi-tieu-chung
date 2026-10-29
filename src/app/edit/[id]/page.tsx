@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
+import CategoryPicker from '@/components/CategoryPicker';
+import { SHARED_CATEGORIES } from '@/lib/shared';
 
 type Member = { id: number; name: string; isMe: boolean };
 
@@ -14,6 +16,7 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
   
   const [formData, setFormData] = useState({
     item: '',
+    category: 'other',
     amount: '',
     payerId: '',
     beneficiaryId: '',
@@ -56,6 +59,7 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
             .then(m => setMembers(m.members));
           setFormData({
             item: data.item,
+            category: data.category,
             amount: data.amount.toString(),
             payerId: data.payerId.toString(),
             beneficiaryId: data.beneficiaryId ? data.beneficiaryId.toString() : '',
@@ -140,6 +144,12 @@ export default function EditExpense({ params }: { params: Promise<{ id: string }
               onChange={(e) => setFormData({...formData, item: e.target.value})}
             />
           </div>
+
+          <CategoryPicker
+            categories={SHARED_CATEGORIES}
+            value={formData.category}
+            onChange={(category) => setFormData({...formData, category})}
+          />
 
           <div className="form-row">
             <div className="form-group">

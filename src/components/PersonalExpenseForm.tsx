@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PERSONAL_CATEGORIES } from '@/lib/personal';
+import CategoryPicker from './CategoryPicker';
 
 type Initial = { item: string; amount: number; category: string; date: string; notes: string };
 
@@ -72,23 +73,11 @@ export default function PersonalExpenseForm({ expenseId, initial }: { expenseId?
         />
       </div>
 
-      <div className="form-group">
-        <span className="label">Danh mục</span>
-        <div className="option-grid">
-          {PERSONAL_CATEGORIES.map(c => (
-            <button
-              key={c.key}
-              type="button"
-              className="option-btn"
-              aria-pressed={form.category === c.key}
-              onClick={() => setForm({ ...form, category: c.key })}
-            >
-              <span className="emoji" aria-hidden>{c.icon}</span>
-              {c.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <CategoryPicker
+        categories={PERSONAL_CATEGORIES}
+        value={form.category}
+        onChange={(category) => setForm({ ...form, category })}
+      />
 
       <div className="form-group">
         <label className="label" htmlFor="date">Ngày</label>

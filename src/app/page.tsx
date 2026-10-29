@@ -7,6 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
+import { getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     id: exp.id,
     item: exp.item,
     amount: exp.amount,
+    category: exp.category,
     date: exp.date.toISOString(),
     payerName: exp.payer?.name || 'Không rõ',
     beneficiaryName: exp.beneficiaryId ? exp.beneficiary?.name ?? null : null,
@@ -89,6 +91,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   });
 
   const average = members.length > 0 ? totalSharedExpenses / members.length : 0;
+
+  // Cùng tập khoản chi với tổng chi chung: chưa trả và không phải mua giùm
+  const byCategory = SHARED_CATEGORIES
+    .map(c => ({
+      ...c,
+      total: expenses
+        .filter(exp => !exp.isSettled && !exp.beneficiaryId && getSharedCategory(exp.category).key === c.key)
+        .reduce((sum, exp) => sum + exp.amount, 0),
+    }))
+    .filter(c => c.total > 0)
+    .sort((a, b) => b.total - a.total);
 
   const settledExpenses = expenses.filter(exp => exp.isSettled);
   const settledTotal = settledExpenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -193,6 +206,30 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           </ul>
         )}
       </section>
+
+      {byCategory.length > 0 && (
+        <section className="card">
+          <div className="card-title">Theo danh mục</div>
+          <ul className="bar-list">
+            {byCategory.map(c => {
+              const percent = Math.round((c.total / totalSharedExpenses) * 100);
+              return (
+                <li key={c.key}>
+                  <div className="bar-head">
+                    <span style={{fontWeight: 500}}>{c.icon} {c.label}</span>
+                    <span className="num" style={{fontWeight: 600}}>
+                      {formatMoney(c.total)} <span className="muted">{percent}%</span>
+                    </span>
+                  </div>
+                  <div className="progress">
+                    <div className="progress-bar" style={{width: `${percent}%`}} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <ExpenseList expenses={expenseItems} />
       <BottomNav />

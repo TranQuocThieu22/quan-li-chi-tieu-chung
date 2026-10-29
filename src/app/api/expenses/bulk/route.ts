@@ -50,6 +50,7 @@ export async function POST(request: Request) {
           oldDate: e.date,
           oldNotes: e.notes,
           oldImageUrl: e.imageUrl,
+          oldCategory: e.category,
         })),
       }),
       prisma.expense.updateMany({

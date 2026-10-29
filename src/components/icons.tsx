@@ -77,6 +77,12 @@ export const ArrowRightIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const CheckIcon = (p: IconProps) => (
+  <Svg {...p} strokeWidth={3.5}>
+    <path d="m5 12 5 5 9-10" />
+  </Svg>
+);
+
 export const CheckCircleIcon = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="12" cy="12" r="10" />

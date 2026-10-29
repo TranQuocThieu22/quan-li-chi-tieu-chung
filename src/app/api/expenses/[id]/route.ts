@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireExpenseAccess } from '@/lib/auth';
+import { getSharedCategory } from '@/lib/shared';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireExpenseAccess(parseInt((await params).id, 10));
@@ -8,7 +9,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const { expense: existing, partnership } = ctx;
 
   try {
-    const { item, amount, payerId, beneficiaryId, notes, imageUrl, date } = await request.json();
+    const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date } = await request.json();
 
     // Người trả / người được mua giùm phải thuộc sổ của khoản chi này
     const memberIds = partnership.members.map(m => m.id);
@@ -29,7 +30,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         oldBeneficiaryName: existing.beneficiary?.name,
         oldDate: existing.date,
         oldNotes: existing.notes,
-        oldImageUrl: existing.imageUrl
+        oldImageUrl: existing.imageUrl,
+        oldCategory: existing.category
       }
     });
 
@@ -38,6 +40,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data: {
         item,
         amount: parseInt(amount, 10),
+        // Bản app cũ đang mở trên máy chưa gửi danh mục: giữ nguyên thay vì đổi thành "Khác"
+        category: category === undefined ? existing.category : getSharedCategory(category).key,
         payerId: payer,
         beneficiaryId: beneficiary,
         notes,
@@ -70,7 +74,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
           oldBeneficiaryName: existing.beneficiary?.name,
           oldDate: existing.date,
           oldNotes: existing.notes,
-          oldImageUrl: existing.imageUrl
+          oldImageUrl: existing.imageUrl,
+          oldCategory: existing.category
         }
       }),
       prisma.expense.update({
@@ -109,7 +114,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           oldBeneficiaryName: existing.beneficiary?.name,
           oldDate: existing.date,
           oldNotes: existing.notes,
-          oldImageUrl: existing.imageUrl
+          oldImageUrl: existing.imageUrl,
+          oldCategory: existing.category
         }
       }),
       prisma.expense.update({
