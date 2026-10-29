@@ -7,6 +7,8 @@ import { getSharedCategory } from '@/lib/shared';
 export const dynamic = 'force-dynamic';
 
 const ACTION_LABELS: Record<string, string> = {
+  UPDATE: 'SỬA',
+  DELETE: 'XÓA',
   SETTLE: 'ĐÃ TRẢ',
   UNSETTLE: 'BỎ ĐÃ TRẢ',
 };
