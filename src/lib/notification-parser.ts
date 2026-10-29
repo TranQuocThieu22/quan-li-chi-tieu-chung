@@ -18,6 +18,10 @@ const ANY_AMOUNT = new RegExp(String.raw`(^|[^\d.,])` + AMOUNT, 'giu');
 // Trước con số (cách tối đa ba từ) mà có những chữ này thì đó là số dư, không phải số tiền giao dịch.
 // Chỉ xét với số không dấu: số dư không mang +/-, còn VCB viết "Số dư TK VCB … -150,000 VND" với số có dấu là tiền giao dịch.
 const BALANCE_BEFORE = /\b(so du|sd|balance|con lai|bal)\b(\s+\S+){0,3}\s*[:=]?\s*$/i;
+// Số ngay sau "lên đến", "tối đa"… là mức quảng cáo (hạn mức thẻ, hoàn tiền), không phải tiền đã đi
+const PROMO_BEFORE = /\b(len den|len toi|toi da|up to)\s*$/i;
+// Luật quảng cáo bắt tin quảng cáo mở đầu bằng "QC" — ACB ONE gửi "[QC] THÊM HẠN MỨC…" kèm "Hạn mức lên đến 400.000.000đ"
+const AD_MARK = /\[\s*QC\s*\]|\(\s*QC\s*\)|(?:^|\n)\s*QC\s*[:\-–|]/i;
 
 const OUT_WORDS = ['thanh toan', 'chuyen tien', 'chuyen khoan', 'da chuyen', 'tru', 'rut tien', 'chi tieu', 'giam', 'payment',
   'paid', 'debit', 'mua', 'nap tien'];
@@ -41,6 +45,7 @@ function hasWord(plain: string, words: string[]) {
 }
 
 export function parseBankNotification(raw: string): ParsedNotification {
+  if (AD_MARK.test(raw)) return { amount: null, direction: null, description: null };
   const text = raw.normalize('NFC').replace(/\s+/g, ' ').trim();
   // So từ khoá trên bản bỏ dấu, chữ thường, chỉ còn chữ và số — ngân hàng viết có dấu hay không đều khớp
   const plain = stripDiacritics(text).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -62,7 +67,7 @@ export function parseBankNotification(raw: string): ParsedNotification {
       const [, lead, digits, unit] = match;
       if (!unit) continue;
       const before = stripDiacritics(text.slice(0, match.index + lead.length)).toLowerCase();
-      if (BALANCE_BEFORE.test(before)) continue;
+      if (BALANCE_BEFORE.test(before) || PROMO_BEFORE.test(before)) continue;
       amount = toNumber(digits);
       if (amount) break;
     }
@@ -78,7 +83,8 @@ export function parseBankNotification(raw: string): ParsedNotification {
   let description = sliceAt(asciiText.match(DESCRIPTION)) ?? sliceAt(asciiText.match(REF_DESCRIPTION));
   if (!description) {
     // Kiểu MoMo: "Bạn đã thanh toán 45.000đ cho Highlands Coffee"
-    description = text.match(/\b(?:cho|tới|toi|đến|den|tại|tai)\s+(.+?)(?:[.!]\s|[.!]$|$)/iu)?.[1]?.trim() ?? null;
+    // "tai" không đi với "khoản": "tai khoan ACB: TK…" bỏ dấu là chữ "tài khoản", không phải "tại"
+    description = text.match(/\b(?:cho|tới|toi|đến|den|tại|tai(?!\s+khoan))\s+(.+?)(?:[.!]\s|[.!]$|$)/iu)?.[1]?.trim() ?? null;
   }
   if (description) {
     // Bỏ phần đuôi như "Số dư ...", mã tham chiếu dài

@@ -77,6 +77,25 @@ const CASES: { name: string; text: string; amount: number | null; direction: 'OU
     amount: 45_000,
     direction: 'OUT',
   },
+  {
+    name: 'ACB ONE — quảng cáo [QC] có số tiền hạn mức (29/10, thông báo thật)',
+    text: '[QC] THÊM HẠN MỨC – THÊM CHỦ ĐỘNG\nTừ những khoản chi hằng ngày đến kế hoạch lớn, thẻ tín dụng ACB giúp bạn chủ động hơn với:\n💳 Hạn mức lên đến 400.000.000đ\n✨ X3 điểm ACB Rewards trong 3 tháng đầu mở thẻ\n🛍️ Trả góp 0% lãi suất, kỳ hạn từ 3–36 tháng\nMở thẻ để sẵn sàng cho mọi kế hoạch!',
+    amount: null,
+    direction: null,
+  },
+  {
+    name: 'Quảng cáo không gắn QC — số sau "lên đến" không phải giao dịch',
+    text: 'Ưu đãi tháng 11\nMở thẻ tín dụng ngay, hạn mức lên đến 200.000.000đ, hoàn tiền tới 10%',
+    amount: null,
+    direction: null,
+  },
+  {
+    name: '"tài khoản" không bị lấy làm nội dung như "tại <cửa hàng>"',
+    text: 'Bien dong so du tai khoan ACB: TK 12345678(VND) - 50,000 luc 22:41 29/10/2026',
+    amount: 50_000,
+    direction: 'OUT',
+    description: null,
+  },
 ];
 
 describe('parseBankNotification', () => {
