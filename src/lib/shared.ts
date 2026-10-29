@@ -12,6 +12,11 @@ export const SHARED_CATEGORIES = [
   { key: 'transport', label: 'Di chuyển', icon: '🚗' },
   { key: 'shopping', label: 'Mua sắm', icon: '🛍️' },
   { key: 'entertainment', label: 'Giải trí', icon: '🎮' },
+  { key: 'health', label: 'Sức khỏe', icon: '💊' },
+  { key: 'travel', label: 'Du lịch', icon: '✈️' },
+  { key: 'gifts', label: 'Quà tặng', icon: '🎁' },
+  { key: 'family', label: 'Gia đình', icon: '👨‍👩‍👧' },
+  // "Khác" luôn đứng cuối: getSharedCategory dùng nó làm mặc định
   { key: 'other', label: 'Khác', icon: '📦' },
 ] as const;
 
@@ -23,14 +28,21 @@ export function getSharedCategory(key: unknown) {
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   food: ['ăn', 'cơm', 'bún', 'phở', 'lẩu', 'pizza', 'gà rán', 'trà sữa', 'cà phê', 'cafe', 'coffee', 'nướng', 'nhà hàng',
     'bánh', 'kem', 'bia', 'nhậu', 'đồ ăn', 'buffet', 'snack'],
-  groceries: ['chợ', 'đi chợ', 'siêu thị', 'rau', 'thịt', 'cá', 'trứng', 'gạo', 'sữa', 'trái cây', 'hoa quả', 'bách hóa',
+  groceries: ['chợ', 'đi chợ', 'siêu thị', 'rau', 'thịt', 'cá', 'trứng', 'gạo', 'sữa', 'sữa chua', 'trái cây', 'hoa quả', 'bách hóa',
     'winmart', 'coopmart', 'co.op', 'lotte', 'big c', 'aeon'],
   bills: ['điện', 'nước', 'internet', 'wifi', 'mạng', 'gas', 'hóa đơn', 'cước', 'truyền hình', 'phí quản lý'],
   home: ['tiền nhà', 'thuê nhà', 'nhà', 'phòng', 'nội thất', 'dọn dẹp', 'sửa nhà', 'sửa chữa', 'ống nước'],
-  transport: ['xăng', 'grab', 'taxi', 'xe', 'gửi xe', 'rửa xe', 'xe buýt', 'bus', 'máy bay', 'tàu', 'be', 'gojek', 'xanh sm'],
+  transport: ['xăng', 'grab', 'taxi', 'xe', 'gửi xe', 'rửa xe', 'xe buýt', 'bus', 'tàu', 'be', 'gojek', 'xanh sm'],
   shopping: ['quần áo', 'áo', 'quần', 'giày', 'dép', 'túi', 'shopee', 'lazada', 'tiki', 'mỹ phẩm', 'đồ gia dụng', 'nồi',
     'chảo', 'đồ dùng'],
-  entertainment: ['phim', 'xem phim', 'netflix', 'spotify', 'youtube', 'game', 'karaoke', 'du lịch', 'concert', 'bowling'],
+  entertainment: ['phim', 'xem phim', 'netflix', 'spotify', 'youtube', 'game', 'karaoke', 'concert', 'bowling'],
+  health: ['thuốc', 'nhà thuốc', 'pharmacity', 'long châu', 'khám', 'khám bệnh', 'bệnh viện', 'phòng khám', 'nha khoa',
+    'bảo hiểm', 'vitamin'],
+  travel: ['du lịch', 'khách sạn', 'homestay', 'resort', 'vé máy bay', 'máy bay', 'vietjet', 'vietnam airlines', 'bamboo',
+    'agoda', 'booking', 'traveloka', 'vé tàu', 'tour'],
+  gifts: ['quà', 'quà tặng', 'tặng', 'sinh nhật', 'mừng cưới', 'đám cưới', 'đám hỏi', 'lì xì', 'hoa', 'bó hoa'],
+  // Không có "con" đứng riêng: "con gà", "con cá" là đi chợ
+  family: ['biếu', 'bố mẹ', 'ba mẹ', 'ông bà', 'con cái', 'cho con', 'của con', 'học phí', 'sữa bột', 'bỉm', 'tã', 'đồ chơi', 'nhà trẻ', 'mầm non'],
 };
 
 export const guessSharedCategory = makeCategoryGuesser(CATEGORY_KEYWORDS);
