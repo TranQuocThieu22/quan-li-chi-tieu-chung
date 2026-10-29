@@ -1,0 +1,108 @@
+# Nhật ký làm việc
+
+> **Đây là chỗ ghi *hôm nay đã xảy ra gì*.** Mỗi phiên thêm một khối lên **đầu** danh sách,
+> mới nhất nằm trên — ghi khi chủ sản phẩm nói *"ghi lại những gì đã làm"* hoặc *"đẩy
+> production"* (xem *Mở và đóng phiên* trong [`AGENTS.md`](../../AGENTS.md)).
+>
+> **Vì sao cần:** `git log` kể được code đã đổi gì, nhưng không kể được *vì sao*, chủ sản phẩm
+> đã yêu cầu gì, Claude kiểm được tới đâu và chỗ nào chưa ai nhìn tận mắt. Đây là file trả lời
+> câu *"lần trước dừng ở đâu"*.
+>
+> **Không phải chỗ để:** việc chưa làm → [`viec-con-treo.md`](viec-con-treo.md). Đừng viết mục
+> *Tiếp theo* ở đây — việc ghi rải trong nhật ký không ai gom lại, chìm dần.
+>
+> **Chỉ giữ hai ngày có ghi gần nhất.** Sang ngày thứ ba thì chuyển các khối cũ nhất xuống
+> **đầu** file lưu trữ của tháng đó — `nhat-ky-lam-viec-YYYY-MM.md`, cùng thư mục, mới nhất
+> nằm trên, không sửa chữ nào. Nhật ký không sửa lại quá khứ.
+>
+> Việc trước 28/10/2026 (chi tiêu cá nhân, ngân sách tháng, chọn nhiều, cài ra màn hình chính…)
+> chưa có nhật ký — tra `git log`.
+
+**Khuôn một khối** — hai mục, cố ý ít để còn viết nổi. Mục nào trống thì bỏ hẳn:
+
+```markdown
+## dd/mm/yyyy — nhãn ngắn
+
+> Chủ sản phẩm: *"câu yêu cầu"* → *"câu tiếp theo"*.
+
+**Đã làm**
+- ...
+
+**Quan sát**
+- ...
+```
+
+Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay lúc ghi.
+
+---
+
+## 29/10/2026 (lượt nhật ký) — Lập nhật ký làm việc, việc còn treo và quy ước mở / đóng phiên; lên production
+
+> Chủ sản phẩm: *"làm các file như nhật kí làm việc và việc còn treo như: D:\AQ-Project\BE\piano-learning nhé"* →
+> *"đẩy production"*.
+
+**Đã làm**
+
+- Tạo `docs/_internal/viec-con-treo.md` và `docs/_internal/nhat-ky-lam-viec.md` theo cách làm của piano-learning, bản gọn hơn:
+  việc còn treo chia bốn mục (chủ sản phẩm làm / chờ quyết / Claude làm khi được giao / khi tới mốc), nhật ký mỗi phiên một
+  khối, giữ hai ngày. Ghi bù hai khối 28/10 và 29/10 từ chính các phiên đó; việc còn dở của hai lượt ấy đưa vào việc còn treo.
+- `AGENTS.md` thêm mục *Mở và đóng phiên*: *"làm gì tiếp"* thì đối chiếu nhật ký với git trước; *"ghi lại những gì đã làm"* hay
+  *"đẩy production"* thì ghi nhật ký, cập nhật việc còn treo, chuyển khối cũ, commit `docs(internal):` riêng.
+
+**Quan sát**
+
+- Piano-learning có thêm `lam-viec-hang-ngay.md`, `nhat-ky-quyet-dinh.md`, `bay-ky-thuat.md`… — chưa lập ở đây vì dự án nhỏ, quy
+  ước đủ ngắn để nằm thẳng trong `AGENTS.md`.
+
+## 29/10/2026 — Danh mục cho sổ chung, lọc và tách nhóm khoản đã trả; lên production
+
+> Chủ sản phẩm: *"thêm option để ẩn những món đã trả và làm sao nhìn vào dễ nhìn hơn biết món nào còn và món nào đã trả, thêm
+> danh mục loại cho chi tiêu chung nữa"* → *"commit và đẩy đi"*.
+
+**Đã làm**
+
+- **Danh mục cho khoản chi chung** — commit *feat: categorize shared expenses and filter settled ones*. Thêm cột
+  `Expense.category` (mặc định `"other"`) và `ExpenseHistory.oldCategory` (null với bản ghi cũ); tám danh mục ở
+  `src/lib/shared.ts`. Form thêm / sửa có lưới chọn danh mục, tách thành `CategoryPicker` dùng chung với form cá nhân. API
+  nhận `category`, lọc qua `getSharedCategory`; `PUT` không gửi `category` (app cũ đang mở trên máy) thì giữ nguyên.
+- Trang chủ có thẻ **Theo danh mục**, tính trên đúng tập khoản cộng vào tổng chi chung (chưa trả, không phải mua giùm). Trang
+  Lịch sử hiện danh mục và so sánh khi danh mục đổi.
+- **Bộ lọc Tất cả / Chưa trả / Đã trả** trên danh sách, nhớ theo từng máy (`localStorage` qua `useSyncExternalStore`, server luôn
+  render *Tất cả*). *Chọn tất cả* chỉ chọn những khoản đang hiện.
+- **Tách nhóm**: *Chưa trả* (chấm vàng, tổng tiền vàng) nằm trên, *Đã trả* (chấm xanh) nằm dưới, ngăn bằng gạch đứt. Khoản đã
+  trả mờ 50%, số tiền gạch ngang, icon danh mục có dấu ✓ xanh; nút thao tác giữ nguyên độ rõ. Avatar đổi từ chữ cái người trả
+  sang icon danh mục; tên người trả vẫn ở dòng phụ.
+- Vercel build chạy `prisma db push`, thêm hai cột vào database production; deploy báo thành công.
+
+**Quan sát**
+
+- Chỉ chụp được danh sách khoản chi (dữ liệu giả, khổ 390 px, chế độ *Tất cả*) — form chọn danh mục, thẻ *Theo danh mục*, trang
+  Lịch sử chưa ai nhìn tận mắt.
+- Mọi khoản chi chung cũ hiện là 📦 Khác cho tới khi sửa lại.
+
+## 28/10/2026 — Làm lại toàn bộ giao diện cho điện thoại; lên production
+
+> Chủ sản phẩm: *"update lại toàn bộ styles giao diện cho nhìn đẹp, hợp lí gọn gàng hơn cho mobile"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *feat: redesign UI for mobile*. Viết lại `globals.css` thành bộ style dùng chung (token màu, thẻ, nút, form, danh sách,
+  badge, thanh tiến độ), chuyển gần hết inline style trong các trang sang class.
+- **Thanh điều hướng dưới** (`BottomNav`: Sổ chung, Cá nhân, Thống kê, Liên kết) thay hàng bốn nút ở đầu trang; chưa liên kết thì
+  ẩn Sổ chung và Thống kê. Trong khu cài đặt chỉ hiện trên điện thoại.
+- `PageHeader` chung: tiêu đề trái, nút *+ Thêm* phải, nút quay lại thay nút *Hủy*. Ô chọn sổ chuyển vào phụ đề (*với Minh Anh ▾*);
+  bỏ link *+ Liên kết thêm* vì đã có mục Liên kết ở thanh dưới.
+- Chọn tháng có nút tháng trước / sau; trên điện thoại bảng chọn trượt lên từ đáy.
+- Form: ô số tiền to, đứng đầu; *Người trả* và *Ngày* chung một hàng; danh mục cá nhân thành lưới 4 cột có emoji; chữ trong ô nhập
+  16 px để iPhone không tự phóng to.
+- Trang Cá nhân thay thẻ *Tổng chi tiêu cá nhân* (trùng với thẻ trên) bằng hai ô nhỏ: tháng này (▲/▼ %) và tháng trước. Thống kê
+  có thanh tỉ lệ. Trang Lịch sử thành dòng thời gian, mỗi lần sửa chỉ hiện trường đã đổi. Đăng nhập có logo và nút Google nền trắng.
+- `viewportFit: 'cover'` để dùng được `env(safe-area-inset-*)` trên iPhone; đổi màu theme sang `#0b1120` ở layout và manifest.
+
+**Quan sát**
+
+- Local không chạy được với dữ liệu (`.env` trỏ SQLite, schema là Postgres). Kiểm giao diện bằng một route tạm
+  `/login/preview` (proxy bỏ qua xác thực với `/login/*`) với dữ liệu giả, chụp bằng Chrome ẩn qua DevTools Protocol ở 390 px — đã xoá
+  route sau khi chụp. Chrome ẩn có độ rộng cửa sổ tối thiểu ~500 px: chụp bằng `--window-size=390` cho ảnh bị cắt như tràn ngang,
+  phải dùng `Emulation.setDeviceMetricsOverride` mới đúng.
+- Lần chụp đầu, hàng bốn nút dưới khoản chi (*Đã trả, Sửa, Lịch sử, Xóa*) rớt *Xóa* xuống dòng ở 390 px — giảm padding nút là vừa.
