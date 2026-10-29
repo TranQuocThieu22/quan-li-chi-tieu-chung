@@ -7,7 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
-import { getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
+import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -207,7 +207,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                   <div className="bar-head">
                     <span style={{fontWeight: 500}}>{c.icon} {c.label}</span>
                     <span className="num" style={{fontWeight: 600}}>
-                      {formatMoney(c.total)} <span className="muted">{percent}%</span>
+                      {formatMoney(c.total)} <span className="muted">{formatPercent(c.total, totalSharedExpenses)}</span>
                     </span>
                   </div>
                   <div className="progress">

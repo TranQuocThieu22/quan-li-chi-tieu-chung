@@ -10,6 +10,7 @@ import { PlusIcon } from '@/components/icons';
 import { getCurrentUser } from '@/lib/auth';
 import { getCategory, PERSONAL_CATEGORIES } from '@/lib/personal';
 import { getSharedSpendingShare } from '@/lib/spending';
+import { formatPercent } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -186,7 +187,7 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
                   <div className="bar-head">
                     <span style={{fontWeight: 500}}>{c.icon} {c.label}</span>
                     <span className="num" style={{fontWeight: 600}}>
-                      {formatMoney(c.total)} <span className="muted">{percent}%</span>
+                      {formatMoney(c.total)} <span className="muted">{formatPercent(c.total, total)}</span>
                     </span>
                   </div>
                   <div className="progress">

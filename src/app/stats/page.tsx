@@ -3,7 +3,7 @@ import prisma from '@/lib/db';
 import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import { getPartner, requirePartnershipPage } from '@/lib/auth';
-import { getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
+import { formatPercent, getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -245,7 +245,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     <div className="bar-head">
                       <span style={{ fontWeight: 500 }}>{c.icon} {c.label} <span className="muted">{c.count} khoản</span></span>
                       <span className="num" style={{ fontWeight: 600 }}>
-                        {formatMoney(c.total)} <span className="muted">{percent}%</span>
+                        {formatMoney(c.total)} <span className="muted">{formatPercent(c.total, total)}</span>
                       </span>
                     </div>
                     <div className="progress">
@@ -259,7 +259,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
           <section className="card">
             <div className="card-title">Ai đã chi</div>
-            <div className="split-bar" role="img" aria-label={byPayer.map(p => `${p.name} ${Math.round((p.total / total) * 100)}%`).join(', ')}>
+            <div className="split-bar" role="img" aria-label={byPayer.map(p => `${p.name} ${formatPercent(p.total, total)}`).join(', ')}>
               {byPayer.filter(p => p.total > 0).map(p => (
                 <span key={p.id} style={{ width: `${(p.total / total) * 100}%`, background: seriesColor.get(p.id) }} />
               ))}
@@ -272,7 +272,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     {p.name}
                   </span>
                   <span className="row-value">
-                    {formatMoney(p.total)} <span className="text-muted" style={{ fontWeight: 400 }}>{Math.round((p.total / total) * 100)}%</span>
+                    {formatMoney(p.total)} <span className="text-muted" style={{ fontWeight: 400 }}>{formatPercent(p.total, total)}</span>
                   </span>
                 </li>
               ))}
