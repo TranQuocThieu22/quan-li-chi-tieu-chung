@@ -36,6 +36,31 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt thống kê) — Trang Thống kê có khoảng thời gian, biểu đồ theo tháng, danh mục, ai đã chi; lên production
+
+> Chủ sản phẩm: *"làm sao cho thống kê có ý nghĩa hơn"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *feat: make the stats page answer where the shared money goes*. Viết lại `src/app/stats/page.tsx`: bộ lọc *6 tháng / 12
+  tháng / Tất cả* (`?range=`, mặc định 6) cho cả trang; tổng chi chung + trung bình/tháng; ô *Tháng này* so với trung bình các
+  tháng trước, ô *Tháng chi nhiều nhất*; biểu đồ cột theo tháng (tháng không chi gì vẫn có cột 0, đường trung bình, nhãn số chỉ ở
+  tháng này, chạm cột hiện bong bóng số, *Xem bảng số liệu* để đọc đủ; vẽ tối đa 12 tháng); theo danh mục; *Ai đã chi* (thanh chia
+  hai màu + %, mức chia đều); 5 khoản lớn nhất; mua giùm tách thẻ riêng.
+- **Cách tính chi chung ở Thống kê**: mọi khoản không phải mua giùm, **tính cả khoản đã trả** — khác tổng ở trang chủ (chỉ khoản
+  chưa trả); trang có dòng giải thích. Chờ chủ sản phẩm xác nhận (ở `viec-con-treo.md`).
+- Biểu đồ làm bằng HTML/CSS trong Server Component, không thêm thư viện. Theo skill `dataviz`: cột ≤ 24 px bo 4 px ở đầu, lưới
+  hairline liền, số lớn không dùng `tabular-nums`, màu theo người chứ không theo thứ hạng. Hai màu người (`--series-1` `#3987e5`,
+  `--series-2` `#d95926`) chạy `validate_palette.js` trên nền `#131c2e`: qua cả năm kiểm, CVD ΔE 26,8.
+
+**Quan sát**
+
+- Chụp bằng bản sao tạm của trang với dữ liệu giả (7 tháng), 390 px: không tràn ngang; bong bóng ở cột mép trái / phải nằm gọn
+  trong thẻ. Lần đầu nhãn *4,6tr* bị đường trung bình gạch ngang khi hai thứ trùng độ cao — thêm nền cùng màu thẻ cho nhãn.
+- Chrome ẩn không cho trang nhận focus, `.focus()` không làm `:focus` khớp — phải bật `Emulation.setFocusEmulationEnabled` mới
+  chụp được bong bóng.
+- Chưa xem với dữ liệu thật.
+
 ## 29/10/2026 (lượt gộp form) — Một form chung cho thêm / sửa khoản chi sổ chung, hết lỗi lint; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"làm đi"* → *"đẩy production"*.

@@ -26,14 +26,14 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 - [ ] **Tám danh mục sổ chung có đủ chưa** (29/10): đang là Ăn uống, Đi chợ, Hóa đơn, Nhà cửa, Di chuyển, Mua sắm, Giải trí,
       Khác ([`src/lib/shared.ts`](../../src/lib/shared.ts)). Lưới chọn 4 cột nên thêm thì nên thêm đủ 4 (vd. Sức khỏe, Du lịch…).
-- [ ] **Trang Thống kê có tính khoản đã trả và khoản mua giùm không** (29/10): hiện cộng *mọi* khoản chưa xoá, trong khi tổng ở
-      trang chủ bỏ khoản đã trả và mua giùm — hai con số dễ bị hiểu lệch nhau.
+- [ ] **Xác nhận cách tính của trang Thống kê** (29/10): Claude chọn *chi chung = mọi khoản không phải mua giùm, tính cả khoản đã
+      trả* (đã trả chỉ là đã thanh toán với nhau, tiền vẫn đã chi); mua giùm tách thẻ riêng. Khác tổng ở trang chủ (chỉ khoản chưa
+      trả) — trang Thống kê có ghi một dòng giải thích. Muốn tính khác thì báo.
 
 ## 3. Claude làm được khi được giao
 
 - [ ] **Cho chạy được app ở máy local** (28/10): `.env` để `DATABASE_URL="file:./dev.db"` nhưng schema là Postgres, nên `next dev`
       không đọc được dữ liệu; `dev.db` và `prisma/dev.db` là SQLite cũ còn nằm trong git. Cần một Postgres thử (Neon branch hoặc Docker).
-- [ ] **Thống kê theo danh mục** ở trang Thống kê (29/10): trang chủ đã có cho từng tháng, Thống kê chưa có cho toàn thời gian.
 - [ ] **Viết lại `README.md`** (28/10): vẫn là bản mẫu của create-next-app, chưa nói app làm gì, cần biến môi trường nào.
 
 ## 4. Khi tới mốc
