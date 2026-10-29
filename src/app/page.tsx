@@ -7,7 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
-import { getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
+import { getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,17 +35,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-  };
-
-  // imageUrl lưu dạng JSON mảng, dữ liệu cũ có thể chỉ là một đường dẫn
-  const parseImages = (imageUrl: string | null) => {
-    if (!imageUrl || imageUrl === '[]') return [];
-    try {
-      const parsed = JSON.parse(imageUrl);
-      return Array.isArray(parsed) ? (parsed as string[]) : [imageUrl];
-    } catch {
-      return [imageUrl];
-    }
   };
 
   const expenseItems: ExpenseListItem[] = expenses.map(exp => ({

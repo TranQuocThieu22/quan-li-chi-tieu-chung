@@ -14,3 +14,14 @@ export const SHARED_CATEGORIES = [
 export function getSharedCategory(key: unknown) {
   return SHARED_CATEGORIES.find(c => c.key === key) ?? SHARED_CATEGORIES[SHARED_CATEGORIES.length - 1];
 }
+
+// Expense.imageUrl lưu dạng JSON mảng, dữ liệu cũ có thể chỉ là một đường dẫn
+export function parseImages(imageUrl: string | null) {
+  if (!imageUrl || imageUrl === '[]') return [];
+  try {
+    const parsed = JSON.parse(imageUrl);
+    return Array.isArray(parsed) ? (parsed as string[]) : [imageUrl];
+  } catch {
+    return [imageUrl];
+  }
+}
