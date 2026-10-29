@@ -36,6 +36,34 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 29/10/2026 (lượt bộ thử và nén ảnh) — Thêm 4 danh mục sổ chung, bộ thử Vitest, nén ảnh hóa đơn; lên production
+
+> Chủ sản phẩm: *"thanh toán thấy được rồi làm gì tiếp"* → *"làm đi, thêm vài loại danh mục nữa tùy bạn, thống kê hiện tại ổn"* →
+> *"đẩy production"*.
+
+**Đã làm**
+
+- **Ngoài repo**: chủ sản phẩm đã cài MacroDroid trên Android, thanh toán thật đã hiện ở *Chờ xác nhận* trên production — đường
+  điện thoại → `/api/import/notify` trên tên miền chính chạy được (Deployment Protection không chặn).
+- Commit *feat: add health, travel, gifts and family to shared categories*: sổ chung 12 danh mục (lưới 4×3), *Khác* vẫn cuối;
+  "du lịch", "máy bay" chuyển sang Du lịch; "con" đứng riêng không làm từ khoá (dễ trúng "con gà"); thêm "sữa chua" vào Đi chợ
+  để bản bỏ dấu "sua chua" trùng với "sửa chữa" mà thôi đoán.
+- Commit *feat: shrink receipt photos before saving them*: `src/lib/compress-image.ts` thu về cạnh dài 1600 px JPEG 0,8 (xoay
+  theo EXIF, nền trắng cho PNG trong suốt), giữ ảnh gốc nếu không đọc được (HEIC) hoặc bản nén to hơn; nhận ảnh tới 25 MB, ảnh giữ
+  nguyên vẫn giới hạn 5 MB; nút lưu hiện *Đang xử lý ảnh…*. Thử: PNG 16 MB 3000×2000 → JPEG 1600×1067, 429 KB.
+- Commit *test: cover notification parsing and category guessing*: Vitest, `npm test`, 38 ca (11 thông báo mẫu, 27 ca đoán danh
+  mục). `@types/node` 20 → 22 (Vitest 5 đòi). `AGENTS.md`: sửa bộ đọc / bộ đoán thì thêm ca vào test trước.
+- Thống kê giữ cách tính hiện tại — mục *Chờ chủ sản phẩm quyết* hết việc.
+
+**Quan sát**
+
+- **npm 11 làm rơi gói biên dịch theo nền tảng của rolldown** khỏi `package-lock.json` (`Cannot find native binding`); gỡ cài lại
+  không đỡ. Khai `@rolldown/binding-win32-x64-msvc` và `-linux-x64-gnu` trong `optionalDependencies` (máy khác nền tảng tự bỏ
+  qua); nâng Vitest thì nâng hai gói này cùng phiên bản rolldown — ghi ở README. Lockfile so với HEAD: thêm 25 gói, không gỡ gói
+  nào, Next/React/Prisma giữ nguyên; `postcss` 8.5.15 → 8.5.32 và vài gói phụ nâng bản vá theo.
+- Bộ thử bắt được lỗi thật ngay lần chạy đầu ("sua chua" → Nhà cửa).
+- CDP `DOM.setFileInputFiles` nhận đường dẫn Windows dạng `C:/…` với dấu `/`.
+
 ## 29/10/2026 (lượt tự động nhập) — Nhận thông báo ngân hàng, MoMo từ Android, hộp *Chờ xác nhận*; lên production
 
 > Chủ sản phẩm: *"làm sao để liên kết ngân hàng hoạt momo để tự động tính chi tiêu"* → chọn *"2. Chuyển tiếp thông báo trên

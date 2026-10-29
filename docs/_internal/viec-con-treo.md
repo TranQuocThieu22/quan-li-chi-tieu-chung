@@ -20,26 +20,21 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
       thật (tên dài, khoản cũ chưa có danh mục, nhiều ảnh) có thể lộ chỗ chưa thấy. Chỗ nào xấu hay vỡ thì báo.
 - [ ] **Chọn lại danh mục cho khoản chi chung cũ** nếu muốn thẻ *Theo danh mục* có ý nghĩa (29/10): mọi khoản tạo trước 29/10
       đang là 📦 Khác. Nhanh nhất: *Chọn nhiều* → tick các khoản cùng loại → *Danh mục*.
-
-- [ ] **Cài MacroDroid trên Android theo trang *Liên kết → Tự động nhập*** (29/10): bấm *Bật và tạo mã*, chép địa chỉ và nội
-      dung vào macro, thử một giao dịch nhỏ. Thông báo nào đọc sai số tiền / bị bỏ sót thì chụp dòng đó ở *Thông báo nhận gần
-      đây* gửi Claude. iPhone không dùng được cách này.
+- [ ] **Gửi Claude vài thông báo thật từ *Liên kết → Tự động nhập → Thông báo nhận gần đây*** (29/10): MacroDroid đã chạy, thanh
+      toán đã hiện ở *Chờ xác nhận*. Chép nội dung gốc (che số tài khoản) — cả dòng đọc đúng lẫn dòng *Không đọc được* / sai số
+      tiền — để làm bộ thử từ mẫu thật.
 
 ## 2. Chờ chủ sản phẩm quyết
 
-- [ ] **Tám danh mục sổ chung có đủ chưa** (29/10): đang là Ăn uống, Đi chợ, Hóa đơn, Nhà cửa, Di chuyển, Mua sắm, Giải trí,
-      Khác ([`src/lib/shared.ts`](../../src/lib/shared.ts)). Lưới chọn 4 cột nên thêm thì nên thêm đủ 4 (vd. Sức khỏe, Du lịch…).
-- [ ] **Xác nhận cách tính của trang Thống kê** (29/10): Claude chọn *chi chung = mọi khoản không phải mua giùm, tính cả khoản đã
-      trả* (đã trả chỉ là đã thanh toán với nhau, tiền vẫn đã chi); mua giùm tách thẻ riêng. Khác tổng ở trang chủ (chỉ khoản chưa
-      trả) — trang Thống kê có ghi một dòng giải thích. Muốn tính khác thì báo.
+(Không có — 29/10 chốt: thêm 4 danh mục sổ chung theo Claude chọn; Thống kê giữ cách tính hiện tại.)
 
 ## 3. Claude làm được khi được giao
 
 - [ ] **Chỉnh bộ đọc thông báo theo thông báo thật** (29/10): `src/lib/notification-parser.ts` mới thử trên mẫu Claude tự viết
-      theo kiểu VCB, MB, BIDV, Techcombank, VPBank, MoMo — chưa thấy thông báo thật nào. Khi có, xem mục *Không đọc được* / số
-      tiền sai ở `/admin/import` (nội dung gốc còn nguyên) rồi thêm mẫu vào bộ thử.
+      theo kiểu VCB, MB, BIDV, Techcombank, VPBank, MoMo; thông báo thật đã về production nhưng Claude chưa thấy mẫu nào. Có mẫu thì
+      thêm thành ca trong `src/lib/notification-parser.test.ts` **trước**, rồi mới sửa, chạy `npm test`.
 
 ## 4. Khi tới mốc
 
-- [ ] **Khi database lớn dần — chuyển ảnh hóa đơn ra khỏi database** (28/10): ảnh đang lưu thẳng dạng base64 trong
-      `Expense.imageUrl` (tối đa 5 MB mỗi ảnh), mỗi lần tải trang chủ là kéo theo cả ảnh của tháng đó.
+- [ ] **Khi trang chủ chậm — tải ảnh hóa đơn khi bấm xem thay vì nhúng sẵn** (28/10): ảnh vẫn lưu base64 trong `Expense.imageUrl`
+      và trang chủ nhúng cả ảnh của tháng. Từ 29/10 ảnh mới được thu về 1600 px JPEG (~200–400 KB) lúc chọn, nhưng ảnh cũ giữ nguyên.
