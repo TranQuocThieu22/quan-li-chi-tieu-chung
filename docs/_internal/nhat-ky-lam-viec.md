@@ -36,9 +36,10 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json` cho đủ gói theo nền tảng, `npm ci` chạy được; lên production
+## 30/10/2026 — Sửa `package-lock.json` cho đủ gói theo nền tảng; nâng Next 16.4.3 vá lỗ hổng; lên production
 
-> Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"*.
+> Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
+> *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"*.
 
 **Đã làm**
 
@@ -49,13 +50,20 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   1.2.15 → 1.2.16 (trong khoảng vite cho phép); Next, React, Prisma, Tailwind giữ nguyên.
 - README: đổi gói thì dùng `npx npm@10 install <gói>`; `npm ci` thì npm nào cũng được.
 - Kiểm: `npm ci` (npm 11.6) trong dự án chạy được, không đổi lockfile; `npm test` 43/43; `tsc` sạch; lint sạch. **Chưa thử trên Linux**
-  ở máy (Docker tắt) — build Vercel của lượt đẩy này là lần kiểm đầu.
+  ở máy (Docker tắt) — build Vercel của lượt đẩy này là lần kiểm đầu; Vercel deploy thành công.
+- Commit *fix: upgrade Next.js to 16.4.3 to patch security advisories* (lượt đẩy thứ hai): `npm audit` 11 → 3. Next 16.2.7 →
+  16.4.3 cùng `eslint-config-next` (bản cũ dính RCE qua Image Optimization, SSRF, DoS Server Actions…; kéo theo `sharp` 0.35,
+  `postcss` riêng của Next 8.5.23); `npx npm@10 audit fix` nâng `brace-expansion`, `browserslist`, `js-yaml`, `zod`,
+  `baseline-browser-mapping` trong khoảng cho phép. Tài liệu nâng cấp 16.3/16.4 chỉ có tính năng tự bật — không sửa code.
+  Kiểm: test 43/43, `tsc`, lint, `next build` sạch; `next start` với Postgres ở máy: chưa đăng nhập về `/login`, 9 trang đăng nhập
+  trả 200, gửi thông báo mã sai → 401, thông báo ACB giả → 75.000 vào *Chờ xác nhận*.
 
 **Quan sát**
 
 - npm 11.6 tính lại lockfile thì vẫn làm rơi các gói này, kể cả `npm install` không đổi gì (thử lại ra đúng 25 lỗi) — nên phải dùng npm 10.
 - Lần chạy `npm ci` hôm 29/10 báo lệch nhưng sáng nay trên lockfile cũ lại chạy được; lỗi thật là các mục thiếu nói trên, `npm ci` không bắt.
-- `npm audit` báo 11 lỗ hổng (1 critical, 9 high, 1 moderate), có từ trước — đã đưa vào việc còn treo.
+- `npm audit` còn 3 lỗi high cùng gốc `deepmerge-ts` trong `@prisma/config` — chỉ `prisma` CLI kéo vào (`npm ls`), sửa phải lên
+  Prisma 7; đã ghi vào việc còn treo.
 
 ## 29/10/2026 (lượt quảng cáo ACB) — Bộ đọc thông báo bỏ tin quảng cáo [QC], đọc nội dung chuyển khoản ACB ONE; lên production
 

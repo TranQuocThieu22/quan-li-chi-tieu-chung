@@ -33,8 +33,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 - [ ] **Chỉnh bộ đọc thông báo theo thông báo thật** (29/10): mẫu VCB, MB, BIDV, Techcombank, VPBank, MoMo do Claude tự viết; mẫu
       thật mới có ACB ONE (quảng cáo [QC], chuyển khoản ra — đã sửa 29/10). Có mẫu thì thêm thành ca trong
       `src/lib/notification-parser.test.ts` **trước**, rồi mới sửa `src/lib/notification-parser.ts`, chạy `npm test`.
-- [ ] **Xem 11 lỗ hổng `npm audit` báo** (30/10): 1 critical, 9 high, 1 moderate, có từ trước. Xem gói nào dính, có chạm tới
-      production không, nâng được mà không phá gì thì nâng (đổi gói bằng `npx npm@10 install`, xem README).
+- [ ] **Nâng Prisma 6 → 7 khi tiện** (30/10): `npm audit` còn 3 lỗi high, cùng gốc `deepmerge-ts` trong `@prisma/config` — chỉ CLI
+      (`db push` lúc build) dùng, app chạy không dính. Prisma 7 là bản lớn (đổi cách cấu hình, kết nối), cần làm và thử riêng một lượt.
 
 ## 4. Khi tới mốc
 
