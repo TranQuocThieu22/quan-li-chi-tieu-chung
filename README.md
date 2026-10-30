@@ -26,8 +26,10 @@ npm run dev        # http://localhost:4000
 npm test           # bộ thử (Vitest): đọc thông báo ngân hàng / MoMo, đoán danh mục
 ```
 
-`optionalDependencies` ghi sẵn `@rolldown/binding-*` vì npm 11 làm rơi các gói biên dịch theo nền tảng của rolldown (Vitest dùng)
-khỏi `package-lock.json` — nâng Vitest thì nâng các gói này cùng phiên bản rolldown.
+**Đổi gói thì dùng npm 10**: `npx npm@10 install <gói>`. npm 11 (tới 11.6) làm rơi các gói biên dịch theo nền tảng khỏi
+`package-lock.json` (binding của rolldown cho máy khác, `lightningcss-*` riêng của vite) — kể cả `npm install` không đổi gì.
+Chỉ `npm ci` thì npm nào cũng được. `optionalDependencies` ghi sẵn `@rolldown/binding-*` cho Windows và Linux để lỡ dùng npm 11
+thì Vitest vẫn chạy; nâng Vitest thì nâng các gói này cùng phiên bản rolldown.
 
 `db:push`, `db:seed`, `dev:login` đọc `.env.local`; `seed` và `dev:login` từ chối chạy nếu `DATABASE_URL` không phải `localhost`.
 
