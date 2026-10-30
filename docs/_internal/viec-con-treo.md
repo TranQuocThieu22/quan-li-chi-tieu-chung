@@ -24,8 +24,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 3. Claude làm được khi được giao
 
-- [ ] **Bộ đọc thông báo cho ngân hàng / ví khác ACB** (30/10): mẫu VCB, MB, BIDV, Techcombank, VPBank, MoMo vẫn do Claude tự
-      viết. Khi dùng nơi khác mà đọc sai: thêm mẫu (che số TK, tên) thành ca trong `notification-parser.test.ts` **trước**, rồi sửa.
+- [ ] **Bộ đọc thông báo cho ngân hàng / ví khác ACB** (30/10): mẫu MB, BIDV, Techcombank, VPBank, MoMo vẫn do Claude tự viết
+      (ACB, VCB đã có mẫu thật). Khi dùng nơi khác mà đọc sai: thêm mẫu (che số TK, tên) thành ca trong `notification-parser.test.ts` **trước**, rồi sửa.
 
 ## 4. Khi tới mốc
 

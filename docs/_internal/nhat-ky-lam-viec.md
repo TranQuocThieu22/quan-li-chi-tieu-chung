@@ -36,7 +36,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; mẫu ACB thật; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; mẫu ACB, VCB thật; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
@@ -45,7 +45,8 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 > *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"* → *"người trả và ngày
 > mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"* → *"làm gì tiếp"* → *"ổn rồi làm gì tiếp"* → *"làm đi"* →
 > *"đẩy production"* → *"làm gì tiếp"* → *"làm prisma 7"* → *"đẩy production"* → *"làm gì tiếp"* →
-> (gửi 3 ảnh mục Giao dịch của ACB ONE, 28–30/10) → *"đẩy production"*.
+> (gửi 3 ảnh mục Giao dịch của ACB ONE, 28–30/10) → *"đẩy production"* → (gửi 3 ảnh mục Biến động của VCB) →
+> *"đẩy production"*.
 
 **Đã làm**
 
@@ -104,7 +105,12 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 - Commit *fix: tidy ACB transfer text in imported payments* (lượt đẩy thứ tám): 9 ca mới từ ảnh thật (đã thay số TK, họ tên,
   số điện thoại, mã QR) — có **tiền vào** `+ 450,000`, `+ 500,000`, tiền từ MoMo, nạp điện thoại, CK sang TK khác, QR Ministop.
   Số tiền và chiều tiền đúng cả 9 trước khi sửa; chỉ nội dung dài: bỏ `IB` / `IB QR<mã>` đầu, đuôi ` ddmmyy-hh:mm:ss <mã>` cách
-  bằng khoảng trắng, đoạn lặp `, IB … CHUYEN KHOAN`. 60/60.
+  bằng khoảng trắng, đoạn lặp `, IB … CHUYEN KHOAN`. 60/60. **Vercel lại không deploy** `e739588` (như `0abbdca`) — lên cùng lượt sau.
+- Commit *fix: read Vietcombank card and transfer notifications* (lượt đẩy thứ chín): 6 ca từ ảnh VCB thật (đã thay số TK, số thẻ,
+  họ tên, mã). `Ref <TÊN>…` không có dãy mã chấm giờ đọc được; chuyển đi `…CT tu <TK> <TÊN> toi <TK> <NGƯỜI NHẬN> tai <NH>` lấy
+  người nhận; thẻ "sử dụng tại … số tiền …" là tiền ra, cắt nội dung ở "số tiền"; "không thành công"/REJECTED bỏ qua; số tiền
+  ngoại tệ ("22.22 USD") để *Không đọc được* thay vì lấy nhầm "Số dư TK trích nợ tạm tính …: 31,691VND" (`BALANCE_BEFORE` tới 6
+  từ). 66/66.
 - Vercel: production và preview dùng **cùng** database Neon (`DATABASE_URL` pooler, `DATABASE_URL_UNPOOLED`) — ghi vào `AGENTS.md`.
 
 **Quan sát**
