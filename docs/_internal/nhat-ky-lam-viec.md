@@ -36,6 +36,27 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 30/10/2026 — Sửa `package-lock.json` cho đủ gói theo nền tảng, `npm ci` chạy được; lên production
+
+> Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *fix: restore platform packages dropped from package-lock.json*: kiểm từng phụ thuộc trong lockfile thì có 25 chỗ sai —
+  `rolldown` thiếu 13 gói binding (macOS, ARM, musl…, chỉ còn hai gói khai tay trong `package.json`), `vite/node_modules/lightningcss`
+  1.33.0 thiếu các `lightningcss-*` 1.33.0 nên rơi về bản 1.32.0 ở gốc, thiếu `fsevents`. Xoá các mục `rolldown`, `@rolldown/*`,
+  `vite` rồi cho **npm 10** (`npx npm@10 install --package-lock-only`) tính lại → 0 lỗi. Chỉ đổi phiên bản `rolldown` và binding
+  1.2.15 → 1.2.16 (trong khoảng vite cho phép); Next, React, Prisma, Tailwind giữ nguyên.
+- README: đổi gói thì dùng `npx npm@10 install <gói>`; `npm ci` thì npm nào cũng được.
+- Kiểm: `npm ci` (npm 11.6) trong dự án chạy được, không đổi lockfile; `npm test` 43/43; `tsc` sạch; lint sạch. **Chưa thử trên Linux**
+  ở máy (Docker tắt) — build Vercel của lượt đẩy này là lần kiểm đầu.
+
+**Quan sát**
+
+- npm 11.6 tính lại lockfile thì vẫn làm rơi các gói này, kể cả `npm install` không đổi gì (thử lại ra đúng 25 lỗi) — nên phải dùng npm 10.
+- Lần chạy `npm ci` hôm 29/10 báo lệch nhưng sáng nay trên lockfile cũ lại chạy được; lỗi thật là các mục thiếu nói trên, `npm ci` không bắt.
+- `npm audit` báo 11 lỗ hổng (1 critical, 9 high, 1 moderate), có từ trước — đã đưa vào việc còn treo.
+
 ## 29/10/2026 (lượt quảng cáo ACB) — Bộ đọc thông báo bỏ tin quảng cáo [QC], đọc nội dung chuyển khoản ACB ONE; lên production
 
 > Chủ sản phẩm (gửi ảnh *Chờ xác nhận*): *"Thông báo khác bị lấy nhầm 400.000.000"* → *"đẩy production"* →
@@ -267,30 +288,3 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 - Chỉ chụp được danh sách khoản chi (dữ liệu giả, khổ 390 px, chế độ *Tất cả*) — form chọn danh mục, thẻ *Theo danh mục*, trang
   Lịch sử chưa ai nhìn tận mắt.
 - Mọi khoản chi chung cũ hiện là 📦 Khác cho tới khi sửa lại.
-
-## 28/10/2026 — Làm lại toàn bộ giao diện cho điện thoại; lên production sáng 29/10
-
-> Chủ sản phẩm: *"update lại toàn bộ styles giao diện cho nhìn đẹp, hợp lí gọn gàng hơn cho mobile"* → *"đẩy production"*.
-
-**Đã làm**
-
-- Commit *feat: redesign UI for mobile*. Viết lại `globals.css` thành bộ style dùng chung (token màu, thẻ, nút, form, danh sách,
-  badge, thanh tiến độ), chuyển gần hết inline style trong các trang sang class.
-- **Thanh điều hướng dưới** (`BottomNav`: Sổ chung, Cá nhân, Thống kê, Liên kết) thay hàng bốn nút ở đầu trang; chưa liên kết thì
-  ẩn Sổ chung và Thống kê. Trong khu cài đặt chỉ hiện trên điện thoại.
-- `PageHeader` chung: tiêu đề trái, nút *+ Thêm* phải, nút quay lại thay nút *Hủy*. Ô chọn sổ chuyển vào phụ đề (*với Minh Anh ▾*);
-  bỏ link *+ Liên kết thêm* vì đã có mục Liên kết ở thanh dưới.
-- Chọn tháng có nút tháng trước / sau; trên điện thoại bảng chọn trượt lên từ đáy.
-- Form: ô số tiền to, đứng đầu; *Người trả* và *Ngày* chung một hàng; danh mục cá nhân thành lưới 4 cột có emoji; chữ trong ô nhập
-  16 px để iPhone không tự phóng to.
-- Trang Cá nhân thay thẻ *Tổng chi tiêu cá nhân* (trùng với thẻ trên) bằng hai ô nhỏ: tháng này (▲/▼ %) và tháng trước. Thống kê
-  có thanh tỉ lệ. Trang Lịch sử thành dòng thời gian, mỗi lần sửa chỉ hiện trường đã đổi. Đăng nhập có logo và nút Google nền trắng.
-- `viewportFit: 'cover'` để dùng được `env(safe-area-inset-*)` trên iPhone; đổi màu theme sang `#0b1120` ở layout và manifest.
-
-**Quan sát**
-
-- Local không chạy được với dữ liệu (`.env` trỏ SQLite, schema là Postgres). Kiểm giao diện bằng một route tạm
-  `/login/preview` (proxy bỏ qua xác thực với `/login/*`) với dữ liệu giả, chụp bằng Chrome ẩn qua DevTools Protocol ở 390 px — đã xoá
-  route sau khi chụp. Chrome ẩn có độ rộng cửa sổ tối thiểu ~500 px: chụp bằng `--window-size=390` cho ảnh bị cắt như tràn ngang,
-  phải dùng `Emulation.setDeviceMetricsOverride` mới đúng.
-- Lần chụp đầu, hàng bốn nút dưới khoản chi (*Đã trả, Sửa, Lịch sử, Xóa*) rớt *Xóa* xuống dòng ở 390 px — giảm padding nút là vừa.
