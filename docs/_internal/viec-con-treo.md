@@ -16,9 +16,7 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 1. Chủ sản phẩm làm
 
-- [ ] **Gửi Claude vài thông báo thật từ *Liên kết → Tự động nhập → Thông báo nhận gần đây*** (29/10): MacroDroid đã chạy, thanh
-      toán đã hiện ở *Chờ xác nhận*. Chép nội dung gốc (che số tài khoản) — cả dòng đọc đúng lẫn dòng *Không đọc được* / sai số
-      tiền — để làm bộ thử từ mẫu thật. Còn thiếu: ACB ONE **tiền vào** (mẫu trong test do Claude viết).
+(Không có — 30/10 đã gửi mẫu ACB ONE thật, có cả tiền vào.)
 
 ## 2. Chờ chủ sản phẩm quyết
 
@@ -26,9 +24,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 3. Claude làm được khi được giao
 
-- [ ] **Chỉnh bộ đọc thông báo theo thông báo thật** (29/10): mẫu VCB, MB, BIDV, Techcombank, VPBank, MoMo do Claude tự viết; mẫu
-      thật mới có ACB ONE (quảng cáo [QC], chuyển khoản ra — đã sửa 29/10). Có mẫu thì thêm thành ca trong
-      `src/lib/notification-parser.test.ts` **trước**, rồi mới sửa `src/lib/notification-parser.ts`, chạy `npm test`.
+- [ ] **Bộ đọc thông báo cho ngân hàng / ví khác ACB** (30/10): mẫu VCB, MB, BIDV, Techcombank, VPBank, MoMo vẫn do Claude tự
+      viết. Khi dùng nơi khác mà đọc sai: thêm mẫu (che số TK, tên) thành ca trong `notification-parser.test.ts` **trước**, rồi sửa.
 
 ## 4. Khi tới mốc
 

@@ -36,7 +36,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; mẫu ACB thật; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
@@ -44,7 +44,8 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 > *"làm gì tiếp"* → *"bỏ này đi nhiều quá sao thêm hết, bạn chỉnh giúp được không: Chọn lại danh mục cho các khoản chi chung cũ"* →
 > *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"* → *"người trả và ngày
 > mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"* → *"làm gì tiếp"* → *"ổn rồi làm gì tiếp"* → *"làm đi"* →
-> *"đẩy production"* → *"làm gì tiếp"* → *"làm prisma 7"* → *"đẩy production"*.
+> *"đẩy production"* → *"làm gì tiếp"* → *"làm prisma 7"* → *"đẩy production"* → *"làm gì tiếp"* →
+> (gửi 3 ảnh mục Giao dịch của ACB ONE, 28–30/10) → *"đẩy production"*.
 
 **Đã làm**
 
@@ -99,6 +100,11 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   `dev:login` chạy qua `tsx`; seed xoá thêm `PaymentProfile` (lỗi có từ lượt VietQR). Schema không đổi bảng/cột. Kiểm ở máy: lệnh
   build của Vercel chạy trọn, `next start` 13 trang/API 200, thêm/sửa/xoá, notify (cả trùng), payment, bulk settle; `P2002` vẫn
   `instanceof Prisma.PrismaClientKnownRequestError`. Chưa thử được kết nối Neon thật ở máy (không có mật khẩu production).
+  Vercel READY (`906adb7`); trên production `/api/import/notify?key=sai` trả 401 — app đọc được Neon qua `pg`.
+- Commit *fix: tidy ACB transfer text in imported payments* (lượt đẩy thứ tám): 9 ca mới từ ảnh thật (đã thay số TK, họ tên,
+  số điện thoại, mã QR) — có **tiền vào** `+ 450,000`, `+ 500,000`, tiền từ MoMo, nạp điện thoại, CK sang TK khác, QR Ministop.
+  Số tiền và chiều tiền đúng cả 9 trước khi sửa; chỉ nội dung dài: bỏ `IB` / `IB QR<mã>` đầu, đuôi ` ddmmyy-hh:mm:ss <mã>` cách
+  bằng khoảng trắng, đoạn lặp `, IB … CHUYEN KHOAN`. 60/60.
 - Vercel: production và preview dùng **cùng** database Neon (`DATABASE_URL` pooler, `DATABASE_URL_UNPOOLED`) — ghi vào `AGENTS.md`.
 
 **Quan sát**
