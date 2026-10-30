@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav';
 import ImportBanner from '@/components/ImportBanner';
 import RecategorizeBanner from '@/components/RecategorizeBanner';
 import PaymentCard from '@/components/PaymentCard';
+import SettleMonthButton from '@/components/SettleMonthButton';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
@@ -96,6 +97,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     .sort((a, b) => b.total - a.total);
 
   const settledExpenses = expenses.filter(exp => exp.isSettled);
+  const unsettledExpenses = expenses.filter(exp => !exp.isSettled);
   const settledTotal = settledExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   
   const balances = members.map(m => {
@@ -223,6 +225,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
               );
             })}
           </ul>
+        )}
+        {transactions.length > 0 && (
+          <SettleMonthButton
+            ids={unsettledExpenses.map(exp => exp.id)}
+            total={unsettledExpenses.reduce((sum, exp) => sum + exp.amount, 0)}
+            monthLabel={`tháng ${parseInt(monthStr, 10)}`}
+          />
         )}
       </section>
 
