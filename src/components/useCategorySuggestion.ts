@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { normalizeItemName } from '@/lib/guess-category';
 
-type Source = 'known' | 'keyword' | null;
+// notification: đoán từ nội dung giao dịch ngân hàng lúc mở form, chưa gõ tên món
+type Source = 'known' | 'keyword' | 'notification' | null;
+
+const HINTS = { known: 'như lần trước', keyword: 'tự chọn theo tên món', notification: 'theo nội dung thông báo' };
 
 // Tự chọn danh mục theo tên món cho tới khi người dùng tự bấm chọn:
 // ưu tiên danh mục của khoản gần nhất cùng tên (knownCategories), không có thì đoán theo từ khoá.
@@ -35,7 +38,7 @@ export function useCategorySuggestion({
   return {
     suggestFor,
     markTouched: () => setTouched(true),
-    hint: !touched && source ? (source === 'known' ? 'như lần trước' : 'tự chọn theo tên món') : undefined,
+    hint: !touched && source ? HINTS[source] : undefined,
   };
 }
 
@@ -49,5 +52,5 @@ export function initialSuggestion(
   const known = knownCategories[normalizeItemName(item)];
   if (known) return { category: known, source: 'known' };
   const guessed = item ? guess(item) : null;
-  return guessed ? { category: guessed, source: 'keyword' } : { category: fallback, source: null };
+  return guessed ? { category: guessed, source: 'notification' } : { category: fallback, source: null };
 }

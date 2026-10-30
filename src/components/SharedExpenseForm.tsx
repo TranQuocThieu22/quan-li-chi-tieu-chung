@@ -24,7 +24,7 @@ const MAX_INPUT_SIZE = 25 * 1024 * 1024;
 const MAX_STORED_SIZE = 5 * 1024 * 1024;
 
 // Điền sẵn từ một giao dịch ngân hàng / MoMo đang chờ xác nhận
-type Prefill = { importId: number; item: string; amount: number; date: string };
+type Prefill = { importId: number; description: string; amount: number; date: string };
 
 const DEFAULT_CATEGORY = 'food';
 
@@ -48,18 +48,19 @@ export default function SharedExpenseForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [start] = useState(() =>
-    prefill ? initialSuggestion(prefill.item, guessSharedCategory, knownCategories, DEFAULT_CATEGORY) : null,
+    prefill ? initialSuggestion(prefill.description, guessSharedCategory, knownCategories, DEFAULT_CATEGORY) : null,
   );
   // Gợi ý chỉ chạy khi thêm mới và người dùng chưa tự bấm chọn danh mục
   const suggestion = useCategorySuggestion({
     guess: guessSharedCategory,
     knownCategories,
-    fallback: DEFAULT_CATEGORY,
+    // Tên gõ vào không đoán được thì giữ danh mục đoán từ nội dung thông báo
+    fallback: start?.category ?? DEFAULT_CATEGORY,
     enabled: !expenseId,
     initialSource: start?.source ?? null,
   });
   const [form, setForm] = useState({
-    item: initial?.item ?? prefill?.item ?? '',
+    item: initial?.item ?? '',
     amount: initial ? String(initial.amount) : prefill ? String(prefill.amount) : '',
     category: initial?.category ?? start?.category ?? DEFAULT_CATEGORY,
     payerId: String(initial?.payerId ?? (members.find(m => m.isMe) ?? members[0])?.id ?? ''),
@@ -167,9 +168,11 @@ export default function SharedExpenseForm({
           className="input"
           placeholder="VD: Tiền điện tháng 5"
           required
+          autoFocus={!!prefill}
           value={form.item}
           onChange={(e) => changeItem(e.target.value)}
         />
+        {prefill?.description && <p className="field-note">Từ thông báo: {prefill.description}</p>}
       </div>
 
       <CategoryPicker

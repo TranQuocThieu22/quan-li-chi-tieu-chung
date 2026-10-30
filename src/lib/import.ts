@@ -39,7 +39,8 @@ export async function importPrefill(userId: number, importId: unknown) {
   if (!pending || !pending.amount) return undefined;
   return {
     importId: pending.id,
-    item: pending.description ?? pending.title ?? '',
+    // Nội dung đọc từ thông báo — form chỉ hiện để nhắc, tên món do người dùng tự gõ
+    description: pending.description ?? pending.title ?? '',
     amount: pending.amount,
     date: vietnamDate(pending.occurredAt),
   };
