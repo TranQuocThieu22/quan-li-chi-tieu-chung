@@ -93,8 +93,12 @@ export function parseBankNotification(raw: string): ParsedNotification {
   if (description) {
     // Bỏ phần đuôi như "Số dư ...", mã tham chiếu dài
     description = description.replace(/\s*(?:\||;)?\s*(?:số dư|so du|sd)\b.*$/iu, '')
-      // Đuôi ngày giờ và mã giao dịch ACB thêm vào: "-291026-22:41:57 6302ASCB02KFXX78"
-      .replace(/\s*-\s*\d{6}-\d{2}:\d{2}:\d{2}\b.*$/, '')
+      // ACB: "IB" (giao dịch trên app) và mã QR đầu nội dung — "IB QR7YL6GRTT MINISTOP …" chỉ cần "MINISTOP"
+      .replace(/^IB\s+(?:QR[A-Z0-9]{6,}\s+)?/, '')
+      // Đuôi ngày giờ và mã giao dịch ACB thêm vào: "-291026-22:41:57 6302ASCB02KFXX78", QR thì cách bằng khoảng trắng
+      .replace(/(?:\s*-\s*|\s+)\d{6}-\d{2}:\d{2}:\d{2}\b.*$/, '')
+      // ACB lặp lại người chuyển: "NGUYEN VAN A CK, IB NGUYEN VAN A CHUYEN KHOAN"
+      .replace(/,\s*IB\s.*$/, '')
       .replace(/\s+/g, ' ').trim();
     description = description.slice(0, 80) || null;
   }
