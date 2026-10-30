@@ -36,14 +36,15 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
 > quá, bỏ để tôi tự nhập nội dung đi còn nội dung kia hiển thị thêm bên dưới để biết là món gì thôi"* → *"đẩy production"* →
 > *"làm gì tiếp"* → *"bỏ này đi nhiều quá sao thêm hết, bạn chỉnh giúp được không: Chọn lại danh mục cho các khoản chi chung cũ"* →
 > *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"* → *"người trả và ngày
-> mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"*.
+> mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"* → *"làm gì tiếp"* → *"ổn rồi làm gì tiếp"* → *"làm đi"* →
+> *"đẩy production"*.
 
 **Đã làm**
 
@@ -85,10 +86,17 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   dựng chuỗi EMVCo + CRC16, `qrcode` (MIT) vẽ SVG ở server — không gửi số tài khoản ra ngoài. 6 ca thử viết trước; chuỗi khớp từng
   ký tự với thư viện độc lập `vietnam-qr-pay` (cài ở thư mục nháp) ở 3 trường hợp. **Chưa ai quét bằng app ngân hàng thật.**
 - Commit *fix: give each form field its own row*: *Người trả* / *Ngày mua* (form sổ chung) và *Số tài khoản* / *Chủ tài khoản*
-  tách hàng vì ở 390 px tên bị cắt; bỏ `.form-row` (hết chỗ dùng).
+  tách hàng vì ở 390 px tên bị cắt; bỏ `.form-row` (hết chỗ dùng). GitHub vẫn không có status, nhưng `vercel api /v6/deployments`
+  cho thấy `8deb241` READY — Vercel deploy bình thường, chỉ ngừng báo về GitHub; `0abbdca` thì không có deployment riêng.
+- Chủ sản phẩm thử trên điện thoại: *"ổn rồi"* (chuyển khoản QR, xếp danh mục, các trang) — xoá ba dòng ở việc còn treo.
+- Commit *feat: settle a whole month in one tap* (lượt đẩy thứ sáu): nút *Đã thanh toán xong tháng N* trong thẻ *Cần thanh toán*
+  (hiện khi còn nợ, cả khi người nhận chưa cài QR), hỏi lại kèm số khoản + tổng, gọi `/api/expenses/bulk` `settle` cho mọi
+  khoản chưa trả của tháng đang xem. Kiểm ở máy: 8 khoản → đã trả, 8 dòng lịch sử `SETTLE`, thẻ về *Không ai nợ ai*.
 
 **Quan sát**
 
+- **Kiểm deploy bằng Vercel CLI**, không bằng commit status GitHub (ngừng từ 0abbdca): `npx -y vercel@latest api
+  "/v6/deployments?projectId=quan-li-chi-tieu-chung&limit=3" --scope thieus-projects` → `readyState` + `meta.githubCommitSha`.
 - npm 11.6 tính lại lockfile thì vẫn làm rơi các gói này, kể cả `npm install` không đổi gì (thử lại ra đúng 25 lỗi) — nên phải dùng npm 10.
 - Lần chạy `npm ci` hôm 29/10 báo lệch nhưng sáng nay trên lockfile cũ lại chạy được; lỗi thật là các mục thiếu nói trên, `npm ci` không bắt.
 - `npm audit` còn 3 lỗi high cùng gốc `deepmerge-ts` trong `@prisma/config` — chỉ `prisma` CLI kéo vào (`npm ls`), sửa phải lên

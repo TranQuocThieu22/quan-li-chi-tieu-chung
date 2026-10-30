@@ -16,12 +16,6 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 1. Chủ sản phẩm làm
 
-- [ ] **Xem các trang với dữ liệu thật trên điện thoại** (29/10): Claude đã bấm thử mọi trang ở máy với dữ liệu mẫu, nhưng số liệu
-      thật (tên dài, khoản cũ chưa có danh mục, nhiều ảnh) có thể lộ chỗ chưa thấy. Chỗ nào xấu hay vỡ thì báo.
-- [ ] **Xếp danh mục khoản chi chung cũ** (30/10): trang chủ có dòng *"N khoản cũ đang ở 📦 Khác…"* → xem đề xuất, sửa dòng sai,
-      bấm *Lưu*. Báo Claude nếu nhiều khoản đoán sai hay rơi vào *Chưa đoán được* (để thêm từ khoá).
-- [ ] **Nhập tài khoản nhận tiền và nhờ người cùng sổ quét thử** (30/10): *Cài đặt → Nhận tiền*. Mã VietQR đã khớp thư viện độc lập
-      nhưng chưa ai quét bằng app ngân hàng thật — quét ra sai ngân hàng / số tiền thì báo.
 - [ ] **Gửi Claude vài thông báo thật từ *Liên kết → Tự động nhập → Thông báo nhận gần đây*** (29/10): MacroDroid đã chạy, thanh
       toán đã hiện ở *Chờ xác nhận*. Chép nội dung gốc (che số tài khoản) — cả dòng đọc đúng lẫn dòng *Không đọc được* / sai số
       tiền — để làm bộ thử từ mẫu thật. Còn thiếu: ACB ONE **tiền vào** (mẫu trong test do Claude viết).
