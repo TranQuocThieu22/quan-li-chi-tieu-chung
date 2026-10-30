@@ -36,13 +36,14 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; trang xếp danh mục khoản cũ; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
 > quá, bỏ để tôi tự nhập nội dung đi còn nội dung kia hiển thị thêm bên dưới để biết là món gì thôi"* → *"đẩy production"* →
 > *"làm gì tiếp"* → *"bỏ này đi nhiều quá sao thêm hết, bạn chỉnh giúp được không: Chọn lại danh mục cho các khoản chi chung cũ"* →
-> *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"*.
+> *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"* → *"người trả và ngày
+> mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"*.
 
 **Đã làm**
 
@@ -74,7 +75,17 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   đã có danh mục, không thì từ khoá. Mỗi dòng một ô chọn, để *Khác* là không đổi; lưu qua `/api/expenses/bulk` (ghi lịch sử).
   Dòng nhắc trên trang chủ khi còn khoản đoán được; lưu xong đặt cookie `recategorized-<sổ>` để thôi nhắc. Thêm "vòi nước" vào
   Nhà cửa ("Sửa vòi nước" ra Hóa đơn vì "nước"; ca thử thêm trước). Kiểm ở máy với 52 khoản mẫu lùi `createdAt`: đổi đúng 52
-  khoản, 52 dòng lịch sử `UPDATE`, khoản để Khác giữ nguyên, dòng nhắc mất. 46/46 test.
+  khoản, 52 dòng lịch sử `UPDATE`, khoản để Khác giữ nguyên, dòng nhắc mất. 46/46 test. **Vercel không tạo deployment** cho
+  `0abbdca` (GitHub không có status/deployment, chờ 15 phút) — lên cùng lượt đẩy thứ năm.
+- Commit *feat: show a VietQR to pay back whoever is owed* (lượt đẩy thứ năm): bảng mới `PaymentProfile` (`userId @unique` — bảng
+  mới nên được; tách khỏi `User` để ảnh QR không tải theo mọi request): ngân hàng (BIN NAPAS, `src/lib/banks.ts` lấy từ
+  api.vietqr.io/v2/banks, 48 ngân hàng/ví gồm MoMo, ZaloPay), số tài khoản, tên chủ tài khoản (in hoa không dấu), ảnh QR tự tải
+  lên. Trang *Cài đặt → Nhận tiền* (`/admin/payment`, `PUT /api/payment-profile`). Thẻ *Cần thanh toán*: dòng nợ có người nhận đã cài
+  thì có *Chuyển khoản cho …* mở mã VietQR điền sẵn số tiền + nội dung, số tài khoản/số tiền có nút *Chép*. `src/lib/vietqr.ts` tự
+  dựng chuỗi EMVCo + CRC16, `qrcode` (MIT) vẽ SVG ở server — không gửi số tài khoản ra ngoài. 6 ca thử viết trước; chuỗi khớp từng
+  ký tự với thư viện độc lập `vietnam-qr-pay` (cài ở thư mục nháp) ở 3 trường hợp. **Chưa ai quét bằng app ngân hàng thật.**
+- Commit *fix: give each form field its own row*: *Người trả* / *Ngày mua* (form sổ chung) và *Số tài khoản* / *Chủ tài khoản*
+  tách hàng vì ở 390 px tên bị cắt; bỏ `.form-row` (hết chỗ dùng).
 
 **Quan sát**
 
