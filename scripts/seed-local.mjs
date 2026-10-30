@@ -1,6 +1,7 @@
 // Tạo dữ liệu mẫu cho database ở máy: npm run db:seed
 // XOÁ SẠCH dữ liệu cũ rồi tạo lại — vì vậy từ chối chạy nếu DATABASE_URL không trỏ tới máy này.
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/generated/prisma/client.ts';
 
 const url = process.env.DATABASE_URL ?? '';
 const host = (() => {
@@ -15,7 +16,7 @@ if (!['localhost', '127.0.0.1'].includes(host)) {
   process.exit(1);
 }
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
 
 // Số giả ngẫu nhiên cố định để lần nào chạy cũng ra cùng dữ liệu
 let seed = 42;
@@ -62,6 +63,7 @@ async function main() {
   await prisma.partnership.deleteMany();
   await prisma.personalExpense.deleteMany();
   await prisma.personalBudget.deleteMany();
+  await prisma.paymentProfile.deleteMany();
   await prisma.user.deleteMany();
 
   const [me, partner, parents] = await Promise.all(

@@ -1,10 +1,12 @@
+// Chuỗi kết nối nằm ở prisma.config.ts (Prisma 7 không nhận url trong schema)
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
 }
 
+// Client sinh vào src/generated/prisma (đã .gitignore), tạo lại ở postinstall
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 // Tài khoản đăng nhập bằng Google

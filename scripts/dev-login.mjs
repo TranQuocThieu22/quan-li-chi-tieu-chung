@@ -2,7 +2,8 @@
 // Chỉ chạy tay ở máy, app không có đường đăng nhập nào thêm. Cookie ký bằng AUTH_SECRET trong .env.local
 // (khác khoá production) nên không dùng được ở bản thật.
 import { createHmac } from 'node:crypto';
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/generated/prisma/client.ts';
 
 const url = process.env.DATABASE_URL ?? '';
 let host = '';
@@ -19,7 +20,7 @@ if (!secret) {
   process.exit(1);
 }
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
 const email = process.argv[2] ?? 'dev.thieu@example.com';
 const user = await prisma.user.findUnique({ where: { email } });
 await prisma.$disconnect();

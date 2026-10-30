@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import prisma from '@/lib/db';
 import { hashImportToken } from '@/lib/import';
 import { parseBankNotification } from '@/lib/notification-parser';

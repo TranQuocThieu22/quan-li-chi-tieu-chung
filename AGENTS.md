@@ -26,7 +26,8 @@ làm **trước khi đẩy**:
 3. Nhật ký quá hai ngày có ghi thì chuyển khối cũ nhất sang `nhat-ky-lam-viec-YYYY-MM.md`.
 4. Nhật ký đi thành commit `docs(internal):` riêng, đẩy cùng lượt với commit tính năng.
 
-Đẩy production = push `main`; Vercel tự build (`prisma db push && next build`) và deploy.
+Đẩy production = push `main`; Vercel tự build (`prisma generate && prisma db push && next build`) và deploy. Preview
+(nhánh khác) dùng **cùng database** production nên build preview cũng chạy `db push` lên dữ liệu thật.
 Đổi schema thì chỉ **thêm** cột/bảng có mặc định hoặc cho phép null — `db push` chạy thẳng
 lên database thật. **Không thêm `@unique` vào bảng đã có dữ liệu** (kể cả cột mới cho phép null): `db push`
 đòi `--accept-data-loss`, build trên Vercel không có cờ đó nên deploy hỏng — dùng `@@index` (29/10, `User.importTokenHash`).

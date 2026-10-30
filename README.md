@@ -10,8 +10,8 @@
   nằm ở *Chờ xác nhận* để xếp vào Cá nhân hay Sổ chung. Cài ở *Liên kết → Tự động nhập*.
 - Đăng nhập bằng Google. Liên kết với người khác bằng lời mời qua email.
 
-Next.js 16 (App Router) · React 19 · Prisma 6 · PostgreSQL. Triển khai trên Vercel: push lên `main` là tự build
-(`prisma db push && next build`) và lên production.
+Next.js 16 (App Router) · React 19 · Prisma 7 · PostgreSQL (Neon). Triển khai trên Vercel: push lên `main` là tự build
+(`prisma generate && prisma db push && next build`) và lên production.
 
 ## Chạy ở máy
 
@@ -32,6 +32,11 @@ Chỉ `npm ci` thì npm nào cũng được. `optionalDependencies` ghi sẵn `@
 thì Vitest vẫn chạy; nâng Vitest thì nâng các gói này cùng phiên bản rolldown.
 
 `db:push`, `db:seed`, `dev:login` đọc `.env.local`; `seed` và `dev:login` từ chối chạy nếu `DATABASE_URL` không phải `localhost`.
+
+**Prisma 7**: client sinh vào `src/generated/prisma` (không commit, tạo lại ở `postinstall`) — import từ
+`@/generated/prisma/client`, không phải `@prisma/client`. Kết nối qua `@prisma/adapter-pg` (`src/lib/db.ts`); chuỗi kết nối
+cho CLI nằm ở `prisma.config.ts`. Prisma 7 không tự đọc `.env` và `db push` không tự `generate` — các lệnh `npm run db:*` đã lo
+việc đó. Script ở `scripts/` import client TypeScript nên chạy qua `tsx`.
 
 ### `.env.local`
 
