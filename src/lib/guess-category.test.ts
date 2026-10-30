@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildKnownCategories, normalizeItemName } from './guess-category';
-import { guessSharedCategory } from './shared';
+import { guessSharedCategory, proposeSharedCategory } from './shared';
 import { guessPersonalCategory } from './personal';
 
 describe('guessSharedCategory', () => {
@@ -10,6 +10,7 @@ describe('guessSharedCategory', () => {
     ['Siêu thị cuối tuần', 'groceries'],
     ['Sữa chua', 'groceries'],
     ['Sửa chữa vòi nước', 'home'],
+    ['Sửa vòi nước', 'home'],
     ['Tiền nhà', 'home'],
     ['Ăn nhà hàng', 'food'],
     ['Trà sữa', 'food'],
@@ -62,5 +63,19 @@ describe('buildKnownCategories', () => {
     ]);
     expect(known[normalizeItemName('Tiền điện')]).toBe('bills');
     expect(known[normalizeItemName('Quà')]).toBeUndefined();
+  });
+});
+
+describe('proposeSharedCategory', () => {
+  const known = buildKnownCategories([{ item: 'Bánh mì cô Ba', category: 'groceries' }]);
+
+  it('ưu tiên danh mục của khoản cùng tên đã chọn trước đó', () => {
+    // Từ khoá "bánh" sẽ đoán Ăn uống, nhưng khoản cùng tên đã được chọn Đi chợ
+    expect(proposeSharedCategory('bánh mì  cô ba', known)).toBe('groceries');
+  });
+
+  it('không có khoản cùng tên thì đoán theo từ khoá, không đoán được thì null', () => {
+    expect(proposeSharedCategory('Tiền điện tháng 9', known)).toBe('bills');
+    expect(proposeSharedCategory('Linh tinh', known)).toBeNull();
   });
 });

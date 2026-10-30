@@ -1,4 +1,4 @@
-import { makeCategoryGuesser } from './guess-category';
+import { makeCategoryGuesser, normalizeItemName } from './guess-category';
 
 export { normalizeItemName } from './guess-category';
 
@@ -31,7 +31,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   groceries: ['chợ', 'đi chợ', 'siêu thị', 'rau', 'thịt', 'cá', 'trứng', 'gạo', 'sữa', 'sữa chua', 'trái cây', 'hoa quả', 'bách hóa',
     'winmart', 'coopmart', 'co.op', 'lotte', 'big c', 'aeon'],
   bills: ['điện', 'nước', 'internet', 'wifi', 'mạng', 'gas', 'hóa đơn', 'cước', 'truyền hình', 'phí quản lý'],
-  home: ['tiền nhà', 'thuê nhà', 'nhà', 'phòng', 'nội thất', 'dọn dẹp', 'sửa nhà', 'sửa chữa', 'ống nước'],
+  home: ['tiền nhà', 'thuê nhà', 'nhà', 'phòng', 'nội thất', 'dọn dẹp', 'sửa nhà', 'sửa chữa', 'ống nước', 'vòi nước'],
   transport: ['xăng', 'grab', 'taxi', 'xe', 'gửi xe', 'rửa xe', 'xe buýt', 'bus', 'tàu', 'be', 'gojek', 'xanh sm'],
   shopping: ['quần áo', 'áo', 'quần', 'giày', 'dép', 'túi', 'shopee', 'lazada', 'tiki', 'mỹ phẩm', 'đồ gia dụng', 'nồi',
     'chảo', 'đồ dùng'],
@@ -46,6 +46,12 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
 };
 
 export const guessSharedCategory = makeCategoryGuesser(CATEGORY_KEYWORDS);
+
+// Danh mục đề xuất cho một khoản đang là "Khác": khoản cùng tên đã chọn trước đó (known, từ buildKnownCategories),
+// không có thì đoán theo từ khoá; null nếu không đoán được
+export function proposeSharedCategory(item: string, known: Record<string, string>) {
+  return known[normalizeItemName(item)] ?? guessSharedCategory(item);
+}
 
 // Tỉ lệ phần trăm để hiển thị: phần rất nhỏ ghi "<1%" thay vì làm tròn về 0%
 export function formatPercent(part: number, total: number) {
