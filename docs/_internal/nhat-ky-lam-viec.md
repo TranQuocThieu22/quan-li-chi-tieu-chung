@@ -36,10 +36,11 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json` cho đủ gói theo nền tảng; nâng Next 16.4.3 vá lỗ hổng; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3 vá lỗ hổng; form nhập từ thông báo để trống tên món; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
-> *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"*.
+> *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
+> quá, bỏ để tôi tự nhập nội dung đi còn nội dung kia hiển thị thêm bên dưới để biết là món gì thôi"* → *"đẩy production"*.
 
 **Đã làm**
 
@@ -56,7 +57,14 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   `postcss` riêng của Next 8.5.23); `npx npm@10 audit fix` nâng `brace-expansion`, `browserslist`, `js-yaml`, `zod`,
   `baseline-browser-mapping` trong khoảng cho phép. Tài liệu nâng cấp 16.3/16.4 chỉ có tính năng tự bật — không sửa code.
   Kiểm: test 43/43, `tsc`, lint, `next build` sạch; `next start` với Postgres ở máy: chưa đăng nhập về `/login`, 9 trang đăng nhập
-  trả 200, gửi thông báo mã sai → 401, thông báo ACB giả → 75.000 vào *Chờ xác nhận*.
+  trả 200, gửi thông báo mã sai → 401, thông báo ACB giả → 75.000 vào *Chờ xác nhận*. Vercel deploy thành công.
+- Commit *feat: let people name imported payments themselves* (lượt đẩy thứ ba): mở form từ *Chờ xác nhận* thì ô tên món trống, con
+  trỏ đặt sẵn ở đó; nội dung đọc từ thông báo hiện thành dòng `.field-note` *"Từ thông báo: …"* dưới ô, không lưu. Danh mục vẫn đoán
+  từ nội dung thông báo (nhãn *theo nội dung thông báo*); gõ tên không đoán được thì giữ danh mục đó thay vì rơi về *Ăn uống*.
+  `importPrefill` trả `description` thay cho `item`. Kiểm ở máy (Chrome ẩn, 390 px, cả *Sổ chung* lẫn *Cá nhân*): mở form, gõ
+  tên lạ, gõ "cà phê" → *Ăn uống*, xoá trống → về *Hóa đơn*. Chưa bấm *Lưu* — phần gửi đi không đổi.
+- Commit *chore: take the AGENTS.md block next dev 16.4 rewrites*: `next dev` bản 16.4 tự viết lại khối giữa
+  `nextjs-agent-rules` (`node_modules/next/dist/server/lib/generate-agent-files.js`); commit để cây sạch, quy ước bên dưới không đổi.
 
 **Quan sát**
 
