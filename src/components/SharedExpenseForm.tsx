@@ -185,32 +185,30 @@ export default function SharedExpenseForm({
         }}
       />
 
-      <div className="form-row">
-        <div className="form-group">
-          <label className="label" htmlFor="payer">Người trả</label>
-          <select
-            id="payer"
-            className="select"
-            value={form.payerId}
-            onChange={(e) => setForm({ ...form, payerId: e.target.value })}
-          >
-            {members.map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
-        </div>
+      <div className="form-group">
+        <label className="label" htmlFor="payer">Người trả</label>
+        <select
+          id="payer"
+          className="select"
+          value={form.payerId}
+          onChange={(e) => setForm({ ...form, payerId: e.target.value })}
+        >
+          {members.map(m => (
+            <option key={m.id} value={m.id}>{m.name}</option>
+          ))}
+        </select>
+      </div>
 
-        <div className="form-group">
-          <label className="label" htmlFor="date">Ngày mua</label>
-          <input
-            id="date"
-            type="date"
-            className="input"
-            required
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-          />
-        </div>
+      <div className="form-group">
+        <label className="label" htmlFor="date">Ngày mua</label>
+        <input
+          id="date"
+          type="date"
+          className="input"
+          required
+          value={form.date}
+          onChange={(e) => setForm({ ...form, date: e.target.value })}
+        />
       </div>
 
       <label className="check-row">
