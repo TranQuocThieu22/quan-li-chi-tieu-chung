@@ -166,6 +166,48 @@ const CASES: { name: string; text: string; amount: number | null; direction: 'OU
     direction: 'OUT',
     description: 'NGUYEN VAN A CHUYEN KHOAN',
   },
+  // Mẫu thật Vietcombank gửi 30/10 (ảnh mục Biến động, 09–10/2026); đã thay số tài khoản, số thẻ, họ tên, mã giao dịch
+  {
+    name: 'VCB — tiền vào, "Ref <TÊN> CHUYEN KHOAN-ddmmyy-…" không có dãy mã chấm phía trước',
+    text: 'Số dư TK VCB 0123456789 +600,000 VND lúc 21-10-2026 15:18:01. Số dư 611,155 VND. Ref NGUYEN VAN A CHUYEN KHOAN-211026-15:18:01 3dAB123456#SP#020097041610211518012026 3dAB123456.5390.8213.151755',
+    amount: 600_000,
+    direction: 'IN',
+    description: 'NGUYEN VAN A CHUYEN KHOAN',
+  },
+  {
+    name: 'VCB — chuyển tiền đi: nội dung là người nhận sau "toi <TK>", bỏ "tai <NGÂN HÀNG>"',
+    text: 'Số dư TK VCB 0123456789 -25,000 VND lúc 28-10-2026 08:21:38. Số dư 6,691 VND. Ref MBVCB.12345678901.6301ABCDEF123XY1.NGUYEN VAN A chuyen tien.CT tu 0123456789 NGUYEN VAN A toi MS00P00000001234567 HKD CUA HANG ABC tai TECHCOMBANK',
+    amount: 25_000,
+    direction: 'OUT',
+    description: 'HKD CUA HANG ABC',
+  },
+  {
+    name: 'VCB — quẹt thẻ Visa bằng VND: "sử dụng tại <cửa hàng> số tiền …", bỏ số dư tạm tính phía sau',
+    text: 'Thẻ VCB Visa 411111...1111 sử dụng tại VNPAY*THENEWGYM 1900 55 55 77VN số tiền 349,000 VND lúc 12-10-2026 19:12:13. Số dư TK trích nợ tạm tính 0123456789: 11,155VND',
+    amount: 349_000,
+    direction: 'OUT',
+    description: 'VNPAY*THENEWGYM 1900 55 55 77VN',
+  },
+  {
+    name: 'VCB — quẹt thẻ bằng ngoại tệ: không lấy số dư VND làm số tiền',
+    text: 'Thẻ VCB Visa 411111...1111 sử dụng tại ANTHROPIC* CLAUDE SUB +14150000000 US số tiền 22.22 USD lúc 27-10-2026 15:13:03. Số dư TK trích nợ tạm tính 0123456789: 31,691VND',
+    amount: null,
+    direction: null,
+    description: 'ANTHROPIC* CLAUDE SUB +14150000000 US',
+  },
+  {
+    name: 'VCB — quẹt thẻ không thành công (REJECTED) không phải giao dịch',
+    text: 'Thẻ VCB Visa 411111...1111 sử dụng không thành công tại ANTHROPIC* CLAUDE SUB +14150000000 US với lỗi INSUFFICENT CREDIT LIMIT - REJECTED lúc 21-10-2026 11:20:05',
+    amount: null,
+    direction: null,
+  },
+  {
+    name: 'VCB — tiền vào nhỏ, mã cuối "…#SP#…"',
+    text: 'Số dư TK VCB 0123456789 +2,000 VND lúc 29-10-2026 15:22:39. Số dư 8,691 VND. Ref NGUYEN VAN A CHUYEN KHOAN-291026-15:22:39 LbaU312927#SP#020097041610291522392026LbaU312927.5388.65256.152239',
+    amount: 2_000,
+    direction: 'IN',
+    description: 'NGUYEN VAN A CHUYEN KHOAN',
+  },
   {
     name: '"tài khoản" không bị lấy làm nội dung như "tại <cửa hàng>"',
     text: 'Bien dong so du tai khoan ACB: TK 12345678(VND) - 50,000 luc 22:41 29/10/2026',

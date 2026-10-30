@@ -17,14 +17,19 @@ const ANY_AMOUNT = new RegExp(String.raw`(^|[^\d.,])` + AMOUNT, 'giu');
 
 // Trước con số (cách tối đa ba từ) mà có những chữ này thì đó là số dư, không phải số tiền giao dịch.
 // Chỉ xét với số không dấu: số dư không mang +/-, còn VCB viết "Số dư TK VCB … -150,000 VND" với số có dấu là tiền giao dịch.
-const BALANCE_BEFORE = /\b(so du|sd|balance|con lai|bal)\b(\s+\S+){0,3}\s*[:=]?\s*$/i;
+// VCB thẻ viết "Số dư TK trích nợ tạm tính 0123456789: 31,691VND" — tới sáu từ
+const BALANCE_BEFORE = /\b(so du|sd|balance|con lai|bal)\b(\s+\S+){0,6}\s*[:=]?\s*$/i;
 // Số ngay sau "lên đến", "tối đa"… là mức quảng cáo (hạn mức thẻ, hoàn tiền), không phải tiền đã đi
 const PROMO_BEFORE = /\b(len den|len toi|toi da|up to)\s*$/i;
 // Luật quảng cáo bắt tin quảng cáo mở đầu bằng "QC" — ACB ONE gửi "[QC] THÊM HẠN MỨC…" kèm "Hạn mức lên đến 400.000.000đ"
 const AD_MARK = /\[\s*QC\s*\]|\(\s*QC\s*\)|(?:^|\n)\s*QC\s*[:\-–|]/i;
+// Giao dịch bị từ chối: VCB "Thẻ … sử dụng không thành công … REJECTED" — tiền không đi
+const FAILED = /\b(khong thanh cong|rejected|bi tu choi|that bai)\b/;
+// Quẹt thẻ bằng ngoại tệ (VCB "số tiền 22.22 USD"): không biết số VND bị trừ, đừng lấy nhầm số dư phía sau
+const FOREIGN_AMOUNT = /\bso tien \d+(?: \d+)* (usd|eur|gbp|jpy|sgd|aud|cad|cny|krw|thb|twd)\b/;
 
 const OUT_WORDS = ['thanh toan', 'chuyen tien', 'chuyen khoan', 'da chuyen', 'tru', 'rut tien', 'chi tieu', 'giam', 'payment',
-  'paid', 'debit', 'mua', 'nap tien'];
+  'paid', 'debit', 'mua', 'nap tien', 'su dung'];
 // Không có "cong" / "tang" đứng riêng: "thành công" bỏ dấu cũng ra "thanh cong", "tặng" ra "tang"
 const IN_WORDS = ['nhan tien', 'nhan duoc', 'da nhan', 'vua nhan', 'cong tien', 'duoc cong', 'hoan tien', 'ghi co', 'received',
   'credit', 'refund'];
@@ -35,8 +40,9 @@ const DESCRIPTION = /(?:^|[\s|])(?:nd|noi dung|nd gd|mo ta|content|description|r
 // Kiểu ACB: "So du 337,423. GD: NGUYEN VAN A CHUYEN KHOAN-291026-22:41:57 6302ASCB…". MB cũng dùng "GD:" nhưng cho số tiền
 // ("GD: -85,000VND") nên chữ sau "GD:" mở đầu bằng số hay dấu +/- thì không phải nội dung
 const GD_DESCRIPTION = /(?:^|[\s|])gd\s*[:：]\s*(?![+-]?\s?\d)(.+)$/i;
-// Kiểu VCB: "Ref MBVCB.1234.ABCD.Thanh toan tien dien" — lấy phần chữ sau dãy mã
-const REF_DESCRIPTION = /\bref\s+(?:[A-Za-z0-9*-]+\.)+\s*(.+)$/i;
+// Kiểu VCB: "Ref MBVCB.1234.ABCD.Thanh toan tien dien" — lấy phần chữ sau dãy mã;
+// có khi không có dãy mã: "Ref NGUYEN VAN A CHUYEN KHOAN-211026-…"
+const REF_DESCRIPTION = /\bref\s+(?:[A-Za-z0-9*-]+\.)*\s*(.+)$/i;
 
 function toNumber(digits: string) {
   const value = Number(digits.replace(/[.,]/g, ''));
@@ -53,10 +59,13 @@ export function parseBankNotification(raw: string): ParsedNotification {
   // So từ khoá trên bản bỏ dấu, chữ thường, chỉ còn chữ và số — ngân hàng viết có dấu hay không đều khớp
   const plain = stripDiacritics(text).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
+  if (FAILED.test(plain)) return { amount: null, direction: null, description: null };
+  const foreign = FOREIGN_AMOUNT.test(plain);
+
   let amount: number | null = null;
   let direction: ParsedNotification['direction'] = null;
 
-  for (const match of text.matchAll(SIGNED_AMOUNT)) {
+  for (const match of foreign ? [] : text.matchAll(SIGNED_AMOUNT)) {
     const [, , sign, digits, unit] = match;
     // Không đơn vị và không dấu phân cách (vd. "-2026") thì bỏ
     if (!unit && !/[.,]/.test(digits)) continue;
@@ -65,7 +74,7 @@ export function parseBankNotification(raw: string): ParsedNotification {
     if (amount) break;
   }
 
-  if (!amount) {
+  if (!amount && !foreign) {
     for (const match of text.matchAll(ANY_AMOUNT)) {
       const [, lead, digits, unit] = match;
       if (!unit) continue;
@@ -90,6 +99,10 @@ export function parseBankNotification(raw: string): ParsedNotification {
     // "tai" không đi với "khoản": "tai khoan ACB: TK…" bỏ dấu là chữ "tài khoản", không phải "tại"
     description = text.match(/\b(?:cho|tới|toi|đến|den|tại|tai(?!\s+khoan))\s+(.+?)(?:[.!]\s|[.!]$|$)/iu)?.[1]?.trim() ?? null;
   }
+  // VCB chuyển tiền đi: "… chuyen tien.CT tu <TK> <TÊN> toi <TK> HKD CUA HANG ABC tai TECHCOMBANK" — người nhận mới cho biết
+  // là món gì
+  const recipient = description?.match(/\bCT tu \S+ .+? toi \S+ (.+?)(?: tai \S+)?$/i)?.[1];
+  if (recipient) description = recipient;
   if (description) {
     // Bỏ phần đuôi như "Số dư ...", mã tham chiếu dài
     description = description.replace(/\s*(?:\||;)?\s*(?:số dư|so du|sd)\b.*$/iu, '')
@@ -99,6 +112,8 @@ export function parseBankNotification(raw: string): ParsedNotification {
       .replace(/(?:\s*-\s*|\s+)\d{6}-\d{2}:\d{2}:\d{2}\b.*$/, '')
       // ACB lặp lại người chuyển: "NGUYEN VAN A CK, IB NGUYEN VAN A CHUYEN KHOAN"
       .replace(/,\s*IB\s.*$/, '')
+      // Thẻ VCB: "sử dụng tại <cửa hàng> số tiền 349,000 VND lúc …"
+      .replace(/\s+(?:số tiền|so tien)\b.*$/iu, '')
       .replace(/\s+/g, ' ').trim();
     description = description.slice(0, 80) || null;
   }
