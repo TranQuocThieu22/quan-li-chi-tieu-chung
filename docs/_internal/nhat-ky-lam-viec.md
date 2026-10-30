@@ -36,11 +36,13 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3 vá lỗ hổng; form nhập từ thông báo để trống tên món; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; trang xếp danh mục khoản cũ; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
-> quá, bỏ để tôi tự nhập nội dung đi còn nội dung kia hiển thị thêm bên dưới để biết là món gì thôi"* → *"đẩy production"*.
+> quá, bỏ để tôi tự nhập nội dung đi còn nội dung kia hiển thị thêm bên dưới để biết là món gì thôi"* → *"đẩy production"* →
+> *"làm gì tiếp"* → *"bỏ này đi nhiều quá sao thêm hết, bạn chỉnh giúp được không: Chọn lại danh mục cho các khoản chi chung cũ"* →
+> *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"*.
 
 **Đã làm**
 
@@ -65,6 +67,14 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   tên lạ, gõ "cà phê" → *Ăn uống*, xoá trống → về *Hóa đơn*. Chưa bấm *Lưu* — phần gửi đi không đổi.
 - Commit *chore: take the AGENTS.md block next dev 16.4 rewrites*: `next dev` bản 16.4 tự viết lại khối giữa
   `nextjs-agent-rules` (`node_modules/next/dist/server/lib/generate-agent-files.js`); commit để cây sạch, quy ước bên dưới không đổi.
+  Vercel deploy thành công.
+- Commit *feat: suggest categories for old shared expenses in one pass* (lượt đẩy thứ tư): máy Claude không vào được database
+  production nên làm trang `/recategorize` thay vì sửa thẳng. Khoản chung `category = 'other'` tạo trước 29/10 14:00 giờ VN
+  (`CATEGORIES_SINCE` trong `src/lib/recategorize.ts`; danh mục lên lúc 13:27) kèm đề xuất `proposeSharedCategory`: khoản cùng tên
+  đã có danh mục, không thì từ khoá. Mỗi dòng một ô chọn, để *Khác* là không đổi; lưu qua `/api/expenses/bulk` (ghi lịch sử).
+  Dòng nhắc trên trang chủ khi còn khoản đoán được; lưu xong đặt cookie `recategorized-<sổ>` để thôi nhắc. Thêm "vòi nước" vào
+  Nhà cửa ("Sửa vòi nước" ra Hóa đơn vì "nước"; ca thử thêm trước). Kiểm ở máy với 52 khoản mẫu lùi `createdAt`: đổi đúng 52
+  khoản, 52 dòng lịch sử `UPDATE`, khoản để Khác giữ nguyên, dòng nhắc mất. 46/46 test.
 
 **Quan sát**
 
