@@ -36,7 +36,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
@@ -44,7 +44,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 > *"làm gì tiếp"* → *"bỏ này đi nhiều quá sao thêm hết, bạn chỉnh giúp được không: Chọn lại danh mục cho các khoản chi chung cũ"* →
 > *"đẩy production rồi làm cho chức năng up tài khoản ngân hàng rồi QR của mình để người khác tiện chuyển"* → *"người trả và ngày
 > mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"* → *"làm gì tiếp"* → *"ổn rồi làm gì tiếp"* → *"làm đi"* →
-> *"đẩy production"*.
+> *"đẩy production"* → *"làm gì tiếp"* → *"làm prisma 7"* → *"đẩy production"*.
 
 **Đã làm**
 
@@ -91,7 +91,15 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 - Chủ sản phẩm thử trên điện thoại: *"ổn rồi"* (chuyển khoản QR, xếp danh mục, các trang) — xoá ba dòng ở việc còn treo.
 - Commit *feat: settle a whole month in one tap* (lượt đẩy thứ sáu): nút *Đã thanh toán xong tháng N* trong thẻ *Cần thanh toán*
   (hiện khi còn nợ, cả khi người nhận chưa cài QR), hỏi lại kèm số khoản + tổng, gọi `/api/expenses/bulk` `settle` cho mọi
-  khoản chưa trả của tháng đang xem. Kiểm ở máy: 8 khoản → đã trả, 8 dòng lịch sử `SETTLE`, thẻ về *Không ai nợ ai*.
+  khoản chưa trả của tháng đang xem. Kiểm ở máy: 8 khoản → đã trả, 8 dòng lịch sử `SETTLE`, thẻ về *Không ai nợ ai*. READY.
+- Commit *chore: upgrade to Prisma 7* (lượt đẩy thứ bảy): 6.19.3 → 7.10.1 (bản ổn định; dist-tag `latest` trên npm đang là
+  8.0.0-rc), `npm audit` 0 lỗ hổng. Generator `prisma-client` → `src/generated/prisma` (đã .gitignore sẵn), import
+  `@/generated/prisma/client`; `src/lib/db.ts` dùng `@prisma/adapter-pg`; `prisma.config.ts` giữ url (không còn trong schema,
+  không tự đọc .env); build `prisma generate && prisma db push && next build`, `db:push` thêm `prisma generate`; script `seed`,
+  `dev:login` chạy qua `tsx`; seed xoá thêm `PaymentProfile` (lỗi có từ lượt VietQR). Schema không đổi bảng/cột. Kiểm ở máy: lệnh
+  build của Vercel chạy trọn, `next start` 13 trang/API 200, thêm/sửa/xoá, notify (cả trùng), payment, bulk settle; `P2002` vẫn
+  `instanceof Prisma.PrismaClientKnownRequestError`. Chưa thử được kết nối Neon thật ở máy (không có mật khẩu production).
+- Vercel: production và preview dùng **cùng** database Neon (`DATABASE_URL` pooler, `DATABASE_URL_UNPOOLED`) — ghi vào `AGENTS.md`.
 
 **Quan sát**
 
