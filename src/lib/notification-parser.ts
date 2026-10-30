@@ -8,6 +8,8 @@ export type ParsedNotification = {
   amount: number | null;
   direction: 'OUT' | 'IN' | null;
   description: string | null;
+  // Quẹt thẻ bằng ngoại tệ ("22.22 USD"): amount để trống, người dùng tự điền số VND bị trừ lúc xác nhận
+  foreignAmount: string | null;
 };
 
 // Có đơn vị (VND, đ, ₫) hoặc có dấu phân cách nghìn thì mới coi là số tiền, để "-2026" trong ngày tháng không bị nhận nhầm
@@ -25,8 +27,9 @@ const PROMO_BEFORE = /\b(len den|len toi|toi da|up to)\s*$/i;
 const AD_MARK = /\[\s*QC\s*\]|\(\s*QC\s*\)|(?:^|\n)\s*QC\s*[:\-–|]/i;
 // Giao dịch bị từ chối: VCB "Thẻ … sử dụng không thành công … REJECTED" — tiền không đi
 const FAILED = /\b(khong thanh cong|rejected|bi tu choi|that bai)\b/;
-// Quẹt thẻ bằng ngoại tệ (VCB "số tiền 22.22 USD"): không biết số VND bị trừ, đừng lấy nhầm số dư phía sau
-const FOREIGN_AMOUNT = /\bso tien \d+(?: \d+)* (usd|eur|gbp|jpy|sgd|aud|cad|cny|krw|thb|twd)\b/;
+// Quẹt thẻ bằng ngoại tệ (VCB "số tiền 22.22 USD"): không biết số VND bị trừ, đừng lấy nhầm số dư phía sau.
+// So trên bản bỏ dấu nhưng còn dấu chấm phẩy của con số
+const FOREIGN_AMOUNT = /\bso tien\s+(\d(?:[\d.,]*\d)?)\s?(usd|eur|gbp|jpy|sgd|aud|cad|cny|krw|thb|twd)\b/i;
 
 const OUT_WORDS = ['thanh toan', 'chuyen tien', 'chuyen khoan', 'da chuyen', 'tru', 'rut tien', 'chi tieu', 'giam', 'payment',
   'paid', 'debit', 'mua', 'nap tien', 'su dung'];
@@ -54,13 +57,14 @@ function hasWord(plain: string, words: string[]) {
 }
 
 export function parseBankNotification(raw: string): ParsedNotification {
-  if (AD_MARK.test(raw)) return { amount: null, direction: null, description: null };
+  if (AD_MARK.test(raw)) return { amount: null, direction: null, description: null, foreignAmount: null };
   const text = raw.normalize('NFC').replace(/\s+/g, ' ').trim();
   // So từ khoá trên bản bỏ dấu, chữ thường, chỉ còn chữ và số — ngân hàng viết có dấu hay không đều khớp
   const plain = stripDiacritics(text).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-  if (FAILED.test(plain)) return { amount: null, direction: null, description: null };
-  const foreign = FOREIGN_AMOUNT.test(plain);
+  if (FAILED.test(plain)) return { amount: null, direction: null, description: null, foreignAmount: null };
+  const foreignMatch = stripDiacritics(text).match(FOREIGN_AMOUNT);
+  const foreign = Boolean(foreignMatch);
 
   let amount: number | null = null;
   let direction: ParsedNotification['direction'] = null;
@@ -83,10 +87,10 @@ export function parseBankNotification(raw: string): ParsedNotification {
       amount = toNumber(digits);
       if (amount) break;
     }
-    if (amount) {
-      // Tiền vào xét trước: "Nhận tiền ... từ chuyển khoản" có cả hai loại từ
-      direction = hasWord(plain, IN_WORDS) ? 'IN' : hasWord(plain, OUT_WORDS) ? 'OUT' : null;
-    }
+  }
+  if (!direction && (amount || foreign)) {
+    // Tiền vào xét trước: "Nhận tiền ... từ chuyển khoản" có cả hai loại từ
+    direction = hasWord(plain, IN_WORDS) ? 'IN' : hasWord(plain, OUT_WORDS) ? 'OUT' : null;
   }
 
   const asciiText = stripDiacritics(text);
@@ -118,5 +122,6 @@ export function parseBankNotification(raw: string): ParsedNotification {
     description = description.slice(0, 80) || null;
   }
 
-  return { amount, direction, description };
+  const foreignAmount = foreignMatch ? `${foreignMatch[1]} ${foreignMatch[2].toUpperCase()}` : null;
+  return { amount, direction, description, foreignAmount };
 }

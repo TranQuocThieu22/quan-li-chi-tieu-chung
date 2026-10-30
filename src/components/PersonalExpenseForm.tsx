@@ -8,7 +8,8 @@ import { initialSuggestion, useCategorySuggestion } from './useCategorySuggestio
 
 type Initial = { item: string; amount: number; category: string; date: string; notes: string };
 // Điền sẵn từ một giao dịch ngân hàng / MoMo đang chờ xác nhận
-type Prefill = { importId: number; description: string; amount: number; date: string };
+// amount null: quẹt thẻ ngoại tệ (foreignAmount "22.22 USD"), người dùng tự điền số VND bị trừ
+type Prefill = { importId: number; foreignAmount: string | null; description: string; amount: number | null; date: string };
 
 const DEFAULT_CATEGORY = 'food';
 
@@ -39,7 +40,7 @@ export default function PersonalExpenseForm({
   });
   const [form, setForm] = useState({
     item: initial?.item ?? '',
-    amount: initial ? String(initial.amount) : prefill ? String(prefill.amount) : '',
+    amount: initial ? String(initial.amount) : prefill?.amount ? String(prefill.amount) : '',
     category: initial?.category ?? start?.category ?? DEFAULT_CATEGORY,
     date: initial?.date ?? prefill?.date ?? new Date().toISOString().split('T')[0],
     notes: initial?.notes ?? '',
@@ -87,10 +88,13 @@ export default function PersonalExpenseForm({
           className="input input-amount"
           placeholder="0"
           required
-          autoFocus={!expenseId && !prefill}
+          autoFocus={!expenseId && !prefill?.amount}
           value={displayAmount}
           onChange={(e) => setForm({ ...form, amount: e.target.value.replace(/\D/g, '') })}
         />
+        {prefill?.foreignAmount && (
+          <p className="field-note">Thẻ trả {prefill.foreignAmount} — nhập số tiền VND bị trừ (xem app ngân hàng).</p>
+        )}
       </div>
 
       <div className="form-group">
@@ -101,7 +105,7 @@ export default function PersonalExpenseForm({
           className="input"
           placeholder="VD: Cà phê sáng"
           required
-          autoFocus={!!prefill}
+          autoFocus={!!prefill?.amount}
           value={form.item}
           onChange={(e) => changeItem(e.target.value)}
         />

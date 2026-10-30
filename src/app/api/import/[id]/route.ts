@@ -16,8 +16,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { count } = await prisma.importedTransaction.updateMany({
     where: action === 'dismiss'
       ? { id, userId: user.id, status: 'PENDING' }
-      // Mục không đọc được số tiền thì không đưa về chờ được (thiếu số tiền để điền sẵn)
-      : { id, userId: user.id, status: { in: ['DISMISSED', 'INCOMING'] }, amount: { not: null } },
+      // UNPARSED không đưa về chờ được (không có gì để điền sẵn); mục đã bỏ qua thì có số tiền hoặc là quẹt thẻ ngoại tệ
+      : { id, userId: user.id, status: { in: ['DISMISSED', 'INCOMING'] } },
     data: action === 'dismiss'
       ? { status: 'DISMISSED', resolvedAt: new Date() }
       : { status: 'PENDING', resolvedAt: null },

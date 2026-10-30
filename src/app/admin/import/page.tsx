@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader';
 import ImportSetup from '@/components/ImportSetup';
 import ImportActions from '@/components/ImportActions';
 import { getCurrentUser } from '@/lib/auth';
+import { foreignAmountOf } from '@/lib/import';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,11 +59,11 @@ export default async function ImportSettingsPage() {
                     <div className="expense-meta">
                       {t.receivedAt.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </div>
-                    {['DISMISSED', 'INCOMING'].includes(t.status) && t.amount && (
+                    {['DISMISSED', 'INCOMING'].includes(t.status) && (
                       <div className="chip-actions"><ImportActions id={t.id} action="restore" /></div>
                     )}
                   </div>
-                  <span className="row-value">{t.amount ? formatMoney(t.amount) : '—'}</span>
+                  <span className="row-value">{t.amount ? formatMoney(t.amount) : foreignAmountOf(t) ?? '—'}</span>
                 </li>
               );
             })}

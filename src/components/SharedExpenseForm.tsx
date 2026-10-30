@@ -24,7 +24,8 @@ const MAX_INPUT_SIZE = 25 * 1024 * 1024;
 const MAX_STORED_SIZE = 5 * 1024 * 1024;
 
 // Điền sẵn từ một giao dịch ngân hàng / MoMo đang chờ xác nhận
-type Prefill = { importId: number; description: string; amount: number; date: string };
+// amount null: quẹt thẻ ngoại tệ (foreignAmount "22.22 USD"), người dùng tự điền số VND bị trừ
+type Prefill = { importId: number; foreignAmount: string | null; description: string; amount: number | null; date: string };
 
 const DEFAULT_CATEGORY = 'food';
 
@@ -61,7 +62,7 @@ export default function SharedExpenseForm({
   });
   const [form, setForm] = useState({
     item: initial?.item ?? '',
-    amount: initial ? String(initial.amount) : prefill ? String(prefill.amount) : '',
+    amount: initial ? String(initial.amount) : prefill?.amount ? String(prefill.amount) : '',
     category: initial?.category ?? start?.category ?? DEFAULT_CATEGORY,
     payerId: String(initial?.payerId ?? (members.find(m => m.isMe) ?? members[0])?.id ?? ''),
     isPayOnBehalf: initial?.isPayOnBehalf ?? false,
@@ -154,10 +155,13 @@ export default function SharedExpenseForm({
           className="input input-amount"
           placeholder="0"
           required
-          autoFocus={!expenseId && !prefill}
+          autoFocus={!expenseId && !prefill?.amount}
           value={displayAmount}
           onChange={(e) => setForm({ ...form, amount: e.target.value.replace(/\D/g, '') })}
         />
+        {prefill?.foreignAmount && (
+          <p className="field-note">Thẻ trả {prefill.foreignAmount} — nhập số tiền VND bị trừ (xem app ngân hàng).</p>
+        )}
       </div>
 
       <div className="form-group">
@@ -168,7 +172,7 @@ export default function SharedExpenseForm({
           className="input"
           placeholder="VD: Tiền điện tháng 5"
           required
-          autoFocus={!!prefill}
+          autoFocus={!!prefill?.amount}
           value={form.item}
           onChange={(e) => changeItem(e.target.value)}
         />

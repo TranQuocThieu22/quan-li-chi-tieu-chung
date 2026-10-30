@@ -68,7 +68,9 @@ export async function POST(request: Request) {
 
   // Có ngân hàng đặt số tiền ở tiêu đề, nên đọc cả hai
   const parsed = parseBankNotification(`${title}\n${text}`);
-  const status = !parsed.amount ? 'UNPARSED' : parsed.direction === 'IN' ? 'INCOMING' : 'PENDING';
+  // Quẹt thẻ ngoại tệ không có số VND nhưng vẫn vào hộp chờ để người dùng tự điền
+  const status = parsed.direction === 'IN' && parsed.amount ? 'INCOMING'
+    : parsed.amount || parsed.foreignAmount ? 'PENDING' : 'UNPARSED';
   const dedupeKey = createHash('sha256')
     .update([source, title, text, Math.floor(occurredAt.getTime() / DEDUPE_WINDOW_MS)].join('|'))
     .digest('hex');

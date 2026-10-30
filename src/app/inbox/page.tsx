@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import ImportActions from '@/components/ImportActions';
 import { getActivePartnerships, getCurrentUser } from '@/lib/auth';
+import { foreignAmountOf } from '@/lib/import';
 import { getSharedCategory, guessSharedCategory } from '@/lib/shared';
 
 export const dynamic = 'force-dynamic';
@@ -60,7 +61,7 @@ export default async function InboxPage() {
                     <div className="expense-body">
                       <div className="expense-top">
                         <div className="expense-title">{label}</div>
-                        <div className="expense-amount">{formatMoney(t.amount ?? 0)}</div>
+                        <div className="expense-amount">{t.amount ? formatMoney(t.amount) : foreignAmountOf(t) ?? '—'}</div>
                       </div>
                       <div className="expense-meta">{t.source} • {formatTime(t.occurredAt)}</div>
                       <details className="import-raw">

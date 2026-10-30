@@ -3,7 +3,14 @@ import { parseBankNotification } from './notification-parser';
 
 // Mỗi ca là một thông báo (tiêu đề + nội dung như MacroDroid gửi lên). Thông báo thật bị đọc sai thì thêm vào đây
 // trước, rồi mới sửa bộ đọc — để sửa cho ngân hàng này không làm hỏng ngân hàng khác. Che số tài khoản trước khi dán.
-const CASES: { name: string; text: string; amount: number | null; direction: 'OUT' | 'IN' | null; description?: string | null }[] = [
+const CASES: {
+  name: string;
+  text: string;
+  amount: number | null;
+  direction: 'OUT' | 'IN' | null;
+  description?: string | null;
+  foreignAmount?: string | null;
+}[] = [
   {
     name: 'Vietcombank — số có dấu ngay sau "Số dư TK", nội dung sau Ref',
     text: 'Biến động số dư\nSố dư TK VCB 0123456789 -1,191,000 VND lúc 29-10-2026 10:15:30. Số dư 8,234,567 VND. Ref MBVCB.1234.ABCD.Thanh toan tien dien thang 10',
@@ -189,11 +196,12 @@ const CASES: { name: string; text: string; amount: number | null; direction: 'OU
     description: 'VNPAY*THENEWGYM 1900 55 55 77VN',
   },
   {
-    name: 'VCB — quẹt thẻ bằng ngoại tệ: không lấy số dư VND làm số tiền',
+    name: 'VCB — quẹt thẻ bằng ngoại tệ: không lấy số dư VND làm số tiền, giữ số ngoại tệ để người dùng tự điền VND',
     text: 'Thẻ VCB Visa 411111...1111 sử dụng tại ANTHROPIC* CLAUDE SUB +14150000000 US số tiền 22.22 USD lúc 27-10-2026 15:13:03. Số dư TK trích nợ tạm tính 0123456789: 31,691VND',
     amount: null,
-    direction: null,
+    direction: 'OUT',
     description: 'ANTHROPIC* CLAUDE SUB +14150000000 US',
+    foreignAmount: '22.22 USD',
   },
   {
     name: 'VCB — quẹt thẻ không thành công (REJECTED) không phải giao dịch',
@@ -224,6 +232,7 @@ describe('parseBankNotification', () => {
       expect(parsed.amount).toBe(c.amount);
       expect(parsed.direction).toBe(c.direction);
       if (c.description !== undefined) expect(parsed.description).toBe(c.description);
+      expect(parsed.foreignAmount).toBe(c.foreignAmount ?? null);
     });
   }
 });
