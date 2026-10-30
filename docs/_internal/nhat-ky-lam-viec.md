@@ -36,7 +36,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; mẫu ACB, VCB thật; lên production
+## 30/10/2026 — Sửa `package-lock.json`; nâng Next 16.4.3; form nhập từ thông báo để trống tên món; xếp danh mục khoản cũ; mã VietQR nhận tiền; nút thanh toán xong tháng; Prisma 7; mẫu ACB, VCB thật; thẻ ngoại tệ vào hộp chờ; lên production
 
 > Chủ sản phẩm: *"làm gì tiếp"* → *"Sửa package-lock.json để npm ci chạy được…"* → *"đẩy production"* → *"làm gì tiếp"* →
 > *"làm đi"* (xem lỗ hổng `npm audit`) → *"đẩy production"* → *"làm gì tiếp"* → *"hiện tại nội dung tự động dài dòng không liên quan
@@ -46,7 +46,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 > mua tách xuống đi để chung 1 hàng mất chữ"* → *"đẩy production"* → *"làm gì tiếp"* → *"ổn rồi làm gì tiếp"* → *"làm đi"* →
 > *"đẩy production"* → *"làm gì tiếp"* → *"làm prisma 7"* → *"đẩy production"* → *"làm gì tiếp"* →
 > (gửi 3 ảnh mục Giao dịch của ACB ONE, 28–30/10) → *"đẩy production"* → (gửi 3 ảnh mục Biến động của VCB) →
-> *"đẩy production"*.
+> *"đẩy production"* → *"làm gì tiếp"* → *"làm đi"* (thẻ ngoại tệ vào *Chờ xác nhận*) → *"đẩy production"*.
 
 **Đã làm**
 
@@ -110,7 +110,12 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   họ tên, mã). `Ref <TÊN>…` không có dãy mã chấm giờ đọc được; chuyển đi `…CT tu <TK> <TÊN> toi <TK> <NGƯỜI NHẬN> tai <NH>` lấy
   người nhận; thẻ "sử dụng tại … số tiền …" là tiền ra, cắt nội dung ở "số tiền"; "không thành công"/REJECTED bỏ qua; số tiền
   ngoại tệ ("22.22 USD") để *Không đọc được* thay vì lấy nhầm "Số dư TK trích nợ tạm tính …: 31,691VND" (`BALANCE_BEFORE` tới 6
-  từ). 66/66.
+  từ). 66/66. READY (`4a94056`, mang theo cả `e739588`).
+- Commit *feat: queue foreign-currency card payments for a VND amount* (lượt đẩy thứ mười): bộ đọc trả thêm `foreignAmount`
+  ("22.22 USD") và chiều tiền theo từ khoá; `notify` cho vào `PENDING` dù `amount` null; *Chờ xác nhận* và *Tự động nhập* hiện số
+  ngoại tệ (đọc lại từ `text`, không đổi schema — `foreignAmountOf` trong `src/lib/import.ts`); form để trống, focus ô số tiền, dòng
+  *"Thẻ trả 22.22 USD — nhập số tiền VND bị trừ"*; *Đưa lại vào chờ* bỏ điều kiện có số tiền. Kiểm ở máy: thông báo VCB USD → hộp
+  chờ "22.22 USD" → form Cá nhân → lưu 588.000 → `ACCEPTED`. 66/66.
 - Vercel: production và preview dùng **cùng** database Neon (`DATABASE_URL` pooler, `DATABASE_URL_UNPOOLED`) — ghi vào `AGENTS.md`.
 
 **Quan sát**
