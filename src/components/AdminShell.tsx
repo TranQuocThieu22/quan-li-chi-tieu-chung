@@ -33,6 +33,7 @@ export default function AdminShell({
     { href: '/admin', label: 'Liên kết tài khoản' },
     { href: '/admin/logs', label: 'Nhật ký hoạt động' },
     { href: '/admin/import', label: 'Tự động nhập' },
+    { href: '/admin/payment', label: 'Nhận tiền' },
     ...(isSuperAdmin ? [{ href: '/admin/superadmin', label: 'Superadmin' }] : []),
   ];
 

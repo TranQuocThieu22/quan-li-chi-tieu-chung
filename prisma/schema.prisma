@@ -27,6 +27,7 @@ model User {
   personalExpenses PersonalExpense[]
   personalBudgets  PersonalBudget[]
   importedTransactions ImportedTransaction[]
+  paymentProfile   PaymentProfile?
 
   // Không để @unique: thêm ràng buộc unique vào bảng đã có dữ liệu làm db push đòi --accept-data-loss và hỏng build
   @@index([importTokenHash])
@@ -173,4 +174,17 @@ model ImportedTransaction {
 
   @@unique([userId, dedupeKey])
   @@index([userId, status])
+}
+
+// Tài khoản nhận tiền của một người: người cùng sổ thấy mã VietQR (kèm số tiền) ở thẻ "Cần thanh toán".
+// Bảng riêng để ảnh QR không bị tải theo User ở mọi request; bảng mới nên @unique không đụng dữ liệu cũ.
+model PaymentProfile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+  bankBin     String?  // mã ngân hàng NAPAS, xem src/lib/banks.ts
+  bankAccount String?
+  accountName String?  // tên chủ tài khoản, in hoa không dấu như trên app ngân hàng
+  qrImage     String?  // ảnh mã QR tự tải lên (MoMo, ví khác…), data URL base64
+  updatedAt   DateTime @updatedAt
 }

@@ -7,6 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import ImportBanner from '@/components/ImportBanner';
 import RecategorizeBanner from '@/components/RecategorizeBanner';
+import PaymentCard from '@/components/PaymentCard';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
@@ -110,7 +111,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const debtors = balances.filter(b => b.balance < -0.01).sort((a, b) => a.balance - b.balance); 
   const creditors = balances.filter(b => b.balance > 0.01).sort((a, b) => b.balance - a.balance); 
 
-  type DebtTransaction = { from: string, to: string, amount: number };
+  type DebtTransaction = { from: string, to: string, toId: number, amount: number };
   const transactions: DebtTransaction[] = [];
 
   let d = 0;
@@ -126,6 +127,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       transactions.push({
         from: debtor.name,
         to: creditor.name,
+        toId: creditor.id,
         amount: amount
       });
     }
@@ -136,6 +138,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     if (Math.abs(debtor.balance) < 0.01) d++;
     if (Math.abs(creditor.balance) < 0.01) c++;
   }
+
+  // Tài khoản nhận tiền của người được trả, để hiện mã QR kèm số tiền ngay dưới dòng nợ
+  const creditorUserIds = transactions
+    .map(t => members.find(m => m.id === t.toId)?.userId)
+    .filter((id): id is number => typeof id === 'number');
+  const profiles = creditorUserIds.length > 0
+    ? await prisma.paymentProfile.findMany({ where: { userId: { in: creditorUserIds } } })
+    : [];
+  const profileOf = (memberId: number) =>
+    profiles.find(p => p.userId === members.find(m => m.id === memberId)?.userId);
 
   return (
     <main className="container with-nav">
@@ -187,16 +199,29 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           </p>
         ) : (
           <ul className="debt-list">
-            {transactions.map((t, idx) => (
-              <li key={idx} className="debt-row">
-                <span className="debt-who">
-                  <strong>{t.from}</strong>
-                  <ArrowRightIcon />
-                  <strong>{t.to}</strong>
-                </span>
-                <span className="debt-amount">{formatMoney(t.amount)}</span>
-              </li>
-            ))}
+            {transactions.map((t, idx) => {
+              const profile = profileOf(t.toId);
+              return (
+                <li key={idx} className="debt-row">
+                  <span className="debt-who">
+                    <strong>{t.from}</strong>
+                    <ArrowRightIcon />
+                    <strong>{t.to}</strong>
+                  </span>
+                  <span className="debt-amount">{formatMoney(t.amount)}</span>
+                  {profile && (
+                    <details className="pay">
+                      <summary>Chuyển khoản cho {t.to}</summary>
+                      <PaymentCard
+                        profile={profile}
+                        amount={t.amount}
+                        note={`Chi tieu chung thang ${parseInt(monthStr, 10)}/${year}`}
+                      />
+                    </details>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

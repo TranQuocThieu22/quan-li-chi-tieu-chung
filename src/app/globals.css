@@ -1496,6 +1496,62 @@ input[type='checkbox'] {
   background: var(--bg-color);
 }
 
+.debt-row:has(.pay) {
+  flex-wrap: wrap;
+}
+
+/* Chuyển khoản cho người được trả: mở ra thấy mã VietQR kèm số tiền */
+.pay {
+  flex-basis: 100%;
+}
+
+.pay summary,
+.pay-more summary {
+  cursor: pointer;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pay-card {
+  margin-top: 0.75rem;
+}
+
+/* Nền trắng quanh mã để app ngân hàng quét được cả khi giao diện tối */
+.pay-qr {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.pay-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pay-info {
+  margin-top: 0.75rem;
+}
+
+.pay-info .row-value {
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pay-more {
+  margin-top: 0.75rem;
+}
+
+.pay-more .pay-qr {
+  margin-top: 0.625rem;
+}
+
 .debt-who {
   display: flex;
   align-items: center;
