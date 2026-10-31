@@ -29,5 +29,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 4. Khi tới mốc
 
+- [ ] **Gỡ `scripts/move-new-categories.mjs` khỏi lệnh build** (31/10): sau khi log build Vercel lượt đẩy 31/10 có dòng
+      `move-new-categories: … cá nhân / sổ chung …` (đã chạy trên production). Để lại thì vô hại (tự bỏ qua) nhưng tốn một lần đọc database mỗi build.
+
 - [ ] **Khi trang chủ chậm — tải ảnh hóa đơn khi bấm xem thay vì nhúng sẵn** (28/10): ảnh vẫn lưu base64 trong `Expense.imageUrl`
       và trang chủ nhúng cả ảnh của tháng. Từ 29/10 ảnh mới được thu về 1600 px JPEG (~200–400 KB) lúc chọn, nhưng ảnh cũ giữ nguyên.
