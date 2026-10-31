@@ -6,12 +6,16 @@ import LedgerSwitcher from '@/components/LedgerSwitcher';
 import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import ImportBanner from '@/components/ImportBanner';
+import BudgetAlerts from '@/components/BudgetAlerts';
+import BudgetEditor from '@/components/BudgetEditor';
 import RecategorizeBanner from '@/components/RecategorizeBanner';
 import PaymentCard from '@/components/PaymentCard';
 import SettleMonthButton from '@/components/SettleMonthButton';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
+import { BUDGET_COLORS, budgetStatus, vietnamToday } from '@/lib/budget';
+import { getSharedBudget } from '@/lib/budget-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +23,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const { user, partnership, partnerships } = await requirePartnershipPage();
 
   const resolvedParams = await searchParams;
-  const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
+  const month = resolvedParams.month || vietnamToday().month; // YYYY-MM, theo giờ Việt Nam
   
   const [year, monthStr] = month.split('-');
   const start = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
@@ -151,6 +155,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const profileOf = (memberId: number) =>
     profiles.find(p => p.userId === members.find(m => m.id === memberId)?.userId);
 
+  // Ngân sách sổ so với mọi khoản trong tháng, kể cả đã trả và mua giùm — đều là tiền đã chi
+  const sharedBudget = await getSharedBudget(partnership.id, month);
+  const monthSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const sharedStatus = sharedBudget ? budgetStatus(monthSpent, sharedBudget.amount) : null;
+  const formatMonth = (value: string) => `${value.split('-')[1]}/${value.split('-')[0]}`;
+
   return (
     <main className="container with-nav">
       <PageHeader
@@ -165,6 +175,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
       <ImportBanner userId={user.id} />
       <RecategorizeBanner partnershipId={partnership.id} />
+      <BudgetAlerts userId={user.id} page="shared" />
 
       <MonthSelector />
 
@@ -178,6 +189,31 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           <div className="hero-meta">
             Không tính {settledExpenses.length} khoản đã trả ({formatMoney(settledTotal)})
           </div>
+        )}
+
+        <hr className="divider" />
+
+        <div className="card-head">
+          <div className="card-title">Ngân sách sổ chung tháng {formatMonth(month)}</div>
+          <BudgetEditor month={month} amount={sharedBudget?.amount ?? null} partnershipId={partnership.id} />
+        </div>
+        {sharedBudget && sharedStatus ? (
+          <>
+            <div className="bar-head">
+              <span className="num">{formatMoney(monthSpent)} <span className="muted">/ {formatMoney(sharedBudget.amount)}</span></span>
+              <strong style={{color: BUDGET_COLORS[sharedStatus.level]}}>{sharedStatus.percent}%</strong>
+            </div>
+            <div className="progress lg" role="progressbar" aria-label="Mức sử dụng ngân sách sổ chung" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(sharedStatus.percent, 100)}>
+              <div className="progress-bar" style={{width: `${Math.min(sharedStatus.percent, 100)}%`, background: BUDGET_COLORS[sharedStatus.level]}} />
+            </div>
+            <p className="hero-meta mt-2">
+              {sharedStatus.remaining >= 0 ? `Còn lại ${formatMoney(sharedStatus.remaining)}` : `Vượt ngân sách ${formatMoney(-sharedStatus.remaining)}`}
+              {' • tính mọi khoản, kể cả đã trả và mua giùm'}
+              {sharedBudget.from !== month && ` • áp dụng từ tháng ${formatMonth(sharedBudget.from)}`}
+            </p>
+          </>
+        ) : (
+          <p className="hero-meta">Chưa đặt ngân sách chung cho sổ này.</p>
         )}
 
         <hr className="divider" />

@@ -2,13 +2,14 @@ import prisma from '@/lib/db';
 import MonthSelector from '@/components/MonthSelector';
 import PageHeader from '@/components/PageHeader';
 import { getPartner, requirePartnershipPage } from '@/lib/auth';
+import { vietnamToday } from '@/lib/budget';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLogsPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const { user, partnership } = await requirePartnershipPage();
   const resolvedParams = await searchParams;
-  const month = resolvedParams.month || new Date().toISOString().slice(0, 7); // YYYY-MM
+  const month = resolvedParams.month || vietnamToday().month; // YYYY-MM, theo giờ Việt Nam
   
   const [year, monthStr] = month.split('-');
   const start = new Date(parseInt(year), parseInt(monthStr) - 1, 1);

@@ -7,11 +7,14 @@ import BudgetEditor from '@/components/BudgetEditor';
 import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import ImportBanner from '@/components/ImportBanner';
+import BudgetAlerts from '@/components/BudgetAlerts';
 import { PlusIcon } from '@/components/icons';
 import { getCurrentUser } from '@/lib/auth';
 import { getCategory, PERSONAL_CATEGORIES } from '@/lib/personal';
 import { getSharedSpendingShare } from '@/lib/spending';
 import { formatPercent } from '@/lib/shared';
+import { BUDGET_COLORS, budgetStatus, daysLeftInMonth, vietnamToday } from '@/lib/budget';
+import { getCategoryBudgets, getPersonalBudget } from '@/lib/budget-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +22,7 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
   const user = await getCurrentUser();
   if (!user) redirect('/login');
 
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const currentMonth = vietnamToday().month; // YYYY-MM, theo giờ Việt Nam
   const resolvedParams = await searchParams;
   const month = resolvedParams.month || currentMonth;
 
@@ -28,7 +31,7 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
   const end = new Date(parseInt(year), parseInt(monthStr), 1);
   const prevStart = new Date(parseInt(year), parseInt(monthStr) - 2, 1);
 
-  const [expenses, prevAggregate, shared, budgetRecord] = await Promise.all([
+  const [expenses, prevAggregate, shared, budgetRecord, categoryBudgets] = await Promise.all([
     prisma.personalExpense.findMany({
       where: { userId: user.id, isDeleted: false, date: { gte: start, lt: end } },
       orderBy: [{ date: 'desc' }, { id: 'desc' }],
@@ -39,10 +42,8 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
     }),
     getSharedSpendingShare(user.id, start, end),
     // Ngân sách của tháng này, hoặc ngân sách gần nhất đặt ở tháng trước đó
-    prisma.personalBudget.findFirst({
-      where: { userId: user.id, month: { lte: month } },
-      orderBy: { month: 'desc' },
-    }),
+    getPersonalBudget(user.id, month),
+    getCategoryBudgets(user.id, month),
   ]);
 
   const formatMoney = (amount: number) => {
@@ -57,22 +58,26 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
 
   const realTotal = total + shared.total;
 
-  const budget = budgetRecord && budgetRecord.amount > 0 ? budgetRecord.amount : null;
-  const inheritedFrom = budget && budgetRecord && budgetRecord.month !== month ? budgetRecord.month : null;
-  const budgetPercent = budget ? Math.round((realTotal / budget) * 100) : 0;
-  const remaining = budget ? budget - realTotal : 0;
-  const budgetColor = budgetPercent > 100 ? 'var(--danger-color)' : budgetPercent >= 80 ? 'var(--warning-color)' : 'var(--success-color)';
+  const budget = budgetRecord?.amount ?? null;
+  const inheritedFrom = budgetRecord && budgetRecord.from !== month ? budgetRecord.from : null;
+  const status = budget ? budgetStatus(realTotal, budget) : null;
+  const budgetPercent = status?.percent ?? 0;
+  const remaining = status?.remaining ?? 0;
+  const budgetColor = BUDGET_COLORS[status?.level ?? 'ok'];
 
   // Gợi ý mức chi mỗi ngày cho phần còn lại của tháng hiện tại
-  const daysLeft = month === currentMonth
-    ? new Date(parseInt(year), parseInt(monthStr), 0).getDate() - new Date().getDate() + 1
-    : 0;
+  const daysLeft = daysLeftInMonth(month);
   const dailyAllowance = budget && remaining > 0 && daysLeft > 0 ? Math.floor(remaining / daysLeft) : null;
 
+  // Danh mục có chi hoặc có đặt ngân sách; danh mục có ngân sách xếp trước
   const byCategory = PERSONAL_CATEGORIES
-    .map(c => ({ ...c, total: expenses.filter(exp => getCategory(exp.category).key === c.key).reduce((sum, exp) => sum + exp.amount, 0) }))
-    .filter(c => c.total > 0)
-    .sort((a, b) => b.total - a.total);
+    .map(c => ({
+      ...c,
+      total: expenses.filter(exp => getCategory(exp.category).key === c.key).reduce((sum, exp) => sum + exp.amount, 0),
+      budget: categoryBudgets[c.key]?.amount ?? null,
+    }))
+    .filter(c => c.total > 0 || c.budget)
+    .sort((a, b) => Number(Boolean(b.budget)) - Number(Boolean(a.budget)) || b.total - a.total);
 
   return (
     <main className="container with-nav">
@@ -86,6 +91,7 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
       />
 
       <ImportBanner userId={user.id} />
+      <BudgetAlerts userId={user.id} page="personal" />
 
       {!hasPartnership && (
         <div className="notice notice-info">
@@ -179,29 +185,43 @@ export default async function PersonalPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
-      {byCategory.length > 0 && (
-        <section className="card">
+      <section className="card">
+        <div className="card-head">
           <div className="card-title">Theo danh mục</div>
+          <Link href={`/personal/budgets?month=${month}`} className="text-btn">Ngân sách danh mục</Link>
+        </div>
+        {byCategory.length === 0 ? (
+          <p className="text-muted text-sm">Chưa có khoản chi nào trong tháng này.</p>
+        ) : (
           <ul className="bar-list">
             {byCategory.map(c => {
-              const percent = Math.round((c.total / total) * 100);
+              // Có ngân sách thì thanh đo theo ngân sách, không thì theo phần trong tổng chi cá nhân
+              const cat = c.budget ? budgetStatus(c.total, c.budget) : null;
+              const width = cat ? Math.min(cat.percent, 100) : total > 0 ? Math.round((c.total / total) * 100) : 0;
               return (
                 <li key={c.key}>
                   <div className="bar-head">
                     <span style={{fontWeight: 500}}>{c.icon} {c.label}</span>
                     <span className="num" style={{fontWeight: 600}}>
-                      {formatMoney(c.total)} <span className="muted">{formatPercent(c.total, total)}</span>
+                      {formatMoney(c.total)}{' '}
+                      {cat && c.budget ? (
+                        <span className="muted">
+                          / {formatMoney(c.budget)} <strong style={{color: BUDGET_COLORS[cat.level]}}>{cat.percent}%</strong>
+                        </span>
+                      ) : (
+                        <span className="muted">{formatPercent(c.total, total)}</span>
+                      )}
                     </span>
                   </div>
                   <div className="progress">
-                    <div className="progress-bar" style={{width: `${percent}%`}} />
+                    <div className="progress-bar" style={{width: `${width}%`, ...(cat ? {background: BUDGET_COLORS[cat.level]} : {})}} />
                   </div>
                 </li>
               );
             })}
           </ul>
-        </section>
-      )}
+        )}
+      </section>
 
       <div className="section-head">
         <h2 className="section-title">Danh sách chi tiêu</h2>

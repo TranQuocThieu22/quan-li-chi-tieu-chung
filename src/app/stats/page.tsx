@@ -4,6 +4,7 @@ import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import { getPartner, requirePartnershipPage } from '@/lib/auth';
 import { formatPercent, getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
+import { vietnamToday } from '@/lib/budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +71,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     orderBy: { date: 'desc' },
   });
 
-  const currentMonth = monthKey(new Date());
+  const currentMonth = vietnamToday().month;
   const latestMonth = expenses.length > 0 ? monthKey(expenses[0].date) : currentMonth;
   const earliestMonth = expenses.length > 0 ? monthKey(expenses[expenses.length - 1].date) : currentMonth;
   // Khoản nhập trước cho tháng sau vẫn được tính

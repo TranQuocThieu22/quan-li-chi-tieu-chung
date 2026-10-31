@@ -1378,6 +1378,23 @@ input[type='checkbox'] {
   color: var(--text-primary);
 }
 
+/* Cảnh báo ngân sách: vàng khi đã dùng từ 80%, đỏ khi vượt */
+.budget-alert.warn {
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.budget-alert.warn strong {
+  color: var(--warning-color);
+}
+
+.budget-alert.over {
+  background: var(--danger-soft);
+}
+
+.budget-alert.over strong {
+  color: var(--danger-color);
+}
+
 .import-banner-cta {
   color: var(--primary-color);
   font-weight: 600;

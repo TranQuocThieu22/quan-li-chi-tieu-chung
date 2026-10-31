@@ -3,8 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-// amount: ngân sách đang áp dụng cho tháng (kể cả dùng lại từ tháng trước), null nếu chưa có
-export default function BudgetEditor({ month, amount }: { month: string; amount: number | null }) {
+// amount: ngân sách đang áp dụng cho tháng (kể cả dùng lại từ tháng trước), null nếu chưa có.
+// Mặc định là ngân sách cá nhân; có partnershipId thì là ngân sách của sổ chung đó.
+export default function BudgetEditor({
+  month,
+  amount,
+  partnershipId,
+}: {
+  month: string;
+  amount: number | null;
+  partnershipId?: number;
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState('');
@@ -13,10 +22,10 @@ export default function BudgetEditor({ month, amount }: { month: string; amount:
   const save = async (next: number) => {
     setSaving(true);
     try {
-      const res = await fetch('/api/personal-budget', {
+      const res = await fetch(partnershipId ? '/api/shared-budget' : '/api/personal-budget', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month, amount: next }),
+        body: JSON.stringify({ month, amount: next, partnershipId }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

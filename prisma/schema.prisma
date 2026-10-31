@@ -28,6 +28,7 @@ model User {
   receivedInvites  Invitation[]  @relation("InviteTo")
   personalExpenses PersonalExpense[]
   personalBudgets  PersonalBudget[]
+  categoryBudgets  PersonalCategoryBudget[]
   importedTransactions ImportedTransaction[]
   paymentProfile   PaymentProfile?
 
@@ -79,6 +80,7 @@ model Partnership {
 
   members  Member[]
   expenses Expense[]
+  budgets  SharedBudget[]
 
   @@unique([userAId, userBId])
 }
@@ -189,4 +191,29 @@ model PaymentProfile {
   accountName String?  // tên chủ tài khoản, in hoa không dấu như trên app ngân hàng
   qrImage     String?  // ảnh mã QR tự tải lên (MoMo, ví khác…), data URL base64
   updatedAt   DateTime @updatedAt
+}
+
+// Ngân sách cá nhân theo danh mục (key trong PERSONAL_CATEGORIES), áp dụng từ tháng đặt cho tới lần đặt sau; amount 0 = tắt
+model PersonalCategoryBudget {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  category  String
+  month     String   // YYYY-MM
+  amount    Int
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, category, month])
+}
+
+// Ngân sách tháng của một sổ chung, ai trong sổ cũng đặt được; so với tổng mọi khoản trong sổ (kể cả đã trả, mua giùm)
+model SharedBudget {
+  id            Int         @id @default(autoincrement())
+  partnershipId Int
+  partnership   Partnership @relation(fields: [partnershipId], references: [id])
+  month         String      // YYYY-MM
+  amount        Int
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([partnershipId, month])
 }

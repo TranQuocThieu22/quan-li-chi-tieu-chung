@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { vietnamToday } from '@/lib/budget';
 
 const MONTHS = ['Th 1', 'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'Th 8', 'Th 9', 'Th 10', 'Th 11', 'Th 12'];
 
@@ -9,7 +10,8 @@ export default function MonthSelector() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const todayMonth = new Date().toISOString().slice(0, 7);
+  // Cùng tháng mặc định với server (giờ Việt Nam), toISOString là giờ UTC
+  const todayMonth = vietnamToday().month;
   const currentMonthParam = searchParams.get('month') || todayMonth;
 
   const [isOpen, setIsOpen] = useState(false);
