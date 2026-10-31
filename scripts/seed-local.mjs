@@ -34,7 +34,8 @@ const SHARED_ITEMS = {
   food: [['Ăn lẩu cuối tuần', 450_000, 900_000], ['Bún chả', 90_000, 160_000], ['Đặt pizza', 250_000, 420_000]],
   groceries: [['Đi chợ', 300_000, 850_000], ['Siêu thị cuối tuần', 600_000, 1_400_000]],
   bills: [['Tiền điện', 600_000, 1_300_000], ['Tiền nước', 120_000, 250_000], ['Internet', 220_000, 220_000]],
-  home: [['Tiền nhà', 5_000_000, 5_000_000], ['Sửa vòi nước', 150_000, 400_000]],
+  rent: [['Tiền nhà', 5_000_000, 5_000_000]],
+  home: [['Sửa vòi nước', 150_000, 400_000]],
   transport: [['Đổ xăng', 80_000, 150_000], ['Grab về quê', 350_000, 600_000]],
   shopping: [['Mua nồi chiên', 1_200_000, 1_900_000], ['Đồ gia dụng', 200_000, 700_000]],
   entertainment: [['Xem phim', 180_000, 320_000], ['Netflix', 260_000, 260_000]],
@@ -42,7 +43,7 @@ const SHARED_ITEMS = {
 };
 
 const PERSONAL_ITEMS = [
-  ['food', 'Cà phê sáng', 25_000, 60_000],
+  ['drinks', 'Cà phê sáng', 25_000, 60_000],
   ['food', 'Cơm trưa', 40_000, 80_000],
   ['transport', 'Grab đi làm', 35_000, 90_000],
   ['shopping', 'Áo thun', 150_000, 400_000],
@@ -60,10 +61,12 @@ async function main() {
   await prisma.expense.deleteMany();
   await prisma.member.deleteMany();
   await prisma.invitation.deleteMany();
+  await prisma.sharedBudget.deleteMany();
   await prisma.partnership.deleteMany();
   await prisma.personalExpense.deleteMany();
   await prisma.personalBudget.deleteMany();
   await prisma.paymentProfile.deleteMany();
+  await prisma.personalCategoryBudget.deleteMany();
   await prisma.user.deleteMany();
 
   const [me, partner, parents] = await Promise.all(
@@ -93,7 +96,7 @@ async function main() {
   let sharedCount = 0;
   for (let monthsAgo = 5; monthsAgo >= 0; monthsAgo--) {
     const lastDay = monthsAgo === 0 ? Math.max(1, now.getUTCDate()) : 28;
-    const entries = [['home', 'Tiền nhà', 5_000_000, 1], ['bills', 'Tiền điện', amountBetween(600_000, 1_300_000), 5]];
+    const entries = [['rent', 'Tiền nhà', 5_000_000, 1], ['bills', 'Tiền điện', amountBetween(600_000, 1_300_000), 5]];
     const extra = 6 + Math.floor(rand() * 6);
     for (let i = 0; i < extra; i++) {
       const category = pick(Object.keys(SHARED_ITEMS));
@@ -105,7 +108,7 @@ async function main() {
       if (day > lastDay) continue;
       const payer = rand() < 0.55 ? meMember : partnerMember;
       const other = payer === meMember ? partnerMember : meMember;
-      const onBehalf = category !== 'home' && rand() < 0.12;
+      const onBehalf = category !== 'rent' && rand() < 0.12;
       const settled = monthsAgo > 0 ? rand() < 0.85 : rand() < 0.3;
       const date = dayOf(monthsAgo, day);
       await prisma.expense.create({

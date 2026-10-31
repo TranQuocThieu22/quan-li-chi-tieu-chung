@@ -11,9 +11,19 @@ describe('guessSharedCategory', () => {
     ['Sữa chua', 'groceries'],
     ['Sửa chữa vòi nước', 'home'],
     ['Sửa vòi nước', 'home'],
-    ['Tiền nhà', 'home'],
+    ['Tiền nhà', 'rent'],
+    ['Thuê nhà tháng 11', 'rent'],
+    ['Tiền phòng trọ', 'rent'],
+    ['Sửa nhà', 'home'],
+    ['Mua nội thất', 'home'],
     ['Ăn nhà hàng', 'food'],
-    ['Trà sữa', 'food'],
+    ['Trà sữa', 'drinks'],
+    ['Cà phê sáng', 'drinks'],
+    ['Bia Tiger', 'drinks'],
+    ['Sinh tố bơ', 'drinks'],
+    ['Highlands Coffee', 'drinks'],
+    ['Cơm trưa', 'food'],
+    ['Ăn lẩu cuối tuần', 'food'],
     ['Grab về quê', 'transport'],
     ['Netflix', 'entertainment'],
     ['Mua nồi chiên', 'shopping'],
@@ -44,11 +54,19 @@ describe('guessSharedCategory', () => {
 
 describe('guessPersonalCategory', () => {
   it.each([
-    ['Phúc Long Coffee & Tea', 'food'],
+    ['Phúc Long Coffee & Tea', 'drinks'],
+    ['Cà phê sáng', 'drinks'],
+    ['Trà đá', 'drinks'],
+    ['Nước ngọt', 'drinks'],
+    ['Cơm trưa', 'food'],
+    ['Bánh mì', 'food'],
     ['Đi chợ', 'food'],
     ['Thuốc cảm', 'health'],
     ['Học phí tiếng Anh', 'education'],
-    ['Tiền nhà', 'bills'],
+    ['Tiền nhà', 'rent'],
+    ['Thuê nhà tháng 11', 'rent'],
+    ['Tiền trọ', 'rent'],
+    ['Tiền điện', 'bills'],
   ])('%s → %s', (item, expected) => {
     expect(guessPersonalCategory(item)).toBe(expected);
   });
@@ -70,7 +88,7 @@ describe('proposeSharedCategory', () => {
   const known = buildKnownCategories([{ item: 'Bánh mì cô Ba', category: 'groceries' }]);
 
   it('ưu tiên danh mục của khoản cùng tên đã chọn trước đó', () => {
-    // Từ khoá "bánh" sẽ đoán Ăn uống, nhưng khoản cùng tên đã được chọn Đi chợ
+    // Từ khoá "bánh" sẽ đoán Đồ ăn, nhưng khoản cùng tên đã được chọn Đi chợ
     expect(proposeSharedCategory('bánh mì  cô ba', known)).toBe('groceries');
   });
 
