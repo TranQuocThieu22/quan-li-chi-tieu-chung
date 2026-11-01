@@ -8,7 +8,10 @@ const formatMoney = (amount: number) =>
 
 // Sau khi chuyển khoản xong: đánh dấu đã trả mọi khoản chưa trả của tháng đang xem, để "Cần thanh toán" về 0.
 // Dùng API hàng loạt nên ghi lịch sử như khi đánh dấu tay.
-export default function SettleMonthButton({ ids, total, monthLabel }: { ids: number[]; total: number; monthLabel: string }) {
+// label: chữ trên nút (ngắn cho vừa màn hình điện thoại), hộp xác nhận vẫn ghi đủ monthLabel
+export default function SettleMonthButton({ ids, total, monthLabel, label }: {
+  ids: number[]; total: number; monthLabel: string; label?: string;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -35,7 +38,7 @@ export default function SettleMonthButton({ ids, total, monthLabel }: { ids: num
 
   return (
     <button type="button" className="btn btn-success btn-block mt-4" disabled={isPending} onClick={settle}>
-      {isPending ? 'Đang đánh dấu...' : `Đã thanh toán xong ${monthLabel}`}
+      {isPending ? 'Đang đánh dấu...' : label ?? `Đã thanh toán xong ${monthLabel}`}
     </button>
   );
 }

@@ -237,6 +237,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             ids={toSettle.map(exp => exp.id)}
             total={toSettle.reduce((sum, exp) => sum + exp.amount, 0)}
             monthLabel={`tháng ${parseInt(monthStr, 10)}${carriedMonths.length > 0 ? ' và nợ tháng trước' : ''}`}
+            label={carriedMonths.length > 0 ? `Đã trả hết nợ đến tháng ${parseInt(monthStr, 10)}` : undefined}
           />
         )}
       </section>

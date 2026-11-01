@@ -365,6 +365,11 @@ input[type='checkbox'] {
 
 .btn-block {
   width: 100%;
+  /* Nút toàn chiều ngang: chữ dài thì xuống dòng thay vì tràn ra ngoài */
+  white-space: normal;
+  text-align: center;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .btn-sm {
