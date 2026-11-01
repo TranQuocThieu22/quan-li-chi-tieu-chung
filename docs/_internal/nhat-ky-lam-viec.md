@@ -36,9 +36,10 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 01/11/2026 — Cần thanh toán cộng nợ chưa trả của các tháng trước; lên production
+## 01/11/2026 — Cần thanh toán cộng nợ chưa trả của các tháng trước; sửa chữ tràn khỏi nút; lên production
 
-> Chủ sản phẩm: *"Tháng này phải xem được với các tổng nợ tháng trước chưa thanh toán nữa cộng vào"* → *"đẩy production"*.
+> Chủ sản phẩm: *"Tháng này phải xem được với các tổng nợ tháng trước chưa thanh toán nữa cộng vào"* → *"đẩy production"* →
+> (gửi ảnh điện thoại) *"Bị lỗi chữ ra ngoài nút"* → *"đẩy production"*.
 
 **Đã làm**
 
@@ -51,6 +52,10 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 - Kiểm ở máy (Postgres + seed, Chrome ẩn 390 px): tháng 11 ra 6.756.000 ₫ = 1.925.000 + 2.200.000 − 156.000 + 2.500.000 +
   287.000 (11, 10, 9, 7, 6); xem tháng 10 thì không cộng tháng 11; tháng 6 không có nợ cũ thì như trước. Bấm nút: 8 khoản sang đã
   trả, 8 dòng lịch sử `SETTLE`, sổ kia không đổi. `tsc`, lint, `next build` sạch.
+- Commit *fix: keep the settle button label inside the button* (lượt đẩy thứ hai): trên điện thoại chủ sản phẩm, chữ *"Đã thanh
+  toán xong tháng 11 và nợ tháng trước"* tràn hai bên nút vì `.btn` có `white-space: nowrap`. Có nợ cũ thì nút ghi *"Đã trả hết nợ
+  đến tháng 11"* (prop `label` của `SettleMonthButton`; hộp xác nhận vẫn ghi đủ); `.btn-block` cho xuống dòng. Kiểm ở 360 px: chữ
+  mới một dòng, chữ dài cũ xuống hai dòng trong nút.
 
 **Quan sát**
 
