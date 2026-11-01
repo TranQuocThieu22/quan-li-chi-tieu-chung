@@ -1586,6 +1586,50 @@ input[type='checkbox'] {
   white-space: nowrap;
 }
 
+/* Nợ chia theo tháng khi có nợ chưa trả của tháng trước cộng vào */
+.carry-list {
+  list-style: none;
+  margin-top: 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.carry-row {
+  padding: 0.625rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.carry-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.carry-head {
+  font-weight: 600;
+}
+
+.carry-head a {
+  color: var(--primary-color);
+}
+
+.carry-head span {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.carry-debt {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.carry-debt .num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .balanced {
   display: flex;
   align-items: center;

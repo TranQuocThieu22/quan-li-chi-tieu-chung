@@ -16,6 +16,7 @@ import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
 import { BUDGET_COLORS, budgetStatus, vietnamToday } from '@/lib/budget';
 import { getSharedBudget } from '@/lib/budget-server';
+import { groupByMonth, settleDebts, type DebtTransaction } from '@/lib/debts';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,15 +32,22 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
   const members = partnership.members;
 
-  const expenses = await prisma.expense.findMany({
-    where: {
-      isDeleted: false,
-      partnershipId: partnership.id,
-      date: { gte: start, lt: end }
-    },
-    orderBy: { date: 'desc' },
-    include: { payer: true, beneficiary: true, histories: true }
-  });
+  const [expenses, previousUnsettled] = await Promise.all([
+    prisma.expense.findMany({
+      where: {
+        isDeleted: false,
+        partnershipId: partnership.id,
+        date: { gte: start, lt: end }
+      },
+      orderBy: { date: 'desc' },
+      include: { payer: true, beneficiary: true, histories: true }
+    }),
+    // Nợ chưa trả của các tháng trước tháng đang xem, cộng vào "Cần thanh toán"
+    prisma.expense.findMany({
+      where: { isDeleted: false, isSettled: false, partnershipId: partnership.id, date: { lt: start } },
+      select: { id: true, amount: true, payerId: true, beneficiaryId: true, date: true },
+    }),
+  ]);
 
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -59,91 +67,32 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     hasHistory: exp.histories.length > 0,
   }));
 
-  // Calculate totals
-  const memberTotals: Record<number, number> = {};
-  const memberBalances: Record<number, number> = {};
-  members.forEach(m => {
-    memberTotals[m.id] = 0;
-    memberBalances[m.id] = 0;
-  });
+  // Khoản đã trả không tính vào tổng chung và công nợ
+  const unsettledExpenses = expenses.filter(exp => !exp.isSettled);
+  const { sharedTotal: totalSharedExpenses, average, balances } = settleDebts(members, unsettledExpenses);
 
-  let totalSharedExpenses = 0;
-  
-  expenses.forEach(exp => {
-    // Khoản đã trả không tính vào tổng chung và công nợ
-    if (exp.isSettled) return;
-
-    if (memberTotals[exp.payerId] !== undefined) {
-      memberTotals[exp.payerId] += exp.amount;
-      memberBalances[exp.payerId] += exp.amount;
-    }
-    
-    if (exp.beneficiaryId) {
-      if (memberBalances[exp.beneficiaryId] !== undefined) {
-        memberBalances[exp.beneficiaryId] -= exp.amount;
-      }
-    } else {
-      totalSharedExpenses += exp.amount;
-    }
-  });
-
-  const average = members.length > 0 ? totalSharedExpenses / members.length : 0;
+  // Cần thanh toán = nợ tháng đang xem + nợ chưa trả của mọi tháng trước đó, bù trừ chung một lượt
+  const carriedMonths = groupByMonth(previousUnsettled).map(g => ({
+    month: g.month,
+    count: g.items.length,
+    transactions: settleDebts(members, g.items).transactions,
+  }));
+  const { transactions } = settleDebts(members, [...unsettledExpenses, ...previousUnsettled]);
+  const toSettle = [...unsettledExpenses, ...previousUnsettled];
 
   // Cùng tập khoản chi với tổng chi chung: chưa trả và không phải mua giùm
   const byCategory = SHARED_CATEGORIES
     .map(c => ({
       ...c,
-      total: expenses
-        .filter(exp => !exp.isSettled && !exp.beneficiaryId && getSharedCategory(exp.category).key === c.key)
+      total: unsettledExpenses
+        .filter(exp => !exp.beneficiaryId && getSharedCategory(exp.category).key === c.key)
         .reduce((sum, exp) => sum + exp.amount, 0),
     }))
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total);
 
   const settledExpenses = expenses.filter(exp => exp.isSettled);
-  const unsettledExpenses = expenses.filter(exp => !exp.isSettled);
   const settledTotal = settledExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  
-  const balances = members.map(m => {
-    const finalBalance = memberBalances[m.id] - average;
-    return {
-      id: m.id,
-      name: m.name,
-      totalPaid: memberTotals[m.id],
-      balance: finalBalance
-    };
-  });
-
-  const debtors = balances.filter(b => b.balance < -0.01).sort((a, b) => a.balance - b.balance); 
-  const creditors = balances.filter(b => b.balance > 0.01).sort((a, b) => b.balance - a.balance); 
-
-  type DebtTransaction = { from: string, to: string, toId: number, amount: number };
-  const transactions: DebtTransaction[] = [];
-
-  let d = 0;
-  let c = 0;
-  
-  while (d < debtors.length && c < creditors.length) {
-    const debtor = debtors[d];
-    const creditor = creditors[c];
-    
-    const amount = Math.min(-debtor.balance, creditor.balance);
-    
-    if (amount > 0.01) {
-      transactions.push({
-        from: debtor.name,
-        to: creditor.name,
-        toId: creditor.id,
-        amount: amount
-      });
-    }
-
-    debtor.balance += amount;
-    creditor.balance -= amount;
-
-    if (Math.abs(debtor.balance) < 0.01) d++;
-    if (Math.abs(creditor.balance) < 0.01) c++;
-  }
 
   // Tài khoản nhận tiền của người được trả, để hiện mã QR kèm số tiền ngay dưới dòng nợ
   const creditorUserIds = transactions
@@ -231,6 +180,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
       <section className="card">
         <div className="card-title">Cần thanh toán</div>
+        {carriedMonths.length > 0 && (
+          <p className="hero-meta" style={{ marginBottom: '0.625rem' }}>
+            Đã cộng nợ chưa trả của {carriedMonths.length} tháng trước
+          </p>
+        )}
         {transactions.length === 0 ? (
           <p className="balanced">
             <CheckCircleIcon width={20} height={20} /> Không ai nợ ai! Mọi thứ đã cân bằng.
@@ -253,7 +207,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
                       <PaymentCard
                         profile={profile}
                         amount={t.amount}
-                        note={`Chi tieu chung thang ${parseInt(monthStr, 10)}/${year}`}
+                        note={`Chi tieu chung ${carriedMonths.length > 0 ? 'den ' : ''}thang ${parseInt(monthStr, 10)}/${year}`}
                       />
                     </details>
                   )}
@@ -262,11 +216,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             })}
           </ul>
         )}
+        {carriedMonths.length > 0 && (
+          <ul className="carry-list">
+            <li className="carry-row">
+              <div className="carry-head">Tháng {formatMonth(month)} <span>· {unsettledExpenses.length} khoản chưa trả</span></div>
+              <DebtSummary transactions={settleDebts(members, unsettledExpenses).transactions} />
+            </li>
+            {carriedMonths.map(m => (
+              <li key={m.month} className="carry-row">
+                <div className="carry-head">
+                  <Link href={`/?month=${m.month}`}>Tháng {formatMonth(m.month)}</Link> <span>· {m.count} khoản chưa trả</span>
+                </div>
+                <DebtSummary transactions={m.transactions} />
+              </li>
+            ))}
+          </ul>
+        )}
         {transactions.length > 0 && (
           <SettleMonthButton
-            ids={unsettledExpenses.map(exp => exp.id)}
-            total={unsettledExpenses.reduce((sum, exp) => sum + exp.amount, 0)}
-            monthLabel={`tháng ${parseInt(monthStr, 10)}`}
+            ids={toSettle.map(exp => exp.id)}
+            total={toSettle.reduce((sum, exp) => sum + exp.amount, 0)}
+            monthLabel={`tháng ${parseInt(monthStr, 10)}${carriedMonths.length > 0 ? ' và nợ tháng trước' : ''}`}
           />
         )}
       </section>
@@ -299,4 +269,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       <BottomNav />
     </main>
   )
+}
+
+// Nợ của một tháng trong phần chia theo tháng: mỗi cặp một dòng, hoặc "Cân bằng"
+function DebtSummary({ transactions }: { transactions: DebtTransaction[] }) {
+  const formatMoney = (amount: number) =>
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  if (transactions.length === 0) return <div className="carry-debt">Cân bằng</div>;
+  return transactions.map((t, idx) => (
+    <div key={idx} className="carry-debt">
+      <span>{t.from} → {t.to}</span>
+      <span className="num">{formatMoney(t.amount)}</span>
+    </div>
+  ));
 }
