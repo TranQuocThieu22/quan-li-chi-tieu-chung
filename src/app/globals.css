@@ -212,6 +212,12 @@ input[type='checkbox'] {
   color: var(--text-secondary);
 }
 
+/* Số tổng chi chung trang Sổ chung, nằm cùng hàng với tiêu đề thẻ */
+.summary-total {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
 .hero-meta strong {
   color: var(--text-primary);
   font-weight: 600;

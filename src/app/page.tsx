@@ -13,7 +13,7 @@ import PaymentCard from '@/components/PaymentCard';
 import SettleMonthButton from '@/components/SettleMonthButton';
 import { ArrowRightIcon, CheckCircleIcon, PlusIcon } from '@/components/icons';
 import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
-import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
+import { parseImages } from '@/lib/shared';
 import { BUDGET_COLORS, budgetStatus, vietnamToday } from '@/lib/budget';
 import { getSharedBudget } from '@/lib/budget-server';
 import { expenseShares, groupByMonth, settleDebts, type DebtTransaction } from '@/lib/debts';
@@ -81,19 +81,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const { transactions } = settleDebts(members, [...unsettledExpenses, ...previousUnsettled]);
   const toSettle = [...unsettledExpenses, ...previousUnsettled];
 
-  // Cùng tập khoản chi với tổng chi chung: chưa trả và không phải mua giùm
-  const byCategory = SHARED_CATEGORIES
-    .map(c => ({
-      ...c,
-      total: unsettledExpenses
-        .filter(exp => !exp.beneficiaryId && getSharedCategory(exp.category).key === c.key)
-        .reduce((sum, exp) => sum + exp.amount, 0),
-    }))
-    .filter(c => c.total > 0)
-    .sort((a, b) => b.total - a.total);
-
   const settledExpenses = expenses.filter(exp => exp.isSettled);
-  const settledTotal = settledExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   // Tài khoản nhận tiền của người được trả, để hiện mã QR kèm số tiền ngay dưới dòng nợ
   const creditorUserIds = transactions
@@ -129,57 +117,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
       <MonthSelector />
 
+      {/* Việc cần làm nhất lên đầu: ai trả ai bao nhiêu */}
       <section className="card hero">
-        <div className="hero-label">Tổng chi chung tháng {parseInt(monthStr, 10)}</div>
-        <div className="hero-amount">{formatMoney(totalSharedExpenses)}</div>
-        <div className="hero-meta">
-          Mỗi người: <strong className="num">{formatMoney(average)}</strong>
-        </div>
-        {settledExpenses.length > 0 && (
-          <div className="hero-meta">
-            Không tính {settledExpenses.length} khoản đã trả ({formatMoney(settledTotal)})
-          </div>
-        )}
-
-        <hr className="divider" />
-
-        <div className="card-head">
-          <div className="card-title">Ngân sách sổ chung tháng {formatMonth(month)}</div>
-          <BudgetEditor month={month} amount={sharedBudget?.amount ?? null} partnershipId={partnership.id} />
-        </div>
-        {sharedBudget && sharedStatus ? (
-          <>
-            <div className="bar-head">
-              <span className="num">{formatMoney(monthSpent)} <span className="muted">/ {formatMoney(sharedBudget.amount)}</span></span>
-              <strong style={{color: BUDGET_COLORS[sharedStatus.level]}}>{sharedStatus.percent}%</strong>
-            </div>
-            <div className="progress lg" role="progressbar" aria-label="Mức sử dụng ngân sách sổ chung" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(sharedStatus.percent, 100)}>
-              <div className="progress-bar" style={{width: `${Math.min(sharedStatus.percent, 100)}%`, background: BUDGET_COLORS[sharedStatus.level]}} />
-            </div>
-            <p className="hero-meta mt-2">
-              {sharedStatus.remaining >= 0 ? `Còn lại ${formatMoney(sharedStatus.remaining)}` : `Vượt ngân sách ${formatMoney(-sharedStatus.remaining)}`}
-              {' • tính mọi khoản, kể cả đã trả và mua giùm'}
-              {sharedBudget.from !== month && ` • áp dụng từ tháng ${formatMonth(sharedBudget.from)}`}
-            </p>
-          </>
-        ) : (
-          <p className="hero-meta">Chưa đặt ngân sách chung cho sổ này.</p>
-        )}
-
-        <hr className="divider" />
-
-        <div className="card-title" style={{ marginBottom: '0.625rem' }}>Đã chi trả</div>
-        <ul className="row-list">
-          {balances.map(b => (
-            <li key={b.id} className="row">
-              <span className="row-label">{b.name}</span>
-              <span className="row-value">{formatMoney(b.totalPaid)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="card">
         <div className="card-title">Cần thanh toán</div>
         {carriedMonths.length > 0 && (
           <p className="hero-meta" style={{ marginBottom: '0.625rem' }}>
@@ -243,29 +182,58 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         )}
       </section>
 
-      {byCategory.length > 0 && (
-        <section className="card">
-          <div className="card-title">Theo danh mục</div>
-          <ul className="bar-list">
-            {byCategory.map(c => {
-              const percent = Math.round((c.total / totalSharedExpenses) * 100);
-              return (
-                <li key={c.key}>
-                  <div className="bar-head">
-                    <span style={{fontWeight: 500}}>{c.icon} {c.label}</span>
-                    <span className="num" style={{fontWeight: 600}}>
-                      {formatMoney(c.total)} <span className="muted">{formatPercent(c.total, totalSharedExpenses)}</span>
-                    </span>
-                  </div>
-                  <div className="progress">
-                    <div className="progress-bar" style={{width: `${percent}%`}} />
-                  </div>
-                </li>
-              );
-            })}
+      {/* Tổng gọn hai dòng; ngân sách và ai đã chi gấp lại, bấm mới mở (vượt / sắp hết ngân sách đã có BudgetAlerts ở trên) */}
+      <section className="card">
+        <div className="card-head">
+          <div className="card-title">Tổng chi chung tháng {parseInt(monthStr, 10)}</div>
+          <strong className="num summary-total">{formatMoney(totalSharedExpenses)}</strong>
+        </div>
+        <div className="hero-meta">
+          Mỗi người <strong className="num">{formatMoney(average)}</strong>
+          {settledExpenses.length > 0 && ` • không tính ${settledExpenses.length} khoản đã trả`}
+        </div>
+
+        <details className="data-table">
+          <summary>
+            Ngân sách{sharedStatus ? ` ${sharedStatus.percent}%` : ''} và ai đã chi
+          </summary>
+
+          <div className="card-head">
+            <div className="card-title">Ngân sách sổ chung tháng {formatMonth(month)}</div>
+            <BudgetEditor month={month} amount={sharedBudget?.amount ?? null} partnershipId={partnership.id} />
+          </div>
+          {sharedBudget && sharedStatus ? (
+            <>
+              <div className="bar-head">
+                <span className="num">{formatMoney(monthSpent)} <span className="muted">/ {formatMoney(sharedBudget.amount)}</span></span>
+                <strong style={{color: BUDGET_COLORS[sharedStatus.level]}}>{sharedStatus.percent}%</strong>
+              </div>
+              <div className="progress lg" role="progressbar" aria-label="Mức sử dụng ngân sách sổ chung" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(sharedStatus.percent, 100)}>
+                <div className="progress-bar" style={{width: `${Math.min(sharedStatus.percent, 100)}%`, background: BUDGET_COLORS[sharedStatus.level]}} />
+              </div>
+              <p className="hero-meta mt-2">
+                {sharedStatus.remaining >= 0 ? `Còn lại ${formatMoney(sharedStatus.remaining)}` : `Vượt ngân sách ${formatMoney(-sharedStatus.remaining)}`}
+                {' • tính mọi khoản, kể cả đã trả và mua giùm'}
+                {sharedBudget.from !== month && ` • áp dụng từ tháng ${formatMonth(sharedBudget.from)}`}
+              </p>
+            </>
+          ) : (
+            <p className="hero-meta">Chưa đặt ngân sách chung cho sổ này.</p>
+          )}
+
+          <hr className="divider" />
+
+          <div className="card-title" style={{ marginBottom: '0.625rem' }}>Đã chi trả</div>
+          <ul className="row-list">
+            {balances.map(b => (
+              <li key={b.id} className="row">
+                <span className="row-label">{b.name}</span>
+                <span className="row-value">{formatMoney(b.totalPaid)}</span>
+              </li>
+            ))}
           </ul>
-        </section>
-      )}
+        </details>
+      </section>
 
       <ExpenseList expenses={expenseItems} />
       <BottomNav />
