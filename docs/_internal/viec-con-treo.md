@@ -20,7 +20,8 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 2. Chờ chủ sản phẩm quyết
 
-(Không có — 29/10 chốt: thêm 4 danh mục sổ chung theo Claude chọn; Thống kê giữ cách tính hiện tại.)
+- [ ] **Trang Sổ chung bớt thông tin** (02/11): Tấn Anh chê *"thêm quá nhiều thông tin không cần thiết, làm rối loạn"*. 02/11 mới
+      thêm dòng ai nợ bao nhiêu và bỏ tổng đầu nhóm; còn lại (thẻ ngân sách, Đã chi trả, Theo danh mục…) chờ chọn bỏ / gấp gọn thẻ nào.
 
 ## 3. Claude làm được khi được giao
 

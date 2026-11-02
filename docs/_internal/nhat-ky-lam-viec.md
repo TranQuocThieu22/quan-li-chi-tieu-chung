@@ -36,6 +36,26 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 02/11/2026 — Mỗi khoản chưa trả ghi ai nợ bao nhiêu; bỏ tổng tiền ở đầu nhóm; lên production
+
+> Chủ sản phẩm: (gửi ảnh chat góp ý của Tấn Anh — tưởng 361.000 ₫ ở đầu nhóm *Chưa trả* là số phải trả, *"app khó sài"*, *"thêm
+> quá nhiều thông tin không cần thiết"*, *"chỗ này ở dưới lẽ ra nên thêm cái số tiền chia 2 nữa, dễ hiểu hơn"*) → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *feat: show who owes what under each unpaid expense*: dưới dòng ngày / danh mục của khoản chưa trả thêm một dòng cam —
+  khoản chung *"Chia 2 • Thiệu Trần Quốc nợ 147.500 ₫"* (nhiều người: *"A, B mỗi người nợ …"*), mua giùm *"… nợ 66.000 ₫"* (cả
+  khoản). Khoản đã trả không hiện. Hàm `expenseShares` trong `src/lib/debts.ts`, cùng luật với `settleDebts` (người trả không còn
+  trong sổ hoặc mua giùm chính mình thì không ai nợ), 4 ca thử; 100/100.
+- Bỏ tổng tiền ở đầu nhóm *Chưa trả* / *Đã trả* của *Lịch sử chi tiêu* — là tổng hóa đơn, bị đọc nhầm thành số nợ (Claude tự
+  quyết, đã báo chủ sản phẩm); số phải trả vẫn ở *Cần thanh toán*. `tsc`, lint sạch.
+
+**Quan sát**
+
+- Chưa mở app xem tận mắt dòng mới (chỉ test, `tsc`, lint) — tên dài như *"Thiệu Trần Quốc"* trên điện thoại hẹp chưa ai nhìn.
+- Góp ý *"thêm quá nhiều thông tin"* mới xử lý ở danh sách chi tiêu; trang Sổ chung còn nhiều thẻ (ngân sách, Đã chi trả, Theo
+  danh mục) — chưa ai chỉ cụ thể bỏ gì.
+
 ## 01/11/2026 — Cần thanh toán cộng nợ chưa trả của các tháng trước; sửa chữ tràn khỏi nút; lên production
 
 > Chủ sản phẩm: *"Tháng này phải xem được với các tổng nợ tháng trước chưa thanh toán nữa cộng vào"* → *"đẩy production"* →
@@ -61,32 +81,3 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 - Tháng cũ (trước khi có nút thanh toán xong tháng 30/10) đã trả ngoài nhưng chưa đánh dấu sẽ hiện ra và bị cộng vào tổng —
   chủ sản phẩm đã được báo; nút ở trang tháng nào cũng đánh dấu luôn mọi tháng trước nó.
-
-## 31/10/2026 — Ngân sách theo danh mục, sổ chung, cảnh báo 80%; danh mục Đồ uống, Tiền nhà; lên production
-
-> Chủ sản phẩm: *"ngân sách đang hoạt động như thế nào"* → *"làm các này"* (ngân sách danh mục, cảnh báo khi sắp vượt, ngân sách
-> sổ chung, lỗi đếm ngày theo UTC) → *"ăn uống đổi thành đồ ăn, thêm 1 loại đồ uống nữa nhé, giúp tôi cập nhật phần cũ nữa"* →
-> *"loại tiền nhà nữa làm xong đẩy production"*.
-
-**Đã làm**
-
-- Commit *feat: category and shared budgets with 80% alerts*: bảng mới `PersonalCategoryBudget` (userId, category, month) và
-  `SharedBudget` (partnershipId, month) — chỉ thêm bảng. `src/lib/budget.ts` (thuần, có test): `vietnamToday`, `daysLeftInMonth`,
-  `pickBudget` (bản đặt ở tháng đó hoặc gần nhất trước, 0 = tắt), `budgetStatus` (≥80% sắp hết, chi > ngân sách là vượt — so số
-  tiền, không so % đã làm tròn: 10.043.000/10.000.000 ra 100% nhưng là vượt). `src/lib/budget-server.ts` đọc ngân sách và gom cảnh
-  báo tháng hiện tại. Trang *Ngân sách danh mục* (`/personal/budgets`), thẻ *Theo danh mục* hiện đã chi / ngân sách. Ngân sách sổ
-  chung trong thẻ tổng trang Sổ chung, so với **mọi khoản trong tháng (kể cả đã trả, mua giùm)**; `BudgetEditor` nhận
-  `partnershipId`. `BudgetAlerts`: trang Sổ chung một dòng mỗi sổ + một dòng gộp ngân sách cá nhân; trang Cá nhân chỉ sổ chung.
-  Tháng mặc định (Sổ chung, Cá nhân, Thống kê, Nhật ký, `MonthSelector`) và số ngày còn lại theo giờ Việt Nam thay vì UTC.
-- Commit *feat: split drinks and rent into their own categories*: "Ăn uống" → **Đồ ăn** (key `food` giữ nguyên), thêm **🧋 Đồ uống**
-  (`drinks`, `DRINK_KEYWORDS`) và **🔑 Tiền nhà** (`rent`, `RENT_KEYWORDS`; trước nằm ở Nhà cửa / Hóa đơn) cho cả sổ chung lẫn cá
-  nhân. Ca thử viết trước (91/91). `scripts/move-new-categories.mjs` chạy trong lệnh build (`… db push && tsx
-  scripts/move-new-categories.mjs && next build`): khoản tạo trước 31/10 17:30 giờ VN đang ở danh mục cũ mà bộ đoán mới nhận ra
-  thì chuyển, khoản sổ chung có lịch sử `UPDATE`; đã có khoản thuộc danh mục mới trước mốc thì bỏ qua. Thử ở máy: đồ uống 3 + 1,
-  tiền nhà 1 cá nhân + 15 sổ chung, "Sửa vòi nước", "Tiền điện" giữ nguyên, lần hai bỏ qua; `npm run build` trọn ở máy.
-- Seed: xoá `SharedBudget` trước `Partnership` (thứ tự sai làm seed hỏng giữa chừng), dữ liệu mẫu dùng `drinks`, `rent`.
-
-**Quan sát**
-
-- Lưới danh mục giờ 14 ô (sổ chung) / 10 ô (cá nhân) — hàng cuối lẻ.
-- Cảnh báo ngân sách chỉ hiện khi mở app; thông báo đẩy về điện thoại chưa làm.
