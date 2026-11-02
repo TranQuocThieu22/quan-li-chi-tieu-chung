@@ -36,10 +36,12 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
-## 02/11/2026 — Mỗi khoản chưa trả ghi ai nợ bao nhiêu; bỏ tổng tiền ở đầu nhóm; lên production
+## 02/11/2026 — Mỗi khoản chưa trả ghi ai nợ bao nhiêu; trang Sổ chung gọn lại; gỡ script đổi danh mục khỏi build; lên production
 
 > Chủ sản phẩm: (gửi ảnh chat góp ý của Tấn Anh — tưởng 361.000 ₫ ở đầu nhóm *Chưa trả* là số phải trả, *"app khó sài"*, *"thêm
-> quá nhiều thông tin không cần thiết"*, *"chỗ này ở dưới lẽ ra nên thêm cái số tiền chia 2 nữa, dễ hiểu hơn"*) → *"đẩy production"*.
+> quá nhiều thông tin không cần thiết"*, *"chỗ này ở dưới lẽ ra nên thêm cái số tiền chia 2 nữa, dễ hiểu hơn"*) → *"đẩy production"* →
+> *"làm gì tiếp"* → *"làm mục 1. Mục 2 làn theo gợi ý"* (gỡ script khỏi build; Sổ chung bớt thông tin theo gợi ý của Claude) →
+> *"đẩy production"*.
 
 **Đã làm**
 
@@ -49,8 +51,19 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   trong sổ hoặc mua giùm chính mình thì không ai nợ), 4 ca thử; 100/100.
 - Bỏ tổng tiền ở đầu nhóm *Chưa trả* / *Đã trả* của *Lịch sử chi tiêu* — là tổng hóa đơn, bị đọc nhầm thành số nợ (Claude tự
   quyết, đã báo chủ sản phẩm); số phải trả vẫn ở *Cần thanh toán*. `tsc`, lint sạch.
+- Lượt đẩy thứ hai, commit *chore: drop the one-off category move from the build*: log build Vercel 31/10 đã có `move-new-categories:
+  drinks — sổ chung 7 khoản (…)` nên gỡ script khỏi lệnh build và xoá file (`tsx` giữ cho `db:seed`, `dev:login`). Phần `rent` lần
+  build nào cũng đọc database vì không có khoản nào để chuyển.
+- Commit *feat: put what is owed first on the shared ledger page*: thứ tự trang Sổ chung giờ là *Cần thanh toán* (lấy nền `hero`) →
+  thẻ tổng hai dòng (tổng chi chung, mỗi người) với ngân sách và *Đã chi trả* gấp trong `<details>` *"Ngân sách [N%] và ai đã chi"* →
+  *Lịch sử chi tiêu*. Bỏ thẻ *Theo danh mục* khỏi trang chủ (Thống kê đã có). Cảnh báo vượt / sắp hết ngân sách vẫn ở `BudgetAlerts`.
+- Kiểm ở máy (Postgres + seed, Chrome ẩn 390 px): không cuộn ngang; dòng *"Chia 2 • Minh Anh nợ 2.500.000 ₫"* một dòng; mở phần gấp
+  thấy *Đặt ngân sách* và *Đã chi trả*. `tsc`, lint, 100/100.
 
 **Quan sát**
+
+- Log build 31/10 cho thấy *"súp cua + trà chanh"* và *"Hủ tiếu xào + xá xíu + trà"* bị chuyển sang Đồ uống dù chủ yếu là đồ ăn —
+  chủ sản phẩm đã được báo, tự đổi tay.
 
 - Chưa mở app xem tận mắt dòng mới (chỉ test, `tsc`, lint) — tên dài như *"Thiệu Trần Quốc"* trên điện thoại hẹp chưa ai nhìn.
 - Góp ý *"thêm quá nhiều thông tin"* mới xử lý ở danh sách chi tiêu; trang Sổ chung còn nhiều thẻ (ngân sách, Đã chi trả, Theo

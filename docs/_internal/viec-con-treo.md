@@ -20,8 +20,7 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 ## 2. Chờ chủ sản phẩm quyết
 
-- [ ] **Trang Sổ chung bớt thông tin** (02/11): Tấn Anh chê *"thêm quá nhiều thông tin không cần thiết, làm rối loạn"*. 02/11 mới
-      thêm dòng ai nợ bao nhiêu và bỏ tổng đầu nhóm; còn lại (thẻ ngân sách, Đã chi trả, Theo danh mục…) chờ chọn bỏ / gấp gọn thẻ nào.
+(Không có — 02/11 chốt: trang Sổ chung gọn lại theo gợi ý của Claude.)
 
 ## 3. Claude làm được khi được giao
 
@@ -29,9 +28,6 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
       (ACB, VCB đã có mẫu thật). Khi dùng nơi khác mà đọc sai: thêm mẫu (che số TK, tên) thành ca trong `notification-parser.test.ts` **trước**, rồi sửa.
 
 ## 4. Khi tới mốc
-
-- [ ] **Gỡ `scripts/move-new-categories.mjs` khỏi lệnh build** (31/10): sau khi log build Vercel lượt đẩy 31/10 có dòng
-      `move-new-categories: … cá nhân / sổ chung …` (đã chạy trên production). Để lại thì vô hại (tự bỏ qua) nhưng tốn một lần đọc database mỗi build.
 
 - [ ] **Khi trang chủ chậm — tải ảnh hóa đơn khi bấm xem thay vì nhúng sẵn** (28/10): ảnh vẫn lưu base64 trong `Expense.imageUrl`
       và trang chủ nhúng cả ảnh của tháng. Từ 29/10 ảnh mới được thu về 1600 px JPEG (~200–400 KB) lúc chọn, nhưng ảnh cũ giữ nguyên.
