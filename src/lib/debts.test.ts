@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupByMonth, settleDebts } from './debts';
+import { expenseShares, groupByMonth, settleDebts } from './debts';
 
 const members = [{ id: 1, name: 'An' }, { id: 2, name: 'Bình' }];
 
@@ -29,6 +29,29 @@ describe('settleDebts', () => {
 
   it('không có khoản nào thì không ai nợ ai', () => {
     expect(settleDebts(members, []).transactions).toEqual([]);
+  });
+});
+
+describe('expenseShares', () => {
+  it('khoản chung: người không trả nợ một phần chia đều', () => {
+    expect(expenseShares(members, { amount: 295_000, payerId: 1, beneficiaryId: null }))
+      .toEqual({ splitBy: 2, owes: [{ id: 2, name: 'Bình', amount: 147_500 }] });
+  });
+
+  it('mua giùm: người được mua giùm nợ hết', () => {
+    expect(expenseShares(members, { amount: 66_000, payerId: 1, beneficiaryId: 2 }))
+      .toEqual({ splitBy: null, owes: [{ id: 2, name: 'Bình', amount: 66_000 }] });
+  });
+
+  it('ba người: hai người không trả, mỗi người một phần ba', () => {
+    const three = [...members, { id: 3, name: 'Chi' }];
+    expect(expenseShares(three, { amount: 300_000, payerId: 2, beneficiaryId: null }).owes)
+      .toEqual([{ id: 1, name: 'An', amount: 100_000 }, { id: 3, name: 'Chi', amount: 100_000 }]);
+  });
+
+  it('mua cho chính mình hoặc người trả không còn trong sổ thì không ai nợ', () => {
+    expect(expenseShares(members, { amount: 50_000, payerId: 1, beneficiaryId: 1 }).owes).toEqual([]);
+    expect(expenseShares(members, { amount: 50_000, payerId: 9, beneficiaryId: null }).owes).toEqual([]);
   });
 });
 

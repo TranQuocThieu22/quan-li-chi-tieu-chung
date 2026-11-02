@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import ExpenseActions from './ExpenseActions';
 import { CheckIcon } from './icons';
 import { getSharedCategory, SHARED_CATEGORIES } from '@/lib/shared';
+import type { ExpenseShares } from '@/lib/debts';
 
 export type ExpenseListItem = {
   id: number;
@@ -17,10 +18,18 @@ export type ExpenseListItem = {
   images: string[];
   isSettled: boolean;
   hasHistory: boolean;
+  shares: ExpenseShares | null; // null khi đã trả
 };
 
 const formatMoney = (amount: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+
+// "Chia 2 • Bình nợ 147.500 ₫" — khoản chung thì mọi người nợ cùng một phần nên gộp tên
+function shareText({ splitBy, owes }: ExpenseShares) {
+  if (owes.length === 0) return null;
+  const debt = `${owes.map(o => o.name).join(', ')}${owes.length > 1 ? ' mỗi người' : ''} nợ ${formatMoney(owes[0].amount)}`;
+  return splitBy ? `Chia ${splitBy} • ${debt}` : debt;
+}
 
 // Bộ lọc nhớ theo từng máy; server luôn render "Tất cả" rồi client đổi sang lựa chọn đã lưu
 type Filter = 'all' | 'unpaid' | 'paid';
@@ -175,13 +184,14 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
 
             {groups.map(group => (
               <div key={group.key} className="expense-group">
+                {/* Không hiện tổng tiền nhóm: dễ bị đọc nhầm thành số phải trả, số đúng nằm ở "Cần thanh toán" */}
                 <div className={`group-head ${group.key}`}>
                   <span><span className="dot" aria-hidden />{group.label} • {group.items.length} khoản</span>
-                  <span className="num">{formatMoney(sum(group.items))}</span>
                 </div>
                 <ul className="expense-list">
                   {group.items.map(exp => {
                     const category = getSharedCategory(exp.category);
+                    const share = exp.shares && shareText(exp.shares);
                     return (
                       <li key={exp.id} className={`expense-item${exp.isSettled ? ' settled' : ''}`}>
                         <div className="expense-row">
@@ -212,6 +222,7 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
                                 {new Date(exp.date).toLocaleDateString('vi-VN')} • {category.label} • {exp.payerName} trả
                                 {exp.beneficiaryName ? ` • Mua giùm ${exp.beneficiaryName}` : ''}
                               </div>
+                              {share && <div className="expense-share">{share}</div>}
                               {exp.notes && <p className="expense-note">{exp.notes}</p>}
                               {exp.images.length > 0 && (
                                 <div className="thumbs sm">

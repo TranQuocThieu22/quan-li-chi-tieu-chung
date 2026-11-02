@@ -51,6 +51,25 @@ export function settleDebts(members: DebtMember[], expenses: DebtExpense[]) {
   return { sharedTotal, average, balances, transactions };
 }
 
+// Phần một khoản chưa trả mà từng người phải trả lại cho người trả, cùng luật với settleDebts:
+// khoản chung chia đều (splitBy = số thành viên), mua giùm thì người được mua giùm nợ hết (splitBy = null)
+export type ExpenseShares = { splitBy: number | null; owes: { id: number; name: string; amount: number }[] };
+export function expenseShares(members: DebtMember[], exp: DebtExpense): ExpenseShares {
+  if (!members.some(m => m.id === exp.payerId)) return { splitBy: null, owes: [] };
+  if (exp.beneficiaryId) {
+    const beneficiary = members.find(m => m.id === exp.beneficiaryId);
+    const owes = beneficiary && beneficiary.id !== exp.payerId
+      ? [{ id: beneficiary.id, name: beneficiary.name, amount: exp.amount }]
+      : [];
+    return { splitBy: null, owes };
+  }
+  const share = exp.amount / members.length;
+  return {
+    splitBy: members.length,
+    owes: members.filter(m => m.id !== exp.payerId).map(m => ({ id: m.id, name: m.name, amount: share })),
+  };
+}
+
 // Gom khoản theo tháng YYYY-MM (theo giờ của Date đưa vào, cùng cách trang chủ cắt tháng), tháng gần nhất trước
 export function groupByMonth<T extends { date: Date }>(expenses: T[]) {
   const groups = new Map<string, T[]>();

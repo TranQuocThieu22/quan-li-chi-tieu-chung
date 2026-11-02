@@ -16,7 +16,7 @@ import { requirePartnershipPage, toLedgerOptions } from '@/lib/auth';
 import { formatPercent, getSharedCategory, parseImages, SHARED_CATEGORIES } from '@/lib/shared';
 import { BUDGET_COLORS, budgetStatus, vietnamToday } from '@/lib/budget';
 import { getSharedBudget } from '@/lib/budget-server';
-import { groupByMonth, settleDebts, type DebtTransaction } from '@/lib/debts';
+import { expenseShares, groupByMonth, settleDebts, type DebtTransaction } from '@/lib/debts';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +65,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     images: parseImages(exp.imageUrl),
     isSettled: exp.isSettled,
     hasHistory: exp.histories.length > 0,
+    shares: exp.isSettled ? null : expenseShares(members, exp),
   }));
 
   // Khoản đã trả không tính vào tổng chung và công nợ
