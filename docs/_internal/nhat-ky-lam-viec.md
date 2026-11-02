@@ -65,9 +65,7 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 - Log build 31/10 cho thấy *"súp cua + trà chanh"* và *"Hủ tiếu xào + xá xíu + trà"* bị chuyển sang Đồ uống dù chủ yếu là đồ ăn —
   chủ sản phẩm đã được báo, tự đổi tay.
 
-- Chưa mở app xem tận mắt dòng mới (chỉ test, `tsc`, lint) — tên dài như *"Thiệu Trần Quốc"* trên điện thoại hẹp chưa ai nhìn.
-- Góp ý *"thêm quá nhiều thông tin"* mới xử lý ở danh sách chi tiêu; trang Sổ chung còn nhiều thẻ (ngân sách, Đã chi trả, Theo
-  danh mục) — chưa ai chỉ cụ thể bỏ gì.
+- Tên dài thật như *"Thiệu Trần Quốc"* chưa xem trên điện thoại (dữ liệu mẫu tên ngắn).
 
 ## 01/11/2026 — Cần thanh toán cộng nợ chưa trả của các tháng trước; sửa chữ tràn khỏi nút; lên production
 
