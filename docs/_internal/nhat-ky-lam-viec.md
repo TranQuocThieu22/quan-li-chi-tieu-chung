@@ -36,6 +36,37 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
 
 ---
 
+## 10/11/2026 — Ghi giùm khoản chưa biết giá, cảnh báo người trả vào điền
+
+> Chủ sản phẩm: *"Bạn tôi hay quên note ấy tôi muốn note giùm bạn nhưng không biết giá tiền bao nhiêu bản ghi đó phải cảnh báo
+> cho người đó để set lại khi vào app"* → *"đẩy production"*.
+
+**Đã làm**
+
+- Commit *feat: let a shared expense be noted before its amount is known*: cột mới `Expense.needsAmount` (Boolean, mặc định
+  `false` — chỉ thêm cột có mặc định nên `db push` trên Vercel an toàn). Form sổ chung thêm ô tick *"Chưa biết số tiền — ghi
+  giùm, để người trả điền sau"*: tick thì ô tiền để trống và thôi bắt buộc, lưu `amount = 0`; gõ số tiền vào là ô tick **tự bỏ**,
+  người trả chỉ cần điền rồi lưu (một bước, không phải nhớ bỏ tick).
+- `MissingAmountBanner` ở **đầu** trang Sổ chung, trên cả `ImportBanner`: lấy khoản `needsAmount` của **mọi tháng** chứ không
+  riêng tháng đang xem (người ghi giùm không biết giá nên khoản này treo tới khi điền), liệt kê tối đa 5 dòng kèm ngày và
+  *"Bạn trả"* / *"<tên> trả"*, bấm dòng nào sang `/edit/{id}` dòng đó. Hiện cho **cả hai người** trong sổ: người trả có thể chưa
+  liên kết tài khoản, mà ai biết giá thì điền cũng được (Claude tự quyết, đã báo chủ sản phẩm).
+- Khoản chưa có số tiền **không đánh dấu đã trả được**, để nó không bị quét sang *Đã trả* rồi mất luôn số tiền: ô *Đã trả* ở dòng
+  chi mờ đi (`chip-btn.off`), `PATCH /api/expenses/[id]` trả 400, bulk `settle` bỏ qua, nút *"Đã trả hết nợ đến tháng …"* không
+  gộp vào `toSettle`. `amount = 0` nên công nợ và tổng tháng không đổi; chỗ số tiền ghi *"Chưa có số tiền"* và dòng *"Chia 2 • …
+  nợ …"* đổi thành *"Ghi giùm • chờ <tên> điền số tiền"*.
+- `PUT /api/expenses/[id]` giờ đòi số tiền > 0 khi không còn cờ (trước không kiểm gì, `parseInt('')` ra NaN); bản app cũ đang mở
+  không gửi cờ thì chỉ gỡ cờ khi đã có số tiền.
+- Kiểm ở máy (Postgres + seed, Chrome ẩn 390 px): thêm *"Tien dien thang 11"* do Minh Anh trả, bỏ trống tiền → cảnh báo hiện đầu
+  trang, dòng chi ghi *Chưa có số tiền*, ô *Đã trả* mờ, `PATCH` ra 400, bulk settle `count: 0`; vào *Sửa* gõ 520.000 ₫ → ô tick tự
+  bỏ, cảnh báo biến mất, nợ tháng 11 từ 1.638.500 ₫ còn 1.378.500 ₫ và tổng 6.469.500 → 6.209.500 ₫. Xoá khoản thử sau khi kiểm.
+  `tsc`, lint, `next build` sạch, 100/100.
+
+**Quan sát**
+
+- Cảnh báo chỉ nằm ở trang Sổ chung. Người trả mở thẳng tab *Cá nhân* thì không thấy — `/` là trang vào app nên tạm đủ.
+- Thẻ *Khoản chi lớn nhất* ở Thống kê có thể liệt kê khoản 0 ₫ khi tháng có ít khoản (sắp xếp giảm dần nên thường không nổi lên).
+
 ## 02/11/2026 — Mỗi khoản chưa trả ghi ai nợ bao nhiêu; trang Sổ chung gọn lại; gỡ script đổi danh mục khỏi build; lên production
 
 > Chủ sản phẩm: (gửi ảnh chat góp ý của Tấn Anh — tưởng 361.000 ₫ ở đầu nhóm *Chưa trả* là số phải trả, *"app khó sài"*, *"thêm
@@ -66,29 +97,3 @@ Quan sát nào đòi một việc thì thêm dòng vào `viec-con-treo.md` ngay 
   chủ sản phẩm đã được báo, tự đổi tay.
 
 - Tên dài thật như *"Thiệu Trần Quốc"* chưa xem trên điện thoại (dữ liệu mẫu tên ngắn).
-
-## 01/11/2026 — Cần thanh toán cộng nợ chưa trả của các tháng trước; sửa chữ tràn khỏi nút; lên production
-
-> Chủ sản phẩm: *"Tháng này phải xem được với các tổng nợ tháng trước chưa thanh toán nữa cộng vào"* → *"đẩy production"* →
-> (gửi ảnh điện thoại) *"Bị lỗi chữ ra ngoài nút"* → *"đẩy production"*.
-
-**Đã làm**
-
-- Commit *feat: carry unpaid debts from earlier months into this month*: thẻ *Cần thanh toán* (trang Sổ chung) tính nợ từ khoản chưa
-  trả của tháng đang xem **cộng mọi khoản chưa trả có ngày trước tháng đó**, bù trừ một lượt (công nợ cộng được nên bằng tổng nợ
-  từng tháng). Có nợ cũ thì hiện dòng *"Đã cộng nợ chưa trả của N tháng trước"* và nợ chia theo tháng (tháng cũ có liên kết sang
-  tháng đó); mã VietQR lấy số tổng, nội dung *"Chi tieu chung den thang …"*; nút đổi thành *"Đã thanh toán xong tháng … và nợ
-  tháng trước"*, đánh dấu cả khoản cũ. Tổng chi chung, Mỗi người, Đã chi trả, Theo danh mục vẫn chỉ tháng đang xem. Phần tính
-  nợ tách ra `src/lib/debts.ts` (`settleDebts`, `groupByMonth`), 5 ca thử; 96/96.
-- Kiểm ở máy (Postgres + seed, Chrome ẩn 390 px): tháng 11 ra 6.756.000 ₫ = 1.925.000 + 2.200.000 − 156.000 + 2.500.000 +
-  287.000 (11, 10, 9, 7, 6); xem tháng 10 thì không cộng tháng 11; tháng 6 không có nợ cũ thì như trước. Bấm nút: 8 khoản sang đã
-  trả, 8 dòng lịch sử `SETTLE`, sổ kia không đổi. `tsc`, lint, `next build` sạch.
-- Commit *fix: keep the settle button label inside the button* (lượt đẩy thứ hai): trên điện thoại chủ sản phẩm, chữ *"Đã thanh
-  toán xong tháng 11 và nợ tháng trước"* tràn hai bên nút vì `.btn` có `white-space: nowrap`. Có nợ cũ thì nút ghi *"Đã trả hết nợ
-  đến tháng 11"* (prop `label` của `SettleMonthButton`; hộp xác nhận vẫn ghi đủ); `.btn-block` cho xuống dòng. Kiểm ở 360 px: chữ
-  mới một dòng, chữ dài cũ xuống hai dòng trong nút.
-
-**Quan sát**
-
-- Tháng cũ (trước khi có nút thanh toán xong tháng 30/10) đã trả ngoài nhưng chưa đánh dấu sẽ hiện ra và bị cộng vào tổng —
-  chủ sản phẩm đã được báo; nút ở trang tháng nào cũng đánh dấu luôn mọi tháng trước nó.

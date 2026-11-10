@@ -31,3 +31,6 @@ File này cố ý **không có mục "Lịch sử cập nhật"** — lịch s�
 
 - [ ] **Khi trang chủ chậm — tải ảnh hóa đơn khi bấm xem thay vì nhúng sẵn** (28/10): ảnh vẫn lưu base64 trong `Expense.imageUrl`
       và trang chủ nhúng cả ảnh của tháng. Từ 29/10 ảnh mới được thu về 1600 px JPEG (~200–400 KB) lúc chọn, nhưng ảnh cũ giữ nguyên.
+
+- [ ] **Khi người trả vẫn bỏ sót — nhắc khoản chưa có số tiền ở cả trang Cá nhân** (10/11): `MissingAmountBanner` mới chỉ ở
+      trang Sổ chung; `/` là trang vào app nên tạm đủ.
