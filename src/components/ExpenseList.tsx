@@ -10,6 +10,7 @@ export type ExpenseListItem = {
   id: number;
   item: string;
   amount: number;
+  needsAmount: boolean; // ghi giùm, chưa biết giá: amount = 0, chờ người trả điền
   category: string;
   date: string;
   payerName: string;
@@ -214,15 +215,21 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
                             <div className="expense-dim">
                               <div className="expense-top">
                                 <div className="expense-title">{exp.item}</div>
-                                <div className={`expense-amount${exp.isSettled ? ' settled' : ''}`}>
-                                  {formatMoney(exp.amount)}
+                                <div
+                                  className={`expense-amount${exp.isSettled ? ' settled' : ''}${exp.needsAmount ? ' pending' : ''}`}
+                                >
+                                  {exp.needsAmount ? 'Chưa có số tiền' : formatMoney(exp.amount)}
                                 </div>
                               </div>
                               <div className="expense-meta">
                                 {new Date(exp.date).toLocaleDateString('vi-VN')} • {category.label} • {exp.payerName} trả
                                 {exp.beneficiaryName ? ` • Mua giùm ${exp.beneficiaryName}` : ''}
                               </div>
-                              {share && <div className="expense-share">{share}</div>}
+                              {exp.needsAmount ? (
+                                <div className="expense-share">Ghi giùm • chờ {exp.payerName} điền số tiền</div>
+                              ) : share ? (
+                                <div className="expense-share">{share}</div>
+                              ) : null}
                               {exp.notes && <p className="expense-note">{exp.notes}</p>}
                               {exp.images.length > 0 && (
                                 <div className="thumbs sm">
@@ -235,7 +242,14 @@ export default function ExpenseList({ expenses }: { expenses: ExpenseListItem[] 
                                 </div>
                               )}
                             </div>
-                            {!selecting && <ExpenseActions id={exp.id} hasHistory={exp.hasHistory} isSettled={exp.isSettled} />}
+                            {!selecting && (
+                              <ExpenseActions
+                                id={exp.id}
+                                hasHistory={exp.hasHistory}
+                                isSettled={exp.isSettled}
+                                needsAmount={exp.needsAmount}
+                              />
+                            )}
                           </div>
                         </div>
                       </li>

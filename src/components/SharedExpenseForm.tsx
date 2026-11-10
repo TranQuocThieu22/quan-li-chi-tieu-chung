@@ -11,6 +11,7 @@ type Member = { id: number; name: string; isMe: boolean };
 type Initial = {
   item: string;
   amount: number;
+  needsAmount: boolean;
   category: string;
   payerId: number;
   isPayOnBehalf: boolean;
@@ -62,10 +63,12 @@ export default function SharedExpenseForm({
   });
   const [form, setForm] = useState({
     item: initial?.item ?? '',
-    amount: initial ? String(initial.amount) : prefill?.amount ? String(prefill.amount) : '',
+    // Khoản ghi giùm chưa có số tiền lưu amount 0: để ô trống, bỏ tick là nhập được ngay
+    amount: initial ? (initial.needsAmount ? '' : String(initial.amount)) : prefill?.amount ? String(prefill.amount) : '',
     category: initial?.category ?? start?.category ?? DEFAULT_CATEGORY,
     payerId: String(initial?.payerId ?? (members.find(m => m.isMe) ?? members[0])?.id ?? ''),
     isPayOnBehalf: initial?.isPayOnBehalf ?? false,
+    needsAmount: initial?.needsAmount ?? false,
     date: initial?.date ?? prefill?.date ?? new Date().toISOString().split('T')[0],
     notes: initial?.notes ?? '',
   });
@@ -117,7 +120,8 @@ export default function SharedExpenseForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           item: form.item,
-          amount: form.amount,
+          amount: form.needsAmount ? '0' : form.amount,
+          needsAmount: form.needsAmount,
           category: form.category,
           payerId: form.payerId,
           beneficiaryId: beneficiary ? String(beneficiary.id) : '',
@@ -153,14 +157,32 @@ export default function SharedExpenseForm({
           type="text"
           inputMode="numeric"
           className="input input-amount"
-          placeholder="0"
-          required
+          placeholder={form.needsAmount ? 'Người trả điền sau' : '0'}
+          required={!form.needsAmount}
           autoFocus={!expenseId && !prefill?.amount}
           value={displayAmount}
-          onChange={(e) => setForm({ ...form, amount: e.target.value.replace(/\D/g, '') })}
+          // Gõ số tiền là tự bỏ tick "chưa biết số tiền": người trả chỉ cần điền rồi lưu
+          onChange={(e) => {
+            const amount = e.target.value.replace(/\D/g, '');
+            setForm({ ...form, amount, needsAmount: amount ? false : form.needsAmount });
+          }}
         />
         {prefill?.foreignAmount && (
           <p className="field-note">Thẻ trả {prefill.foreignAmount} — nhập số tiền VND bị trừ (xem app ngân hàng).</p>
+        )}
+        {/* Ghi giùm người hay quên note: lưu trước, người trả điền giá sau — trang Sổ chung nhắc cho tới lúc đó */}
+        <label className="check-row check-row-tight">
+          <input
+            type="checkbox"
+            checked={form.needsAmount}
+            onChange={(e) => setForm({ ...form, needsAmount: e.target.checked, amount: e.target.checked ? '' : form.amount })}
+          />
+          Chưa biết số tiền — ghi giùm, để người trả điền sau
+        </label>
+        {form.needsAmount && (
+          <p className="field-note">
+            Khoản này hiện ở đầu trang Sổ chung cho tới khi người trả điền số tiền, chưa tính vào công nợ.
+          </p>
         )}
       </div>
 

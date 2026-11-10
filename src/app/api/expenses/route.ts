@@ -44,8 +44,10 @@ export async function POST(request: Request) {
 
   try {
     const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date, importId } = body;
+    // Ghi giùm người khác mà chưa biết giá: lưu 0, chờ người trả điền (trang chủ nhắc)
+    const needsAmount = body.needsAmount === true;
 
-    if (!item || !amount || !payerId) {
+    if (!item || !payerId || (!needsAmount && !amount)) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -59,7 +61,8 @@ export async function POST(request: Request) {
     const expense = await prisma.expense.create({
       data: {
         item,
-        amount: parseInt(amount, 10),
+        amount: needsAmount ? 0 : parseInt(amount, 10),
+        needsAmount,
         category: getSharedCategory(category).key,
         payerId: payer,
         beneficiaryId: beneficiary,

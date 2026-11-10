@@ -128,6 +128,9 @@ model Expense {
   notes         String?
   imageUrl      String?
   isDeleted     Boolean      @default(false)
+  // Ghi giùm người khác mà chưa biết giá: amount = 0, chờ người trả điền.
+  // Không tính vào công nợ (amount 0), không cho đánh dấu đã trả; trang chủ nhắc tới khi điền xong.
+  needsAmount   Boolean      @default(false)
   // Đã trả: không còn tính vào tổng chi tiêu chung và công nợ
   isSettled     Boolean      @default(false)
   settledAt     DateTime?

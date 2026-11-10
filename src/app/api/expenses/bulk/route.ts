@@ -40,7 +40,8 @@ export async function POST(request: Request) {
   const targets =
     action === 'delete' ? expenses
     : action === 'category' ? expenses.filter(e => e.category !== category)
-    : expenses.filter(e => e.isSettled !== isSettled);
+    // Khoản chưa biết số tiền thì chưa có gì để trả: không đánh dấu đã trả
+    : expenses.filter(e => e.isSettled !== isSettled && !(isSettled && e.needsAmount));
   if (targets.length === 0) return NextResponse.json({ count: 0 });
 
   const historyAction =

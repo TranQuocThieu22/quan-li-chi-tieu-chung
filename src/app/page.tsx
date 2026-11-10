@@ -6,6 +6,7 @@ import LedgerSwitcher from '@/components/LedgerSwitcher';
 import PageHeader from '@/components/PageHeader';
 import BottomNav from '@/components/BottomNav';
 import ImportBanner from '@/components/ImportBanner';
+import MissingAmountBanner from '@/components/MissingAmountBanner';
 import BudgetAlerts from '@/components/BudgetAlerts';
 import BudgetEditor from '@/components/BudgetEditor';
 import RecategorizeBanner from '@/components/RecategorizeBanner';
@@ -45,7 +46,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     // Nợ chưa trả của các tháng trước tháng đang xem, cộng vào "Cần thanh toán"
     prisma.expense.findMany({
       where: { isDeleted: false, isSettled: false, partnershipId: partnership.id, date: { lt: start } },
-      select: { id: true, amount: true, payerId: true, beneficiaryId: true, date: true },
+      select: { id: true, amount: true, payerId: true, beneficiaryId: true, date: true, needsAmount: true },
     }),
   ]);
 
@@ -64,8 +65,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     notes: exp.notes,
     images: parseImages(exp.imageUrl),
     isSettled: exp.isSettled,
+    needsAmount: exp.needsAmount,
     hasHistory: exp.histories.length > 0,
-    shares: exp.isSettled ? null : expenseShares(members, exp),
+    shares: exp.isSettled || exp.needsAmount ? null : expenseShares(members, exp),
   }));
 
   // Khoản đã trả không tính vào tổng chung và công nợ
@@ -79,7 +81,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     transactions: settleDebts(members, g.items).transactions,
   }));
   const { transactions } = settleDebts(members, [...unsettledExpenses, ...previousUnsettled]);
-  const toSettle = [...unsettledExpenses, ...previousUnsettled];
+  // Khoản chưa có số tiền thì chưa có gì để trả: không gộp vào nút đánh dấu đã trả (MissingAmountBanner nhắc điền)
+  const toSettle = [...unsettledExpenses, ...previousUnsettled].filter(exp => !exp.needsAmount);
 
   const settledExpenses = expenses.filter(exp => exp.isSettled);
 
@@ -111,6 +114,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         }
       />
 
+      <MissingAmountBanner partnershipId={partnership.id} userId={user.id} />
       <ImportBanner userId={user.id} />
       <RecategorizeBanner partnershipId={partnership.id} />
       <BudgetAlerts userId={user.id} page="shared" />

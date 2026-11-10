@@ -34,6 +34,7 @@ export default async function EditExpense({ params }: { params: Promise<{ id: st
           initial={{
             item: expense.item,
             amount: expense.amount,
+            needsAmount: expense.needsAmount,
             category: expense.category,
             payerId: expense.payerId,
             isPayOnBehalf: expense.beneficiaryId !== null,

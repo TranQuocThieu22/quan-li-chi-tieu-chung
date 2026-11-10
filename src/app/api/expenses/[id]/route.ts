@@ -9,7 +9,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const { expense: existing, partnership } = ctx;
 
   try {
-    const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date } = await request.json();
+    const body = await request.json();
+    const { item, amount, category, payerId, beneficiaryId, notes, imageUrl, date } = body;
+
+    // Ghi giùm mà chưa biết giá thì giữ amount 0 và cờ needsAmount; điền số tiền là cờ tự tắt.
+    // Bản app cũ đang mở không gửi cờ: chỉ gỡ cờ khi đã có số tiền.
+    const parsedAmount = parseInt(amount, 10);
+    const needsAmount = typeof body.needsAmount === 'boolean' ? body.needsAmount : existing.needsAmount && !(parsedAmount > 0);
+    if (!needsAmount && !(parsedAmount > 0)) {
+      return NextResponse.json({ error: 'Thiếu số tiền' }, { status: 400 });
+    }
 
     // Người trả / người được mua giùm phải thuộc sổ của khoản chi này
     const memberIds = partnership.members.map(m => m.id);
@@ -39,7 +48,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       where: { id: existing.id },
       data: {
         item,
-        amount: parseInt(amount, 10),
+        amount: needsAmount ? 0 : parsedAmount,
+        needsAmount,
         // Bản app cũ đang mở trên máy chưa gửi danh mục: giữ nguyên thay vì đổi thành "Khác"
         category: category === undefined ? existing.category : getSharedCategory(category).key,
         payerId: payer,
@@ -99,6 +109,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { isSettled } = await request.json().catch(() => ({}));
   if (typeof isSettled !== 'boolean') {
     return NextResponse.json({ error: 'Yêu cầu không hợp lệ' }, { status: 400 });
+  }
+  // Chưa biết số tiền thì chưa có gì để trả
+  if (isSettled && existing.needsAmount) {
+    return NextResponse.json(
+      { error: 'Khoản này chưa có số tiền — điền số tiền trước khi đánh dấu đã trả' },
+      { status: 400 },
+    );
   }
   if (existing.isSettled === isSettled) return NextResponse.json(existing);
 

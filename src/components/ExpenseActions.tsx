@@ -3,7 +3,18 @@ import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function ExpenseActions({ id, hasHistory, isSettled }: { id: number, hasHistory: boolean, isSettled: boolean }) {
+export default function ExpenseActions({
+  id,
+  hasHistory,
+  isSettled,
+  needsAmount = false,
+}: {
+  id: number;
+  hasHistory: boolean;
+  isSettled: boolean;
+  // Chưa biết số tiền thì chưa có gì để trả: tắt ô "Đã trả" cho tới khi điền
+  needsAmount?: boolean;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticSettled, setOptimisticSettled] = useOptimistic(isSettled);
@@ -34,11 +45,14 @@ export default function ExpenseActions({ id, hasHistory, isSettled }: { id: numb
 
   return (
     <div className="chip-actions">
-      <label className={`chip-btn${optimisticSettled ? ' on' : ''}`}>
+      <label
+        className={`chip-btn${optimisticSettled ? ' on' : ''}${needsAmount ? ' off' : ''}`}
+        title={needsAmount ? 'Điền số tiền trước khi đánh dấu đã trả' : undefined}
+      >
         <input
           type="checkbox"
           checked={optimisticSettled}
-          disabled={isPending}
+          disabled={isPending || needsAmount}
           onChange={(e) => handleToggleSettled(e.target.checked)}
         />
         Đã trả
